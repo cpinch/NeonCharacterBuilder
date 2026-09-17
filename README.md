@@ -9,7 +9,7 @@ Currently the app only supports creation of characters, levels past 1 are not ye
 ## Installation
 Prereq - This tool is built in Java 16. You will need a JRE of that version or newer to run it.
 
-1. Download (or compile yourself) the NeonCharacterBuilder.jar runnable jar file in the targets folder. Place it in a folder somewhere on your machine.
+1. Download (or compile yourself) the NeonCharacterBuilder.jar runnable jar file from the releases page. Place it in a folder somewhere on your machine.
 2. In the same folder, place a subfolder named "data", copy the contents of the data folder from this repo there (you may wish to skip the Overdrive Expansion public data file if you don't own that expansion).
 3. In the same folder as the .jar file, place a subfolder named "resources". Place a copy of the form fillable Neon Odyssey character sheet (you will need to get this from the kickstarter files) in that subfolder.
 4. You are good to go. You can run the character builder however your local OS runs jars ("java -jar NeonCharacterBuilder.jar" in a command prompt or terminal window by default)
