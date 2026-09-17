@@ -375,10 +375,6 @@ public class CharacterClass extends Feature
 		{
 			allClasses.add(newClass);
 		}
-
-		// Load any selectables into the selectables list
-		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("selectables"))
-				.forEach(sel -> Selectable.loadSelectable(sel));
 	}
 
 	public JSONObject saveClass()
@@ -459,15 +455,6 @@ public class CharacterClass extends Feature
 				knownSpells.put(lvlCounts.getKey(), known);
 			}
 			data.put("knownSpells", knownSpells);
-		}
-		if (!selectableName.isBlank())
-		{
-			JSONArray sel = new JSONArray();
-			for (Selectable s : Selectable.getSelectablesByType(this.selectableName))
-			{
-				sel.put(s.saveFeature());
-			}
-			data.put("selectables", sel);
 		}
 		if (custom)
 		{

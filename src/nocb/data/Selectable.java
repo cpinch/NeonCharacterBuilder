@@ -147,20 +147,33 @@ public class Selectable extends Feature
 		return null;
 	}
 
-	public static void addNewSelectable(String name, String type)
+	public static void addNewSelectable(String name)
 	{
 		Selectable newSel = new Selectable();
 		newSel.name = name;
-		newSel.type = type;
 		allSelectables.add(newSel);
+	}
+
+	public static void sortAll()
+	{
+		allSelectables.sort((a, b) -> a.getName().compareTo(b.getName()));
 	}
 
 	public static void loadSelectable(JSONObject data)
 	{
+		String type = data.getString("type");
+		String name = data.getString("name");
+
+		if (allSelectables.stream().anyMatch(s -> s.getType().equals(type) && s.getName().equals(name)))
+		{
+			// Duplicate selectable, skip
+			return;
+		}
+
 		Selectable newSel = new Selectable();
 
-		newSel.type = data.getString("type");
-		newSel.name = data.getString("name");
+		newSel.type = type;
+		newSel.name = name;
 
 		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("prereqs"))
 				.forEach(p -> newSel.prereqs.add(new SelectablePrereq(p)));

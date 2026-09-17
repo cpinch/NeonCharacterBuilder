@@ -4,8 +4,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -19,7 +17,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import nocb.data.Homeworld;
-import nocb.data.Selectable;
 import nocb.data.Species;
 import nocb.data.SpeciesTrait;
 import nocb.ui.NoHorizontalScrollPanel;
@@ -40,9 +37,6 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener, Chang
 
 	private final JButton addTrait = new JButton("Add Trait");
 	private final JPanel traitsPanel = new NoHorizontalScrollPanel();
-
-	private final JButton addSelectable = new JButton("Add Selectable");
-	private final JPanel selectablesPanel = new NoHorizontalScrollPanel();
 
 	public SpeciesEditPanel()
 	{
@@ -80,12 +74,6 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener, Chang
 		add(traitsPanel, c);
 		c.gridy++;
 
-		addSelectable.addActionListener(this);
-		add(addSelectable, c);
-		c.gridy++;
-		selectablesPanel.setLayout(new GridBagLayout());
-		add(selectablesPanel, c);
-
 		setVisible(false);
 	}
 
@@ -102,7 +90,6 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener, Chang
 		homeworld.setText(species.getHomeworld() == null ? "" : species.getHomeworld().getName());
 
 		updateTraitPanels();
-		updateSelectablePanels();
 
 		setVisible(true);
 	}
@@ -135,19 +122,6 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener, Chang
 				updateTraitPanels();
 			}
 		}
-		else if (e.getSource().equals(addSelectable))
-		{
-			String type = JOptionPane.showInputDialog(null, "Selectable Type Name?:", "New Species Selectable",
-					JOptionPane.QUESTION_MESSAGE);
-			String name = JOptionPane.showInputDialog(null, "This Option Name?:", "New Species Selectable",
-					JOptionPane.QUESTION_MESSAGE);
-
-			if (!name.isBlank() && !type.isBlank())
-			{
-				Selectable.addNewSelectable(name, type);
-				updateSelectablePanels();
-			}
-		}
 	}
 
 	@Override
@@ -173,33 +147,6 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener, Chang
 			c.gridy++;
 		}
 		traitsPanel.revalidate();
-	}
-
-	private void updateSelectablePanels()
-	{
-		GridBagConstraints c = UILib.getStandardGBC();
-		c.weighty = 1;
-		c.ipady = 20;
-		selectablesPanel.removeAll();
-		List<String> selectableNames = new ArrayList<>();
-		for (SpeciesTrait st : species.getTraits())
-		{
-			if (!st.getSelectableName().isBlank())
-			{
-				selectableNames.add(st.getSelectableName());
-			}
-		}
-		for (String selectableName : selectableNames)
-		{
-			for (Selectable s : Selectable.getSelectablesByType(selectableName))
-			{
-				SelectableEditPanel sfep = new SelectableEditPanel();
-				sfep.setSelectedId(s.getId());
-				selectablesPanel.add(sfep, c);
-				c.gridy++;
-			}
-		}
-		selectablesPanel.revalidate();
 	}
 
 	private void updateDesc()

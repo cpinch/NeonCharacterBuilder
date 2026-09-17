@@ -17,6 +17,7 @@ public class DataObjectSelector extends JPanel
 	private final DataFtSelector ftSel = new DataFtSelector();
 	private final DataHwSelector hwSel = new DataHwSelector();
 	private final DataLgSelector lgSel = new DataLgSelector();
+	private final DataSelSelector selSel = new DataSelSelector();
 	private final DataSpeSelector speSel = new DataSpeSelector();
 	private final DataSlSelector slSel = new DataSlSelector();
 	private final DataSpSelector spSel = new DataSpSelector();
@@ -35,6 +36,7 @@ public class DataObjectSelector extends JPanel
 		add(ftSel, DataTypeSelector.ftStr);
 		add(hwSel, DataTypeSelector.hwStr);
 		add(lgSel, DataTypeSelector.lgStr);
+		add(selSel, DataTypeSelector.selStr);
 		add(speSel, DataTypeSelector.speStr);
 		add(slSel, DataTypeSelector.slStr);
 		add(spSel, DataTypeSelector.spStr);

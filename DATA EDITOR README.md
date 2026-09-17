@@ -49,6 +49,9 @@ The Add Class Selectable button will create a new Selectable for this class. Thi
 + Name - The language name
 + Spoken Locations - Comma separated list of locations the language is commonly spoken at, used for suggestions
 
+## Selectables
+This category is a catch-all for choices the user can select from that work like feats but aren't feats, ala the old 5E lineages. These are associated to Features via their type. You can have any number of Selectables with the same type as long as they all have unique names. They work identical to feats, just with Selectable Type instead of Feat Type. Make sure you have a feature that allows selection of their types if you want them to be used.
+
 ### Species
 + Name - The species name
 + Desc - I put in the couple of paragphs of descripotion species page here, this is intended as a "here's what this species is about" primer for users, so put whatever you want in.
