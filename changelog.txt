@@ -1,0 +1,59 @@
+v1.0 - Full Release
+	UI beautification
+	Cleanup of remaining todos
+	Documentation
+
+v0.9 - Data Editing
+	Data files moved to data libraries and loaded from there
+	Data editor built to support creation/editing of data files
+
+v0.85 - Data Editing Preview Build
+	Data library loading
+	Partial implementation of data editor
+	Special release as save/load broke some classes and I don't want to leave them broken for the entire time it will take the finish the data editor
+	Please ignore the data editor feature for now
+
+v0.8 - Saving/Loading
+	Added new nav bar at bottom of screen
+	Added feature to save characters to a nchar file
+	Added feature to load character from an nchar file
+	Fixed a bunch of bugs
+
+v0.7 - Full Features
+	All options for selection in classes and species are now supported
+	Reworked the code internals. Now, all things (feats, features, species, etc) that modify the character's set of values share a common class that handles getting/setting these features and takes care of getting all of these changes for the feature and its children recursively. So instead of having to write code for a class to check its class features and each of those features to check its selectable options and each of those to check its data etc it's all automatically handled. This is a huge improvement to the old spagetti and makes the code far simpler and more effective.
+	Made some minor UI improvements like standardizing display of all character changes and making ability scores easier to enter.
+
+v0.6 - Spells
+	All spells available at level 1 added in data
+	Class spell lists, slots, and known spell counts supported
+	Spell selector tab added
+	Spells output to pdf
+	Spells output to new docx file with full details for ease of use
+
+
+v0.5 - UI Overhaul
+	Much cleaner UI backend, with a proper class structure instead of everything being in the tab panel classes
+	Easier "duplication" of similar elements, class features no longer need big blocks of code to handle them and have max counts, they're just arbitrary lists of ClassFeaturePanels
+	From a user perspective the UI should be much easier to use and can now handle all the features and data added in the last 2 versions
+
+
+v0.4 - Basic Class Features
+	Adds support for most class feature mechanics, resistances, adding other ability to unarmored ac, extra languages, free spells, etc
+	Also enhances the handling of species traits with more options and handling
+	This does NOT include handling of "selectables" like Esoteric Secrets and Lineages, that is still tbd
+
+
+v0.3 - Data File Refactor
+	Switch the data file setup from flat text files to json
+	This has no visible effect for users right now, but makes it far easier to setup data for features and traits going forward
+
+
+v0.2 - Spellcasting
+	Adds support for selecting spellcasting ability if class, species, or origin feat grants one or more spells
+	Writes spellcasting header data to pdf
+
+
+v0.1 - Initial Release
+	Supports basic character creation and pdf export
+	No support for class features or spells at this time
