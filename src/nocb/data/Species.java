@@ -189,10 +189,6 @@ public class Species extends Feature
 		{
 			allSpecies.add(newSpecies);
 		}
-
-		// Load any selectables into the selectables list
-		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("selectables"))
-				.forEach(sel -> Selectable.loadSelectable(sel));
 	}
 
 	public JSONObject saveSpecies()
@@ -221,15 +217,6 @@ public class Species extends Feature
 				ts.put(trait.saveFeature());
 			}
 			data.put("traits", ts);
-		}
-		if (!selectableName.isBlank())
-		{
-			JSONArray sel = new JSONArray();
-			for (Selectable s : Selectable.getSelectablesByType(this.selectableName))
-			{
-				sel.put(s.saveFeature());
-			}
-			data.put("selectables", sel);
 		}
 		if (custom)
 		{

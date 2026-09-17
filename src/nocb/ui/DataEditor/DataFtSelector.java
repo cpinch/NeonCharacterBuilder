@@ -27,11 +27,11 @@ public class DataFtSelector extends SelectorPanel
 	{
 		((DefaultListModel<SelectorItem>) selector.getModel()).removeAllElements();
 
-		List<SelectorItem> spellListNames = new ArrayList<>(Feat.getAllLoadedFeats().stream()
+		List<SelectorItem> featNames = new ArrayList<>(Feat.getAllLoadedFeats().stream()
 				.map(s -> new SelectorItem(s.getId(), s.getName() + (s.isCustom() ? "*" : ""))).toList());
-		spellListNames.sort(SelectorItem::compareTo);
+		featNames.sort(SelectorItem::compareTo);
 
-		((DefaultListModel<SelectorItem>) selector.getModel()).addAll(spellListNames);
+		((DefaultListModel<SelectorItem>) selector.getModel()).addAll(featNames);
 	}
 
 	@Override

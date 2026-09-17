@@ -23,7 +23,6 @@ import nocb.data.ArmorProf;
 import nocb.data.CharacterClass;
 import nocb.data.ClassEquipment;
 import nocb.data.ClassFeature;
-import nocb.data.Selectable;
 import nocb.data.Skill;
 import nocb.ui.NoHorizontalScrollPanel;
 import nocb.ui.UILib;
@@ -47,9 +46,6 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 
 	private final JButton addFeature = new JButton("Add Class Feature");
 	private final JPanel featuresPanel = new NoHorizontalScrollPanel();
-
-	private final JButton addSelectable = new JButton("Add Selectable");
-	private final JPanel selectablesPanel = new NoHorizontalScrollPanel();
 
 	public ClassEditPanel()
 	{
@@ -111,12 +107,6 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 		add(featuresPanel, c);
 		c.gridy++;
 
-		addSelectable.addActionListener(this);
-		add(addSelectable, c);
-		c.gridy++;
-		selectablesPanel.setLayout(new GridBagLayout());
-		add(selectablesPanel, c);
-
 		setVisible(false);
 	}
 
@@ -124,8 +114,6 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 	protected void updateSelection()
 	{
 		cls = CharacterClass.getById(id);
-
-		System.out.println("Got class " + cls);
 
 		nameField.setText(cls.getName());
 		desc.setText(cls.getDesc());
@@ -154,7 +142,6 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 		equip.setText(String.join(" | ", equipStrings));
 
 		updateFeaturePanels();
-		updateSelectablePanels();
 
 		setVisible(true);
 	}
@@ -171,19 +158,6 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 			{
 				cls.addClassFeature(name);
 				updateFeaturePanels();
-			}
-		}
-		else if (e.getSource().equals(addSelectable))
-		{
-			String type = JOptionPane.showInputDialog(null, "Selectable Type Name?:", "New Class Selectable",
-					JOptionPane.QUESTION_MESSAGE);
-			String name = JOptionPane.showInputDialog(null, "This Option Name?:", "New Class Selectable",
-					JOptionPane.QUESTION_MESSAGE);
-
-			if (!name.isBlank() && !type.isBlank())
-			{
-				Selectable.addNewSelectable(name, type);
-				updateSelectablePanels();
 			}
 		}
 	}
@@ -215,34 +189,6 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 			c.gridy++;
 		}
 		featuresPanel.revalidate();
-	}
-
-	private void updateSelectablePanels()
-	{
-		GridBagConstraints c = UILib.getStandardGBC();
-		c.weighty = 1;
-		c.ipady = 20;
-		selectablesPanel.removeAll();
-		List<String> selectableNames = new ArrayList<>();
-		for (ClassFeature cf : cls.getClassFeatures())
-		{
-			if (!cf.getSelectableName().isBlank())
-			{
-				selectableNames.add(cf.getSelectableName());
-			}
-		}
-		for (String selectableName : selectableNames)
-		{
-			for (Selectable s : Selectable.getSelectablesByType(selectableName))
-			{
-				SelectableEditPanel sfep = new SelectableEditPanel();
-				sfep.setSelectedId(s.getId());
-				sfep.updateSelection();
-				selectablesPanel.add(sfep, c);
-				c.gridy++;
-			}
-		}
-		selectablesPanel.revalidate();
 	}
 
 	@Override

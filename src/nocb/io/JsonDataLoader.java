@@ -29,6 +29,7 @@ import nocb.data.CharacterClass;
 import nocb.data.Feat;
 import nocb.data.Homeworld;
 import nocb.data.Language;
+import nocb.data.Selectable;
 import nocb.data.Species;
 import nocb.data.Spell;
 import nocb.data.SpellList;
@@ -46,6 +47,7 @@ public class JsonDataLoader
 	private static final String featFolder = "feats";
 	private static final String homeworldFolder = "homeworlds";
 	private static final String languageFolder = "languages";
+	private static final String selectableFolder = "selectables";
 
 	public static void loadAllFiles()
 	{
@@ -72,6 +74,7 @@ public class JsonDataLoader
 		List<byte[]> allFeats = new ArrayList<>();
 		List<byte[]> allHomeworlds = new ArrayList<>();
 		List<byte[]> allLanguages = new ArrayList<>();
+		List<byte[]> allSelectables = new ArrayList<>();
 		for (File lib : libraries)
 		{
 			try (ZipFile libZip = new ZipFile(lib))
@@ -119,6 +122,10 @@ public class JsonDataLoader
 							else if (entry.getName().startsWith(languageFolder))
 							{
 								allLanguages.add(readAllBytes(in));
+							}
+							else if (entry.getName().startsWith(selectableFolder))
+							{
+								allSelectables.add(readAllBytes(in));
 							}
 							else
 							{
@@ -169,6 +176,13 @@ public class JsonDataLoader
 			Feat.loadFeat(readDataFromBytes(f));
 		}
 		Feat.sortAll();
+
+		// Load all selectables
+		for (byte[] f : allSelectables)
+		{
+			Selectable.loadSelectable(readDataFromBytes(f));
+		}
+		Selectable.sortAll();
 
 		// Load all backgrounds
 		for (byte[] f : allBackgrounds)
@@ -324,8 +338,7 @@ public class JsonDataLoader
 	public static void saveAllCustomDataFiles()
 	{
 		// TODO post1.0 - backup current custom just in case? delete backup at end if
-		// all went
-		// well
+		// all went well
 
 		try (ZipOutputStream out = new ZipOutputStream(
 				new FileOutputStream(new File(dataDirectory, "100_Custom.nlib"))))
@@ -376,6 +389,17 @@ public class JsonDataLoader
 				{
 					byte[] data = f.saveFeat().toString(4).getBytes(StandardCharsets.UTF_8);
 					ZipEntry ze = new ZipEntry(featFolder + "/" + f.getName() + ".json");
+					out.putNextEntry(ze);
+					out.write(data, 0, data.length);
+				}
+			}
+			for (Selectable s : Selectable.getAllSelectables())
+			{
+				if (s.isCustom())
+				{
+					byte[] data = s.saveSelectable().toString(4).getBytes(StandardCharsets.UTF_8);
+					// Selectables are uniquely named by type + name
+					ZipEntry ze = new ZipEntry(selectableFolder + "/" + s.getType() + "-" + s.getName() + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
