@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -129,7 +131,7 @@ public class JsonDataLoader
 							}
 							else
 							{
-								System.out.println("Unknown data file " + entry.getName() + " in library file "
+								System.err.println("Unknown data file " + entry.getName() + " in library file "
 										+ libZip.getName());
 							}
 						}
@@ -241,13 +243,13 @@ public class JsonDataLoader
 		}
 		catch (JSONException e)
 		{
-			System.out.println("Encountered an error parsing json " + data);
+			System.err.println("Encountered an error parsing json " + data);
 			e.printStackTrace();
 			return null;
 		}
 		catch (UnsupportedEncodingException e)
 		{
-			System.out.println("Could not read library file contents.");
+			System.err.println("Could not read library file contents.");
 			e.printStackTrace();
 			return null;
 		}
@@ -276,7 +278,7 @@ public class JsonDataLoader
 		}
 		catch (JSONException e)
 		{
-			System.out.println("Encountered an error parting file " + f.getName());
+			System.err.println("Encountered an error parting file " + f.getName());
 			e.printStackTrace();
 			return null;
 		}
@@ -337,11 +339,8 @@ public class JsonDataLoader
 
 	public static void saveAllCustomDataFiles()
 	{
-		// TODO post1.0 - backup current custom just in case? delete backup at end if
-		// all went well
-
-		try (ZipOutputStream out = new ZipOutputStream(
-				new FileOutputStream(new File(dataDirectory, "100_Custom.nlib"))))
+		File newCustomFile = new File(dataDirectory, "100_Custom-new.nlib");
+		try (ZipOutputStream out = new ZipOutputStream(new FileOutputStream(newCustomFile)))
 		{
 			for (Spell s : Spell.getAllSpells())
 			{
@@ -437,7 +436,22 @@ public class JsonDataLoader
 		}
 		catch (IOException e)
 		{
-			JOptionPane.showMessageDialog(null, "Encountered an error while saving custom data file",
+			JOptionPane.showMessageDialog(null,
+					"Encountered an error while saving custom data file. Your prior custom file has not been modified. See data/100_Custom-new.nlib for your new changes.",
+					"Error Saving Custom Data", JOptionPane.ERROR_MESSAGE);
+			e.printStackTrace();
+			return;
+		}
+
+		try
+		{
+			Files.move(newCustomFile.toPath(), new File(dataDirectory, "100_Custom.nlib").toPath(),
+					StandardCopyOption.REPLACE_EXISTING);
+		}
+		catch (IOException e)
+		{
+			JOptionPane.showMessageDialog(null,
+					"Encountered an error while overriding custom data file. Do you have it open in another program? You should have 2 custom nlib files in your data director now, 100_Custom-new.nlib contains your new changes.",
 					"Error Saving Custom Data", JOptionPane.ERROR_MESSAGE);
 			e.printStackTrace();
 		}

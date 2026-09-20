@@ -1,5 +1,6 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +32,8 @@ public class SpellListEditPanel extends EditPanel
 			sbl.setWrapStyleWord(true);
 			sbl.setBorder(BorderFactory.createEtchedBorder());
 			sbl.addFocusListener(UILib.createFocusListener(() -> updateSpells(spLvl)));
-			UILib.addLabeledComponent(this, (lvl == 0 ? "Cantrips: " : "Level " + lvl + ": "), sbl, c);
+			UILib.addLabeledComponent(this, (lvl == 0 ? "Cantrips: " : "Level " + lvl + ": "), sbl, c)
+					.setForeground(Color.black);
 			spellsByLevel.add(sbl);
 			c.gridy++;
 		}
@@ -62,13 +64,20 @@ public class SpellListEditPanel extends EditPanel
 		List<String> spells = Arrays.asList(spellsByLevel.get(lvl).getText().split(",")).stream().map(s -> s.trim())
 				.toList();
 		list.setSpellNamesForLevel(lvl, spells);
-		list.setCustom(true);
+	}
+
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (list != null)
+		{
+			list.clearCustom();
+		}
 	}
 
 	@Override
 	protected void updateName()
 	{
 		list.setName(nameField.getText());
-		list.setCustom(true);
 	}
 }

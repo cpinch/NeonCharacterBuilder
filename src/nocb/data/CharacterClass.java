@@ -1,7 +1,6 @@
 package nocb.data;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,10 +18,11 @@ public class CharacterClass extends Feature
 	private int hd = 6;
 	private final List<ClassEquipment> equipment = new ArrayList<>();
 	private int selectedEquipmentIndex = 0;
-	private final Map<Integer, Map<Integer, Integer>> spellSlotsByLevel = new HashMap<>();
-	private final Map<Integer, Map<Integer, Integer>> knownSpellsByLevel = new HashMap<>();
+	private final ClassSpells classSpells = new ClassSpells();
 
 	private final List<ClassFeature> classFeatures = new ArrayList<>();
+
+	private int level = 1;
 
 	public CharacterClass()
 	{
@@ -30,9 +30,45 @@ public class CharacterClass extends Feature
 	}
 
 	@Override
+	protected List<? extends Feature> getAllChildFeatures()
+	{
+		return getAllClassFeatures();
+	}
+
+	@Override
 	protected List<? extends Feature> getChildFeatures()
 	{
-		return classFeatures;
+		return getClassFeatures();
+	}
+
+	public List<ClassFeature> getFeaturesAtLevel(int lvl)
+	{
+		List<ClassFeature> features = new ArrayList<>();
+		for (ClassFeature f : classFeatures)
+		{
+			if (f.getLevel() == lvl)
+			{
+				features.add(f);
+			}
+		}
+		return features;
+	}
+
+	@Override
+	public void setName(String name)
+	{
+		super.setName(name);
+		classSpells.setClassName(name);
+	}
+
+	public int getLevel()
+	{
+		return level;
+	}
+
+	public void setLevel(int lvl)
+	{
+		this.level = lvl;
 	}
 
 	public String getDesc()
@@ -42,7 +78,11 @@ public class CharacterClass extends Feature
 
 	public void setDesc(String desc)
 	{
-		this.desc = desc;
+		if (!this.desc.equals(desc))
+		{
+			this.desc = desc;
+			setCustom(true);
+		}
 	}
 
 	public int getHd()
@@ -52,7 +92,11 @@ public class CharacterClass extends Feature
 
 	public void setHD(int hd)
 	{
-		this.hd = hd;
+		if (this.hd != hd)
+		{
+			this.hd = hd;
+			setCustom(true);
+		}
 	}
 
 	public boolean hasSelectablePrimary()
@@ -67,8 +111,12 @@ public class CharacterClass extends Feature
 
 	public void setPrimaryAbilityOptions(List<Ability> options)
 	{
-		this.primaryAbilityOptions.clear();
-		this.primaryAbilityOptions.addAll(options);
+		if (!primaryAbilityOptions.equals(options))
+		{
+			this.primaryAbilityOptions.clear();
+			this.primaryAbilityOptions.addAll(options);
+			setCustom(true);
+		}
 	}
 
 	public List<Ability> getPrimaryAbilities()
@@ -78,8 +126,12 @@ public class CharacterClass extends Feature
 
 	public void setPrimaryAbilities(List<Ability> abls)
 	{
-		primaryAbilities.clear();
-		primaryAbilities.addAll(abls);
+		if (!this.primaryAbilities.equals(abls))
+		{
+			primaryAbilities.clear();
+			primaryAbilities.addAll(abls);
+			setCustom(true);
+		}
 	}
 
 	public Ability getSelectedPrimary()
@@ -92,9 +144,39 @@ public class CharacterClass extends Feature
 		selectedPrimary = a;
 	}
 
+	public List<ClassFeature> getAllClassFeatures()
+	{
+		classFeatures.sort((a, b) -> Integer.compare(a.getLevel(), b.getLevel()));
+		return classFeatures;
+	}
+
 	public List<ClassFeature> getClassFeatures()
 	{
-		return classFeatures;
+		// Only return features of our class level or lower and drop any features of a
+		// lower level that have the same name as a higher level feature
+		List<ClassFeature> features = new ArrayList<>();
+		for (ClassFeature f : classFeatures)
+		{
+			if (f.getLevel() > level)
+			{
+				continue;
+			}
+			List<ClassFeature> existingFeatures = features.stream().filter(ef -> ef.getName().equals(f.getName()))
+					.toList();
+			if (!existingFeatures.isEmpty())
+			{
+				if (f.getLevel() > existingFeatures.get(0).getLevel())
+				{
+					features.remove(existingFeatures.get(0));
+				}
+				else
+				{
+					continue;
+				}
+			}
+			features.add(f);
+		}
+		return features;
 	}
 
 	public void addClassFeature(String name)
@@ -102,93 +184,59 @@ public class CharacterClass extends Feature
 		ClassFeature cf = new ClassFeature();
 		cf.setName(name);
 		classFeatures.add(cf);
+		setCustom(true);
 	}
 
-	/**
-	 * We override this from feature as we use a custom list by char level
-	 */
+	public void removeLastClassFeature()
+	{
+		classFeatures.remove(classFeatures.size() - 1);
+		setCustom(true);
+	}
+
 	@Override
 	public List<Spell> getAllSpells()
 	{
-		throw new UnsupportedOperationException("CharacterClass must have the int param version called for this.");
-	}
-
-	public List<Spell> getAllSpells(int classLevel)
-	{
 		List<Spell> spells = new ArrayList<>();
 
-		spells.addAll(getAllSpellsGranted());
-		for (int i = 0; i <= 9; i++)
-		{
-			spells.addAll(getSpellChoicesByLevel(classLevel, i).stream().map(sc -> sc.getSpell()).toList());
-		}
+		spells.addAll(super.getAllSpells());
+		spells.addAll(classSpells.getAllSelectedSpells(level));
 
 		return spells;
 	}
 
+	public ClassSpells getClassSpells()
+	{
+		return classSpells;
+	}
+
 	/**
-	 * We override this from feature as we use a custom list by char level
+	 * We need to grab the spell choices from its ClassSkills. This is used by the
+	 * getAll that is called by SpellsPanel, and we want that to keep using the
+	 * getAll so it grabs from class features too
 	 */
 	@Override
 	public List<SpellChoice> getSpellChoicesByLevel(int spellLevel)
 	{
-		throw new UnsupportedOperationException("CharacterClass must have the 2 int version called for this.");
+		return classSpells.getSpellChoicesByLevel(level, spellLevel);
 	}
 
-	public List<SpellChoice> getSpellChoicesByLevel(int classLevel, int spellLevel)
+	/**
+	 * This is called by the FeaturePanel and FeatureEditPanel, neither of which
+	 * classes uses
+	 */
+	@Override
+	public Map<Integer, List<SpellChoice>> getSpellChoices()
 	{
-		int count = 0;
-		if (knownSpellsByLevel.containsKey(classLevel))
-		{
-			Map<Integer, Integer> knownForLevel = knownSpellsByLevel.get(classLevel);
-
-			if (knownForLevel.containsKey(spellLevel))
-			{
-				count = knownForLevel.get(spellLevel);
-			}
-		}
-
-		if (this.spellChoices.get(spellLevel) == null)
-		{
-			this.spellChoices.put(spellLevel, new ArrayList<>());
-		}
-
-		List<SpellChoice> scs = new ArrayList<>();
-		SpellList spellList = SpellList.getForClass(name);
-		for (int i = 0; i < count; i++)
-		{
-			if (this.spellChoices.get(spellLevel).size() > i)
-			{
-				scs.add(this.spellChoices.get(spellLevel).get(i));
-			}
-			else
-			{
-				SpellChoice sc = new SpellChoice(spellList, spellLevel);
-				scs.add(sc);
-				this.spellChoices.get(spellLevel).add(sc);
-			}
-		}
-
-		for (Feature f : classFeatures)
-		{
-			scs.addAll(f.getAllSpellChoicesByLevel(spellLevel));
-		}
-
-		return scs;
+		throw new UnsupportedOperationException("CharacterClass must go through the ClassSpells class.");
 	}
 
-	public int getSpellSlots(int classLevel, int spellLevel)
+	/**
+	 * This is called by the FeatureEditPanel which classes doesn't uses
+	 */
+	@Override
+	public void setSpellChoices(Map<Integer, List<SpellChoice>> spellChoices)
 	{
-		if (spellSlotsByLevel.containsKey(classLevel))
-		{
-			Map<Integer, Integer> slotsForLevel = spellSlotsByLevel.get(classLevel);
-
-			if (slotsForLevel.containsKey(spellLevel))
-			{
-				return slotsForLevel.get(spellLevel);
-			}
-		}
-		return 0;
+		throw new UnsupportedOperationException("CharacterClass must go through the ClassSpells class.");
 	}
 
 	public int getEquipmentOptionsCount()
@@ -203,8 +251,12 @@ public class CharacterClass extends Feature
 
 	public void setEquipmentOptions(List<ClassEquipment> e)
 	{
-		equipment.clear();
-		equipment.addAll(e);
+		if (!equipment.equals(e))
+		{
+			equipment.clear();
+			equipment.addAll(e);
+			setCustom(true);
+		}
 	}
 
 	public int getSelectedEquipmentIndex()
@@ -287,7 +339,7 @@ public class CharacterClass extends Feature
 				return cc;
 			}
 		}
-		System.out.println("Unknown class " + name);
+		System.err.println("Unknown class " + name);
 		return null;
 	}
 
@@ -300,7 +352,7 @@ public class CharacterClass extends Feature
 				return cc;
 			}
 		}
-		System.out.println("Unknown class id " + id);
+		System.err.println("Unknown class id " + id);
 		return null;
 	}
 
@@ -345,31 +397,8 @@ public class CharacterClass extends Feature
 		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("features"))
 				.forEach(feature -> newClass.classFeatures.add(new ClassFeature(feature)));
 
-		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("spellSlots")).forEach(slotsByLevel ->
-		{
-			int charLevel = slotsByLevel.getInt("charLevel");
-			Map<Integer, Integer> spellCountBySpellLevel = new HashMap<>();
-
-			JsonDataLoader.jsonArrayToObjectArray(slotsByLevel.getJSONArray("slots")).forEach(sc ->
-			{
-				spellCountBySpellLevel.put(sc.getInt("level"), sc.getInt("count"));
-			});
-
-			newClass.spellSlotsByLevel.put(charLevel, spellCountBySpellLevel);
-		});
-
-		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("knownSpells")).forEach(knownSpellsByLevel ->
-		{
-			int charLevel = knownSpellsByLevel.getInt("charLevel");
-			Map<Integer, Integer> spellCountBySpellLevel = new HashMap<>();
-
-			JsonDataLoader.jsonArrayToObjectArray(knownSpellsByLevel.getJSONArray("spellChoices")).forEach(sc ->
-			{
-				spellCountBySpellLevel.put(sc.getInt("level"), sc.getInt("count"));
-			});
-
-			newClass.knownSpellsByLevel.put(charLevel, spellCountBySpellLevel);
-		});
+		newClass.classSpells.setClassName(name);
+		newClass.classSpells.loadFromData(data.optJSONObject("classSpells"));
 
 		if (!newClass.getName().isBlank())
 		{
@@ -379,7 +408,7 @@ public class CharacterClass extends Feature
 
 	public JSONObject saveClass()
 	{
-		JSONObject data = new JSONObject();
+		JSONObject data = super.saveFeature();
 
 		data.put("name", name);
 		data.put("desc", desc);
@@ -422,39 +451,9 @@ public class CharacterClass extends Feature
 			}
 			data.put("features", cf);
 		}
-		if (!spellSlotsByLevel.isEmpty())
+		if (isSpellcaster())
 		{
-			JSONArray spellSlots = new JSONArray();
-			for (Map.Entry<Integer, Map<Integer, Integer>> lvlCounts : spellSlotsByLevel.entrySet())
-			{
-				JSONArray slots = new JSONArray();
-				for (Map.Entry<Integer, Integer> spCounts : lvlCounts.getValue().entrySet())
-				{
-					JSONObject obj = new JSONObject();
-					obj.put("level", spCounts.getKey());
-					obj.put("count", spCounts.getValue());
-					slots.put(obj);
-				}
-				spellSlots.put(lvlCounts.getKey(), slots);
-			}
-			data.put("spellSlots", spellSlots);
-		}
-		if (!knownSpellsByLevel.isEmpty())
-		{
-			JSONArray knownSpells = new JSONArray();
-			for (Map.Entry<Integer, Map<Integer, Integer>> lvlCounts : knownSpellsByLevel.entrySet())
-			{
-				JSONArray known = new JSONArray();
-				for (Map.Entry<Integer, Integer> spCounts : lvlCounts.getValue().entrySet())
-				{
-					JSONObject obj = new JSONObject();
-					obj.put("level", spCounts.getKey());
-					obj.put("count", spCounts.getValue());
-					known.put(obj);
-				}
-				knownSpells.put(lvlCounts.getKey(), known);
-			}
-			data.put("knownSpells", knownSpells);
+			data.put("classSpells", classSpells.saveClassSpells());
 		}
 		if (custom)
 		{
@@ -467,12 +466,12 @@ public class CharacterClass extends Feature
 	@Override
 	public JSONObject saveState()
 	{
-		// All we need to save is choices, so selectedEquipment, spellChoices, and then
-		// classFeatures, everything else we pull based on name
-		JSONObject json = super.saveState(); // This handles skill and spell choices
+		JSONObject json = super.saveState(); // This handles skill choices
 
+		json.put("level", level);
 		json.put("selectedEquipmentIndex", selectedEquipmentIndex);
 		json.put("classFeatures", new JSONArray(classFeatures.stream().map(cf -> cf.saveState()).toList()));
+		json.put("spellChoices", classSpells.saveState());
 
 		return json;
 	}
@@ -485,6 +484,7 @@ public class CharacterClass extends Feature
 		boolean successful = true;
 		try
 		{
+			this.level = data.optInt("level", 1);
 			this.selectedEquipmentIndex = data.getInt("selectedEquipmentIndex");
 			JSONArray featureStates = data.getJSONArray("classFeatures");
 			for (int i = 0; i < featureStates.length(); i++)
@@ -500,6 +500,7 @@ public class CharacterClass extends Feature
 					}
 				}
 			}
+			this.classSpells.loadState(data.optJSONObject("spellChoices"));
 		}
 		catch (Exception e)
 		{

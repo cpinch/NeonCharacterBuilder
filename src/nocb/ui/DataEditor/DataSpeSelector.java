@@ -37,7 +37,10 @@ public class DataSpeSelector extends SelectorPanel
 	@Override
 	protected void updateSelection()
 	{
-		spp.setSelectedId(selector.getSelectedValue().getId());
+		if (selector.getSelectedValue() != null)
+		{
+			spp.setSelectedId(selector.getSelectedValue().getId());
+		}
 	}
 
 	@Override
@@ -45,5 +48,11 @@ public class DataSpeSelector extends SelectorPanel
 	{
 		Species.addNewSpecies(name);
 		updateSpecies();
+	}
+
+	@Override
+	protected void clearSelectionCustom()
+	{
+		spp.clearSelectedCustom();
 	}
 }

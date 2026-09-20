@@ -26,6 +26,7 @@ import nocb.io.JsonDataLoader;
 import nocb.ui.AbilityPanel;
 import nocb.ui.BackgroundPanel;
 import nocb.ui.ClassPanel;
+import nocb.ui.LevelUpPanel;
 import nocb.ui.SpeciesPanel;
 import nocb.ui.SpellsPanel;
 import nocb.ui.SummaryPanel;
@@ -48,6 +49,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 	private final BackgroundPanel backP = new BackgroundPanel(sheet);
 	private final SpellsPanel spellP = new SpellsPanel(sheet);
 	private final SummaryPanel summaryP = new SummaryPanel(sheet);
+	private final LevelUpPanel levelP = new LevelUpPanel(sheet);
 
 	private static final String backS = "<- Back", dataES = "Data Editor";
 	private final JButton back = new JButton();
@@ -67,6 +69,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		tabbedPane.addTab("Ability Scores", abilityP);
 		tabbedPane.addTab("Spells", spellP);
 		tabbedPane.addTab("Summary/Export", summaryP);
+		tabbedPane.addTab("Level Up", levelP);
 		tabbedPane.addChangeListener(this);
 
 		getContentPane().add(tabbedPane, BorderLayout.CENTER);
@@ -178,6 +181,10 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 			else if (tabbedPane.getSelectedComponent().equals(summaryP))
 			{
 				summaryP.updateDetails();
+			}
+			else if (tabbedPane.getSelectedComponent().equals(levelP))
+			{
+				levelP.updateDetails();
 			}
 			back.setText(tabbedPane.getSelectedIndex() > 0 ? backS : dataES);
 			next.setEnabled(tabbedPane.getSelectedIndex() < tabbedPane.getTabCount() - 1);

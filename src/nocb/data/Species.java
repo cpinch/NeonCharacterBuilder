@@ -2,6 +2,7 @@ package nocb.data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -15,15 +16,54 @@ public class Species extends Feature
 
 	private final List<SpeciesTrait> traits = new ArrayList<>();
 
+	private Callable<Integer> getCharLevel;
+
 	public Species()
 	{
 		super();
 	}
 
+	public void setupGetCharLevel(Callable<Integer> getCharLevel)
+	{
+		this.getCharLevel = getCharLevel;
+	}
+
+	public int getCharLevel()
+	{
+		try
+		{
+			return getCharLevel.call();
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			return 1;
+		}
+	}
+
+	@Override
+	protected List<? extends Feature> getAllChildFeatures()
+	{
+		return getAllTraits();
+	}
+
 	@Override
 	protected List<? extends Feature> getChildFeatures()
 	{
-		return traits;
+		return getTraits();
+	}
+
+	public List<SpeciesTrait> getTraitsAtLevel(int lvl)
+	{
+		List<SpeciesTrait> features = new ArrayList<>();
+		for (SpeciesTrait f : traits)
+		{
+			if (f.getLevel() == lvl)
+			{
+				features.add(f);
+			}
+		}
+		return features;
 	}
 
 	public String getDesc()
@@ -33,7 +73,11 @@ public class Species extends Feature
 
 	public void setDesc(String desc)
 	{
-		this.desc = desc;
+		if (!this.desc.equals(desc))
+		{
+			this.desc = desc;
+			setCustom(true);
+		}
 	}
 
 	public String getType()
@@ -43,7 +87,11 @@ public class Species extends Feature
 
 	public void setType(String type)
 	{
-		this.type = type;
+		if (!this.type.equals(type))
+		{
+			this.type = type;
+			setCustom(true);
+		}
 	}
 
 	public String getSpeciesSize()
@@ -53,7 +101,11 @@ public class Species extends Feature
 
 	public void setSpeciesSize(String size)
 	{
-		this.size = size;
+		if (!this.size.equals(size))
+		{
+			this.size = size;
+			setCustom(true);
+		}
 	}
 
 	public String getSize()
@@ -73,11 +125,46 @@ public class Species extends Feature
 
 	public void setHomeworld(Homeworld h)
 	{
-		this.speciesHomeworld = h;
+		if (!this.speciesHomeworld.equals(h))
+		{
+			this.speciesHomeworld = h;
+			setCustom(true);
+		}
+	}
+
+	public List<SpeciesTrait> getAllTraits()
+	{
+		traits.sort((a, b) -> a.getName().compareTo(b.getName()));
+		return traits;
 	}
 
 	public List<SpeciesTrait> getTraits()
 	{
+		int lvl = getCharLevel();
+		// Only return traits of our character level or lower and drop any traits of a
+		// lower level that have the same name as a higher level trait
+		List<SpeciesTrait> features = new ArrayList<>();
+		for (SpeciesTrait f : traits)
+		{
+			if (f.getLevel() > lvl)
+			{
+				continue;
+			}
+			List<SpeciesTrait> existingFeatures = features.stream().filter(ef -> ef.getName().equals(f.getName()))
+					.toList();
+			if (!existingFeatures.isEmpty())
+			{
+				if (f.getLevel() > existingFeatures.get(0).getLevel())
+				{
+					features.remove(existingFeatures.get(0));
+				}
+				else
+				{
+					continue;
+				}
+			}
+			features.add(f);
+		}
 		return traits;
 	}
 
@@ -86,6 +173,13 @@ public class Species extends Feature
 		SpeciesTrait st = new SpeciesTrait();
 		st.setName(name);
 		traits.add(st);
+		setCustom(true);
+	}
+
+	public void removeLastTrait()
+	{
+		traits.remove(traits.size() - 1);
+		setCustom(true);
 	}
 
 	// Calculated
@@ -112,7 +206,7 @@ public class Species extends Feature
 				return s;
 			}
 		}
-		System.out.println("Unknown species " + name);
+		System.err.println("Unknown species " + name);
 		return null;
 	}
 
@@ -125,7 +219,7 @@ public class Species extends Feature
 				return s;
 			}
 		}
-		System.out.println("Unknown species id " + id);
+		System.err.println("Unknown species id " + id);
 		return null;
 	}
 
@@ -214,7 +308,7 @@ public class Species extends Feature
 			JSONArray ts = new JSONArray();
 			for (SpeciesTrait trait : traits)
 			{
-				ts.put(trait.saveFeature());
+				ts.put(trait.saveTrait());
 			}
 			data.put("traits", ts);
 		}

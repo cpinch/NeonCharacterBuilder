@@ -8,6 +8,7 @@ import java.awt.event.ActionListener;
 
 import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -21,6 +22,7 @@ public class ClassPanel extends JPanel implements ActionListener
 	private final CharacterSheet sheet;
 
 	private final JComboBox<String> classNameSelector;
+	private final JLabel classLevelLabel = UILib.getLabel("");
 	private final ClassTraitsPanel traitsPanel;
 	private final ClassFeaturesPanel featuresPanel;
 
@@ -30,14 +32,24 @@ public class ClassPanel extends JPanel implements ActionListener
 
 		setBorder(BorderFactory.createEtchedBorder());
 		setLayout(new GridBagLayout());
+		setBackground(VaporwaveColors.DARK_PURPLE);
 		GridBagConstraints c = UILib.getStandardGBC();
 
+		JPanel classHeaderPanel = new JPanel(new GridBagLayout());
+		classHeaderPanel.setOpaque(false);
 		classNameSelector = new JComboBox<>(
 				CharacterClass.getAllClasses().stream().map(cls -> cls.getName()).toList().toArray(new String[0]));
 		classNameSelector.addActionListener(this);
 		classNameSelector.setBackground(VaporwaveColors.DEEP_VIOLET);
 		classNameSelector.setForeground(VaporwaveColors.LASER_YELLOW);
-		UILib.addLabeledComponent(this, "Class: ", classNameSelector, c);
+		classHeaderPanel.add(classNameSelector, c);
+		c.gridx++;
+		c.weightx = 0;
+		classLevelLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10));
+		classHeaderPanel.add(classLevelLabel, c);
+		c.gridx = 0;
+		c.weightx = 1;
+		UILib.addLabeledComponent(this, "Class: ", classHeaderPanel, c);
 		c.gridy++;
 		c.weighty = 1;
 
@@ -64,6 +76,7 @@ public class ClassPanel extends JPanel implements ActionListener
 		{
 			CharacterClass selectedClass = CharacterClass.getByName((String) classNameSelector.getSelectedItem());
 			sheet.setCharClass(selectedClass);
+			classLevelLabel.setText("Level " + selectedClass.getLevel());
 
 			traitsPanel.updateDetails();
 			featuresPanel.updateDetails();

@@ -27,6 +27,7 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 	protected final JPanel display = new NoHorizontalScrollPanel();
 
 	private JButton newBtn = new JButton("New");
+	private JButton clrBtn = new JButton("Clear");
 	private final String typeName;
 
 	public SelectorPanel(String typeName)
@@ -35,7 +36,6 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 
 		display.setLayout(new BorderLayout());
 		setLayout(new BorderLayout());
-		newBtn.addActionListener(this);
 		selector.addListSelectionListener(this);
 		JScrollPane selScroll = new JScrollPane(selector);
 		selScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
@@ -47,13 +47,19 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 		selectorPanel.add(selScroll, c);
 		c.weighty = 0;
 		c.gridy++;
+		newBtn.addActionListener(this);
 		selectorPanel.add(newBtn, c);
+		c.gridy++;
+		clrBtn.addActionListener(this);
+		selectorPanel.add(clrBtn, c);
 		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, selectorPanel, disScroll);
 		split.setContinuousLayout(true);
 		add(split, BorderLayout.CENTER);
 	}
 
 	protected abstract void updateSelection();
+
+	protected abstract void clearSelectionCustom();
 
 	protected abstract void createNew(String name);
 
@@ -78,6 +84,10 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 			{
 				createNew(name);
 			}
+		}
+		else if (e.getSource().equals(clrBtn))
+		{
+			clearSelectionCustom();
 		}
 	}
 }

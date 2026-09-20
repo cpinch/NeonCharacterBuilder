@@ -38,7 +38,10 @@ public class DataSelSelector extends SelectorPanel
 	@Override
 	protected void updateSelection()
 	{
-		stp.setSelectedId(selector.getSelectedValue().getId());
+		if (selector.getSelectedValue() != null)
+		{
+			stp.setSelectedId(selector.getSelectedValue().getId());
+		}
 	}
 
 	@Override
@@ -46,5 +49,11 @@ public class DataSelSelector extends SelectorPanel
 	{
 		Selectable.addNewSelectable(name);
 		updateSelectables();
+	}
+
+	@Override
+	protected void clearSelectionCustom()
+	{
+		stp.clearSelectedCustom();
 	}
 }

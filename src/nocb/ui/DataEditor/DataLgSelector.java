@@ -37,7 +37,10 @@ public class DataLgSelector extends SelectorPanel
 	@Override
 	protected void updateSelection()
 	{
-		lwp.setSelectedId(selector.getSelectedValue().getId());
+		if (selector.getSelectedValue() != null)
+		{
+			lwp.setSelectedId(selector.getSelectedValue().getId());
+		}
 	}
 
 	@Override
@@ -45,5 +48,11 @@ public class DataLgSelector extends SelectorPanel
 	{
 		Language.addNewLanguage(name);
 		updateLanguages();
+	}
+
+	@Override
+	protected void clearSelectionCustom()
+	{
+		lwp.clearSelectedCustom();
 	}
 }

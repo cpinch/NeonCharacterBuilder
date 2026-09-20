@@ -37,7 +37,10 @@ public class DataFtSelector extends SelectorPanel
 	@Override
 	protected void updateSelection()
 	{
-		ftp.setSelectedId(selector.getSelectedValue().getId());
+		if (selector.getSelectedValue() != null)
+		{
+			ftp.setSelectedId(selector.getSelectedValue().getId());
+		}
 	}
 
 	@Override
@@ -45,5 +48,11 @@ public class DataFtSelector extends SelectorPanel
 	{
 		Feat.addNewFeat(name);
 		updateFeats();
+	}
+
+	@Override
+	protected void clearSelectionCustom()
+	{
+		ftp.clearSelectedCustom();
 	}
 }

@@ -13,15 +13,14 @@ import nocb.data.Background;
 import nocb.data.CharacterClass;
 import nocb.data.Feat;
 import nocb.data.Language;
+import nocb.data.Proficiency;
 import nocb.data.Skill;
 import nocb.data.Species;
 import nocb.data.Spell;
 
 public class CharacterSheet
 {
-	// Sheet-specific fields
 	private String name = "";
-	private int lvl = 1, prof = 2;
 
 	public String getName()
 	{
@@ -31,16 +30,6 @@ public class CharacterSheet
 	public void setName(String name)
 	{
 		this.name = name;
-	}
-
-	public int getLevel()
-	{
-		return lvl;
-	}
-
-	public int getProficiency()
-	{
-		return prof;
 	}
 
 	// Sub-fields
@@ -67,6 +56,7 @@ public class CharacterSheet
 	public void setSpecies(Species s)
 	{
 		this.species = s;
+		species.setupGetCharLevel(() -> getLevel());
 	}
 
 	public Background getBackground()
@@ -85,6 +75,17 @@ public class CharacterSheet
 	}
 
 	// Calculated fields
+
+	public int getLevel()
+	{
+		// TODO multiclass - sum levels of all classes
+		return charClass.getLevel();
+	}
+
+	public int getProficiency()
+	{
+		return Proficiency.getProfForLevel(getLevel());
+	}
 
 	public boolean saveProficient(Ability a)
 	{
@@ -111,7 +112,6 @@ public class CharacterSheet
 	public int getSkillTotal(Skill s)
 	{
 		int total = getTotalAbilityMod(s.getAbility());
-		// if (skillHalfProficient()) {} // TODO post1.0 - Icon Level up
 		if (skillProficient(s))
 		{
 			if (skillExpert(s))
@@ -122,6 +122,10 @@ public class CharacterSheet
 			{
 				total += getProficiency();
 			}
+		}
+		else if (charClass.givesHalfProfAll())
+		{
+			total += Math.floorDiv(getProficiency(), 2);
 		}
 		Map<Skill, Ability> abilityAdds = charClass.getAllAbilitiesAddToSkills();
 		if (abilityAdds.containsKey(s))
@@ -238,8 +242,7 @@ public class CharacterSheet
 			return getTotalAbilityScore(charClass.getSelectedPrimary());
 		}
 
-		// TODO post1.0 - When handling level up, also need to query class features for
-		// increases
+		// TODO lvl 4 - Need to query class features for ability score increases
 		return abilityScores.getTotalScoreFor(a);
 	}
 
@@ -297,7 +300,7 @@ public class CharacterSheet
 	{
 		List<Spell> gs = new ArrayList<>();
 
-		gs.addAll(charClass.getAllSpells(lvl)); // Class has both granted and selected spells and spells by class level
+		gs.addAll(charClass.getAllSpells());
 		gs.addAll(species.getAllSpellsGranted());
 		gs.addAll(background.getAllSpellsGranted());
 
@@ -336,8 +339,6 @@ public class CharacterSheet
 		JSONObject json = new JSONObject();
 
 		json.put("name", name);
-		json.put("lvl", lvl);
-		json.put("prof", prof);
 
 		json.put("charClassName", charClass.getName());
 		json.put("charClass", charClass.saveState());
@@ -356,12 +357,10 @@ public class CharacterSheet
 		try
 		{
 			this.name = data.getString("name");
-			this.lvl = data.getInt("lvl");
-			this.prof = data.getInt("prof");
 
 			setCharClass(CharacterClass.getByName(data.getString("charClassName")));
 			setSpecies(Species.getByName(data.getString("speciesName")));
-			// TODO post1.0 - currently backgrounds are just custom, this will be needed
+			// TODO backgrounds - currently backgrounds are just custom, this will be needed
 			// once they exist
 			// setBackground(Background.getByName(data.getString("backgroundName")));
 			setBackground(Background.getCustom());

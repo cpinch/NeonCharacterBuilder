@@ -13,19 +13,40 @@ import nocb.main.CharacterSheet;
 
 public class SelectablePrereq
 {
-	public static final List<String> prereqTypes = List.of("homeworld trait", "class level", "prior selectable",
-			"class feature");
+	private static final String clsLvl = "Class Level", pSel = "Prior Selection", hTrait = "Homeworld Trait";
+	public static final List<String> prereqTypes = List.of(clsLvl, pSel, hTrait);
 	private static int nId = 1;
 
 	private final int id;
-	private String type;
+	private String type = "";
 	private final List<String> required = new ArrayList<>();
+	private boolean custom = false;
 
 	public SelectablePrereq(JSONObject data)
 	{
 		this.id = nId++;
 		this.type = data.getString("type");
 		JsonDataLoader.jsonArrayToStringArray(data.getJSONArray("required")).forEach(req -> this.required.add(req));
+		this.custom = data.optBoolean("custom", false);
+	}
+
+	public JSONObject saveSelectablePrereq()
+	{
+		JSONObject data = new JSONObject();
+
+		data.put("type", type);
+		JSONArray reqArr = new JSONArray();
+		for (String req : required)
+		{
+			reqArr.put(req);
+		}
+		data.put("required", reqArr);
+		if (custom)
+		{
+			data.put("custom", true);
+		}
+
+		return data;
 	}
 
 	public SelectablePrereq()
@@ -45,7 +66,11 @@ public class SelectablePrereq
 
 	public void setType(String type)
 	{
-		this.type = type;
+		if (!this.type.equals(type))
+		{
+			this.type = type;
+			setCustom(true);
+		}
 	}
 
 	public List<String> getRequired()
@@ -55,29 +80,29 @@ public class SelectablePrereq
 
 	public void setRequred(List<String> req)
 	{
-		this.required.clear();
-		this.required.addAll(req);
+		if (!this.required.equals(req))
+		{
+			this.required.clear();
+			this.required.addAll(req);
+			setCustom(true);
+		}
 	}
 
-	public JSONObject saveSelectablePrereq()
+	public boolean isCustom()
 	{
-		JSONObject data = new JSONObject();
+		return custom;
+	}
 
-		data.put("type", type);
-		JSONArray reqArr = new JSONArray();
-		for (String req : required)
-		{
-			reqArr.put(req);
-		}
-
-		return data;
+	private void setCustom(boolean custom)
+	{
+		this.custom = custom;
 	}
 
 	public boolean met(CharacterSheet sheet)
 	{
 		switch (type)
 		{
-			case "homeworld trait":
+			case hTrait:
 				Homeworld h = sheet.getBackground().getHomeworld();
 				if (h != null)
 				{
@@ -89,35 +114,35 @@ public class SelectablePrereq
 						}
 					}
 				}
-			break;
-			case "class level":
+				return false;
+			case clsLvl:
 				final Map<String, Integer> requiredClassLevels = new HashMap<>();
 				required.forEach(
 						r -> requiredClassLevels.put(r.split("-")[0].trim(), Integer.parseInt(r.split("-")[1].trim())));
+				List<CharacterClass> classes = List.of(sheet.getCharClass()); // TODO multiclass - revise this
 
-				// TODO post1.0 - When level ups are supported will need to rework this
 				for (Map.Entry<String, Integer> rcl : requiredClassLevels.entrySet())
 				{
-					if (rcl.getValue() > 1)
+					if (classes.stream()
+							.anyMatch(c -> c.getName().equals(rcl.getKey()) && c.getLevel() >= rcl.getValue()))
 					{
-						return false;
+						return true;
 					}
 				}
-				return true;
-			case "prior selectable":
-				final Map<String, String> requiredSelections = new HashMap<>();
-				required.forEach(r -> requiredSelections.put(r.split("-")[0].trim(), r.split("-")[1].trim()));
-
-				// TODO post1.0 - When level ups are supported will need to rework this to look
-				// through all selections for one of type key with name value and, if found,
-				// return true
-				// For now it's impossible to meet
 				return false;
-			case "class feature":
-				return sheet.getCharClass().getClassFeatures().stream()
-						.anyMatch(f -> f.getName().equals(required.get(0)));
+			case pSel:
+				for (ClassFeature cf : sheet.getCharClass().getClassFeatures())
+				{
+					if (cf.getName().equals(required.get(0))
+							|| (cf.getSelected() != null && cf.getSelected().getName().equals(required.get(0)))
+							|| cf.getFeat() != null && cf.getFeat().getName().equals(required.get(0)))
+					{
+						return true;
+					}
+				}
+				return false;
 			default:
-				System.out.println("Unknown Prereq Type " + type);
+				System.err.println("Unknown Prereq Type " + type);
 		}
 		return false;
 	}
@@ -127,16 +152,12 @@ public class SelectablePrereq
 	{
 		switch (type)
 		{
-			case "homeworld trait":
+			case hTrait:
 				return "Requires Homeworld has trait in (" + String.join(", ", required) + ")";
-			case "class level":
-				// TODO post1.0 - when level ups
-				return "todo";
-			case "prior selectable":
-				// TODO post1.0 - when level ups
-				return "todo";
-			case "class feature":
-				return "Requires Class Feature " + required.get(0);
+			case clsLvl:
+				return "Requires Class Level " + String.join(", ", required);
+			case pSel:
+				return "Requires Prior Class Feature " + required.get(0);
 			default:
 				return "Unknown Prereq Type " + type;
 		}

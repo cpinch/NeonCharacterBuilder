@@ -43,7 +43,11 @@ public class SpellList
 
 	public void setName(String name)
 	{
-		this.name = name;
+		if (!this.name.equals(name))
+		{
+			this.name = name;
+			setCustom(true);
+		}
 	}
 
 	public List<String> getSpellNamesForLevel(int spellLevel)
@@ -62,7 +66,11 @@ public class SpellList
 
 	public void setSpellNamesForLevel(int spellLevel, List<String> spn)
 	{
-		spellNames.put(spellLevel, spn);
+		if (!spellNames.containsKey(spellLevel) || !spellNames.get(spellLevel).equals(spn))
+		{
+			spellNames.put(spellLevel, spn);
+			setCustom(true);
+		}
 	}
 
 	public List<Spell> getSpells(List<String> spellNames)
@@ -90,9 +98,14 @@ public class SpellList
 		return custom;
 	}
 
-	public void setCustom(boolean custom)
+	private void setCustom(boolean custom)
 	{
 		this.custom = custom;
+	}
+
+	public void clearCustom()
+	{
+		setCustom(false);
 	}
 
 	// Loading
@@ -112,7 +125,7 @@ public class SpellList
 				return s;
 			}
 		}
-		System.out.println("Unknown spell list id " + id);
+		System.err.println("Unknown spell list id " + id);
 		return null;
 	}
 
@@ -125,7 +138,7 @@ public class SpellList
 				return s;
 			}
 		}
-		System.out.println("Unknown class name for spell list " + className);
+		System.err.println("Unknown class name for spell list " + className);
 		return null;
 	}
 
@@ -202,5 +215,17 @@ public class SpellList
 		}
 
 		return data;
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o)
+			return true;
+
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		return getId() == ((SpellList) o).getId();
 	}
 }

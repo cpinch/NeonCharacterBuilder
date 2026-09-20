@@ -25,7 +25,11 @@ public class Feat extends Selectable
 
 	public void setFeatType(String type)
 	{
-		this.featType = type;
+		if (!this.featType.equals(type))
+		{
+			this.featType = type;
+			setCustom(true);
+		}
 	}
 
 	public String getFeatString()
@@ -71,6 +75,21 @@ public class Feat extends Selectable
 		return filteredFeats;
 	}
 
+	public static List<Feat> getAllFeatsOfType(CharacterSheet sheet, String featType)
+	{
+		List<Feat> filteredFeats = new ArrayList<>();
+
+		for (Feat f : allFeats)
+		{
+			if (f.featType.equals(featType))
+			{
+				filteredFeats.add(f);
+			}
+		}
+
+		return filteredFeats;
+	}
+
 	public static List<Feat> getAllValidFeatsOfType(CharacterSheet sheet, String featType)
 	{
 		List<Feat> filteredFeats = new ArrayList<>();
@@ -95,7 +114,7 @@ public class Feat extends Selectable
 				return f;
 			}
 		}
-		System.out.println("Unknown feat id " + id);
+		System.err.println("Unknown feat id " + id);
 		return null;
 	}
 
@@ -108,7 +127,7 @@ public class Feat extends Selectable
 				return f;
 			}
 		}
-		System.out.println("Unknown feat " + name);
+		System.err.println("Unknown feat " + name);
 		return null;
 	}
 
@@ -148,7 +167,7 @@ public class Feat extends Selectable
 		JsonDataLoader.jsonArrayToObjectArray(data.getJSONArray("features"))
 				.forEach(f -> newFeat.features.add(new SelectableFeature(f)));
 
-		newFeat.setCustom(data.optBoolean("custom", false));
+		newFeat.custom = data.optBoolean("custom", false);
 
 		if (!newFeat.getName().isBlank())
 		{

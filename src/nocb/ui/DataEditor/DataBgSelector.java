@@ -24,4 +24,9 @@ public class DataBgSelector extends SelectorPanel
 	protected void createNew(String name)
 	{
 	}
+
+	@Override
+	protected void clearSelectionCustom()
+	{
+	}
 }

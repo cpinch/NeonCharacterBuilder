@@ -1,5 +1,6 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 
@@ -22,8 +23,9 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 	{
 		setLayout(new GridBagLayout());
 
+		c.gridwidth = 2;
 		nameField.addFocusListener(UILib.createFocusListener(() -> updateName()));
-		UILib.addLabeledComponent(this, "Name: ", nameField, c);
+		UILib.addLabeledComponent(this, "Name: ", nameField, c).setForeground(Color.black);
 		c.gridy++;
 	}
 
@@ -36,4 +38,6 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 	protected abstract void updateName();
 
 	protected abstract void updateSelection();
+
+	protected abstract void clearSelectedCustom();
 }

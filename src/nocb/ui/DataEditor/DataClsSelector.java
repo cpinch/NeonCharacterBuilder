@@ -37,7 +37,10 @@ public class DataClsSelector extends SelectorPanel
 	@Override
 	protected void updateSelection()
 	{
-		cpp.setSelectedId(selector.getSelectedValue().getId());
+		if (selector.getSelectedValue() != null)
+		{
+			cpp.setSelectedId(selector.getSelectedValue().getId());
+		}
 	}
 
 	@Override
@@ -45,5 +48,11 @@ public class DataClsSelector extends SelectorPanel
 	{
 		CharacterClass.addNewClass(name);
 		updateClasses();
+	}
+
+	@Override
+	protected void clearSelectionCustom()
+	{
+		cpp.clearSelectedCustom();
 	}
 }

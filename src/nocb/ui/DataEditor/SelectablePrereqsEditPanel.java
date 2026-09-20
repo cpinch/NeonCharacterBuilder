@@ -18,7 +18,7 @@ public class SelectablePrereqsEditPanel extends NoHorizontalScrollPanel implemen
 
 	private Selectable sel;
 
-	private JButton add;
+	private JButton add, remove;
 
 	public SelectablePrereqsEditPanel()
 	{
@@ -26,18 +26,28 @@ public class SelectablePrereqsEditPanel extends NoHorizontalScrollPanel implemen
 
 		add = new JButton("Add Selectable Prereq");
 		add.addActionListener(this);
+
+		remove = new JButton("Remove Last Prereq");
+		remove.addActionListener(this);
 	}
 
 	public void updatePrereqs(Selectable sel)
 	{
+		this.sel = sel;
+
 		GridBagConstraints c = UILib.getStandardGBC();
+		c.gridwidth = 2;
 		removeAll();
 		for (SelectablePrereq sp : sel.getPrereqs())
 		{
 			add(new SelectablePrereqEditPanel(sp), c);
 			c.gridy++;
 		}
+		c.gridwidth = 1;
 		add(add, c);
+		c.gridx++;
+		add(remove, c);
+		revalidate();
 	}
 
 	@Override
@@ -46,6 +56,11 @@ public class SelectablePrereqsEditPanel extends NoHorizontalScrollPanel implemen
 		if (e.getSource().equals(add))
 		{
 			sel.addNewPrereq();
+			updatePrereqs(sel);
+		}
+		else if (e.getSource().equals(remove))
+		{
+			sel.removeLastPrereq();
 			updatePrereqs(sel);
 		}
 	}

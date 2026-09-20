@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+// TODO - will need to properly set custom when this is save/load capable
 public class Background extends Feature
 {
 	private final List<Ability> abilityOptions = new ArrayList<>();

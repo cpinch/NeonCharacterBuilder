@@ -41,4 +41,16 @@ public class ClassEquipment
 	{
 		return notes;
 	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o)
+			return true;
+
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		return getItems().equals(((ClassEquipment) o).getItems()) && getNotes() == ((ClassEquipment) o).getNotes();
+	}
 }

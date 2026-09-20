@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
 
 import nocb.data.Selectable;
 import nocb.data.SelectableFeature;
@@ -19,7 +18,7 @@ public class SelectableFeaturesEditPanel extends NoHorizontalScrollPanel impleme
 
 	private Selectable sel;
 
-	private JButton add;
+	private JButton add, remove;
 
 	public SelectableFeaturesEditPanel()
 	{
@@ -27,6 +26,9 @@ public class SelectableFeaturesEditPanel extends NoHorizontalScrollPanel impleme
 
 		add = new JButton("Add Selectable Feature");
 		add.addActionListener(this);
+
+		remove = new JButton("Remove Last Feature");
+		remove.addActionListener(this);
 	}
 
 	public void updateFeatures(Selectable sel)
@@ -34,6 +36,7 @@ public class SelectableFeaturesEditPanel extends NoHorizontalScrollPanel impleme
 		this.sel = sel;
 
 		GridBagConstraints c = UILib.getStandardGBC();
+		c.gridwidth = 2;
 		removeAll();
 		for (SelectableFeature sf : sel.getFeatures())
 		{
@@ -42,7 +45,11 @@ public class SelectableFeaturesEditPanel extends NoHorizontalScrollPanel impleme
 			add(sfep, c);
 			c.gridy++;
 		}
+		c.gridwidth = 1;
 		add(add, c);
+		c.gridx++;
+		add(remove, c);
+		revalidate();
 	}
 
 	@Override
@@ -50,14 +57,13 @@ public class SelectableFeaturesEditPanel extends NoHorizontalScrollPanel impleme
 	{
 		if (e.getSource().equals(add))
 		{
-			String name = JOptionPane.showInputDialog(null, "Name?:", "New Selectable Feature",
-					JOptionPane.QUESTION_MESSAGE);
-
-			if (!name.isBlank())
-			{
-				sel.addNewFeature(name);
-				updateFeatures(sel);
-			}
+			sel.addNewFeature(sel.getName());
+			updateFeatures(sel);
+		}
+		else if (e.getSource().equals(remove))
+		{
+			sel.removeLastFeature();
+			updateFeatures(sel);
 		}
 	}
 }

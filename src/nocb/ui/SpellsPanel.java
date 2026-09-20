@@ -62,7 +62,7 @@ public class SpellsPanel extends JPanel
 		spellSelectionPanel.removeAll();
 		for (int lvl = 0; lvl <= 9; lvl++)
 		{
-			List<SpellChoice> spellsByLevel = sheet.getCharClass().getSpellChoicesByLevel(sheet.getLevel(), lvl);
+			List<SpellChoice> spellsByLevel = sheet.getCharClass().getAllSpellChoicesByLevel(lvl);
 
 			if (spellsByLevel.isEmpty())
 			{

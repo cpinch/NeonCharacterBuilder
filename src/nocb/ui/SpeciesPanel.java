@@ -30,6 +30,7 @@ public class SpeciesPanel extends JPanel implements ActionListener
 
 		setBorder(BorderFactory.createEtchedBorder());
 		setLayout(new GridBagLayout());
+		setBackground(VaporwaveColors.DARK_PURPLE);
 		GridBagConstraints c = UILib.getStandardGBC();
 
 		speciesName = new JComboBox<>(Species.getAllSpecies().toArray(new Species[0]));
