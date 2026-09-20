@@ -44,9 +44,17 @@ public class LanguageEditPanel extends EditPanel
 		lang.setName(nameField.getText());
 	}
 
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (lang != null)
+		{
+			lang.clearCustom();
+		}
+	}
+
 	private void updateSpokenAt()
 	{
 		lang.setSpokeAt(Arrays.asList(spokenAt.getText().split(",")).stream().map(t -> t.trim()).toList());
-		lang.setCustom(true);
 	}
 }

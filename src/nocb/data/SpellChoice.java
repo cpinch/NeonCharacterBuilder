@@ -11,6 +11,12 @@ public class SpellChoice
 	{
 	}
 
+	public SpellChoice(SpellList spellList, Spell selected)
+	{
+		this.spellList = spellList;
+		this.selected = selected;
+	}
+
 	public SpellChoice(SpellList spellList, int lvl)
 	{
 		this.spellList = spellList;
@@ -56,5 +62,23 @@ public class SpellChoice
 			return false;
 		}
 		return true;
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o)
+			return true;
+
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		return getSpellList() == ((SpellChoice) o).getSpellList();
+	}
+
+	@Override
+	public String toString()
+	{
+		return "SpellList: " + spellList + " / Selected: " + selected;
 	}
 }

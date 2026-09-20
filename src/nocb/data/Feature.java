@@ -24,12 +24,12 @@ public class Feature
 
 	// Basic
 	protected String name = "";
-	protected int level;
 	protected String text = "";
 	protected Ability abilityAddToAC;
 	protected int speedMod = 0;
 	protected String sheetNotes = "";
 	protected int extraHPPerLevel = 0;
+	protected boolean givesHalfProfAll = false;
 
 	// List
 	protected final List<Ability> saveProfs = new ArrayList<>();
@@ -57,6 +57,9 @@ public class Feature
 	protected Selectable selected;
 	protected String featTraitName = "";
 	protected Feat feat;
+	protected boolean featIgnoresPrereqs = false;
+	protected final List<Spell> specificSpellChoices = new ArrayList<>();
+	protected Spell chosenSpell;
 
 	// Complex
 	protected final Map<String, String> resistancesByHomeworld = new HashMap<>();
@@ -74,13 +77,13 @@ public class Feature
 	{
 		// Basic
 		this.name = data.getString("name");
-		this.level = data.optInt("level", 1);
 		this.text = data.optString("text", "");
 		String abilityToAddToAC = data.optString("addAbilityToAc", "");
 		this.abilityAddToAC = abilityToAddToAC.isBlank() ? null : Ability.valueOf(abilityToAddToAC);
 		this.speedMod = data.optInt("speedMod", 0);
 		this.sheetNotes = data.optString("sheetNotes", "");
 		this.extraHPPerLevel = data.optInt("extraHPPerLevel", 0);
+		this.givesHalfProfAll = data.optBoolean("halfProfAll", false);
 
 		// List
 		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("saves"))
@@ -91,17 +94,8 @@ public class Feature
 				.forEach(armor -> this.armorProfs.add(ArmorProf.valueOf(armor)));
 		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("skills"))
 				.forEach(s -> skillsGranted.add(Skill.skillByName(s)));
-		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("grantsSpells")).forEach(sp ->
-		{
-			if (sp.has("note"))
-			{
-				this.spellsGranted.add(Spell.getCopyByName(sp.getString("spell"), sp.getString("note")));
-			}
-			else
-			{
-				this.spellsGranted.add(Spell.getByName(sp.getString("spell")));
-			}
-		});
+		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("grantsSpells"))
+				.forEach(sp -> this.spellsGranted.add(Spell.getFromJSONObject(sp)));
 		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("langs"))
 				.forEach(l -> this.languagesGranted.add(Language.getByName(l)));
 		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("res")).forEach(r -> resistancesGranted.add(r));
@@ -120,6 +114,9 @@ public class Feature
 		this.langSelectCount = data.optInt("langSelectCount", 0);
 		this.selectableName = data.optString("selectable", "");
 		this.featTraitName = data.optString("featTrait", "");
+		this.featIgnoresPrereqs = data.optBoolean("featIgnores", false);
+		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("specificSpells"))
+				.forEach(s -> this.specificSpellChoices.add(Spell.getFromJSONObject(s)));
 
 		// Complex
 		JSONArray resHomes = data.optJSONArray("resHome");
@@ -156,10 +153,6 @@ public class Feature
 
 		// Basic
 		data.put("name", name);
-		if (level > 1)
-		{
-			data.put("level", level);
-		}
 		if (!text.isBlank())
 		{
 			data.put("text", text);
@@ -179,6 +172,10 @@ public class Feature
 		if (extraHPPerLevel > 0)
 		{
 			data.put("extraHPPerLevel", extraHPPerLevel);
+		}
+		if (givesHalfProfAll)
+		{
+			data.put("halfProfAll", true);
 		}
 
 		// List
@@ -215,16 +212,7 @@ public class Feature
 		if (!spellsGranted.isEmpty())
 		{
 			JSONArray spells = new JSONArray();
-			spellsGranted.forEach(spell ->
-			{
-				JSONObject sp = new JSONObject();
-				sp.put("spell", spell.getName());
-				if (!spell.getNotes().isBlank())
-				{
-					sp.put("note", spell.getNotes());
-				}
-				spells.put(sp);
-			});
+			spellsGranted.forEach(spell -> spells.put(spell.toJSONObject()));
 			data.put("grantsSpells", spells);
 		}
 		if (!languagesGranted.isEmpty())
@@ -284,6 +272,29 @@ public class Feature
 		if (!featTraitName.isBlank())
 		{
 			data.put("featTrait", featTraitName);
+			if (featIgnoresPrereqs)
+			{
+				data.put("featIgnores", true);
+			}
+		}
+		if (!specificSpellChoices.isEmpty())
+		{
+			JSONArray spellOpts = new JSONArray();
+			specificSpellChoices.forEach(spell ->
+			{
+				JSONObject sp = new JSONObject();
+				sp.put("spell", spell.getName());
+				if (!spell.getNotes().isBlank())
+				{
+					sp.put("note", spell.getNotes());
+				}
+				if (!spell.getBaseName().isBlank())
+				{
+					sp.put("baseName", spell.getBaseName());
+				}
+				spellOpts.put(sp);
+			});
+			data.put("specificSpells", spellOpts);
 		}
 
 		// Complex
@@ -325,7 +336,7 @@ public class Feature
 			data.put("addAbilitiesToSkills", aats);
 		}
 
-		if (custom)
+		if (isCustom())
 		{
 			data.put("custom", true);
 		}
@@ -346,17 +357,11 @@ public class Feature
 
 	public void setName(String name)
 	{
-		this.name = name;
-	}
-
-	public int getLevel()
-	{
-		return level;
-	}
-
-	public void setLevel(int level)
-	{
-		this.level = level;
+		if (!this.name.equals(name))
+		{
+			this.name = name;
+			setCustom(true);
+		}
 	}
 
 	public String getText()
@@ -366,7 +371,11 @@ public class Feature
 
 	public void setText(String text)
 	{
-		this.text = text;
+		if (!this.text.equals(text))
+		{
+			this.text = text;
+			setCustom(true);
+		}
 	}
 
 	public String getSheetNotes()
@@ -376,7 +385,11 @@ public class Feature
 
 	public void setSheetNotes(String notes)
 	{
-		this.sheetNotes = notes;
+		if (!this.sheetNotes.equals(notes))
+		{
+			this.sheetNotes = notes;
+			setCustom(true);
+		}
 	}
 
 	public List<Skill> getSkillsGranted()
@@ -386,8 +399,12 @@ public class Feature
 
 	public void setSkillsGranted(List<Skill> skills)
 	{
-		skillsGranted.clear();
-		skillsGranted.addAll(skills);
+		if (!this.skillsGranted.equals(skills))
+		{
+			skillsGranted.clear();
+			skillsGranted.addAll(skills);
+			setCustom(true);
+		}
 	}
 
 	public List<Ability> getSaveProfs()
@@ -397,8 +414,12 @@ public class Feature
 
 	public void setSaveProfs(List<Ability> saves)
 	{
-		saveProfs.clear();
-		saveProfs.addAll(saves);
+		if (!this.saveProfs.equals(saves))
+		{
+			saveProfs.clear();
+			saveProfs.addAll(saves);
+			setCustom(true);
+		}
 	}
 
 	public List<String> getWeaponProfs()
@@ -408,8 +429,12 @@ public class Feature
 
 	public void setWeaponProfs(List<String> weapons)
 	{
-		weaponProfs.clear();
-		weaponProfs.addAll(weapons);
+		if (!this.weaponProfs.equals(weapons))
+		{
+			weaponProfs.clear();
+			weaponProfs.addAll(weapons);
+			setCustom(true);
+		}
 	}
 
 	public List<String> getToolProfs()
@@ -419,8 +444,12 @@ public class Feature
 
 	public void setToolProfs(List<String> tools)
 	{
-		toolProfs.clear();
-		toolProfs.addAll(tools);
+		if (!this.toolProfs.equals(tools))
+		{
+			toolProfs.clear();
+			toolProfs.addAll(tools);
+			setCustom(true);
+		}
 	}
 
 	public List<ArmorProf> getArmorProfs()
@@ -430,8 +459,12 @@ public class Feature
 
 	public void setArmorProfs(List<ArmorProf> armors)
 	{
-		armorProfs.clear();
-		armorProfs.addAll(armors);
+		if (!this.armorProfs.equals(armors))
+		{
+			armorProfs.clear();
+			armorProfs.addAll(armors);
+			setCustom(true);
+		}
 	}
 
 	public Ability getAbilityAddToAC()
@@ -441,7 +474,11 @@ public class Feature
 
 	public void setAbilityAddToAC(Ability a)
 	{
-		abilityAddToAC = a;
+		if (abilityAddToAC != a)
+		{
+			abilityAddToAC = a;
+			setCustom(true);
+		}
 	}
 
 	public List<Spell> getSpellsGranted()
@@ -451,8 +488,12 @@ public class Feature
 
 	public void setSpellsGranted(List<Spell> spells)
 	{
-		spellsGranted.clear();
-		spellsGranted.addAll(spells);
+		if (!spellsGranted.equals(spells))
+		{
+			spellsGranted.clear();
+			spellsGranted.addAll(spells);
+			setCustom(true);
+		}
 	}
 
 	public int getSpeedMod()
@@ -462,7 +503,11 @@ public class Feature
 
 	public void setSpeedMod(int speed)
 	{
-		speedMod = speed;
+		if (speedMod != speed)
+		{
+			speedMod = speed;
+			setCustom(true);
+		}
 	}
 
 	public int getExtraHPPerLevel()
@@ -472,7 +517,11 @@ public class Feature
 
 	public void setExtraHPPerLevel(int hp)
 	{
-		extraHPPerLevel = hp;
+		if (extraHPPerLevel != hp)
+		{
+			extraHPPerLevel = hp;
+			setCustom(true);
+		}
 	}
 
 	public List<String> getResistancesGranted()
@@ -482,8 +531,12 @@ public class Feature
 
 	public void setResistancesGranted(List<String> res)
 	{
-		resistancesGranted.clear();
-		resistancesGranted.addAll(res);
+		if (!resistancesGranted.equals(res))
+		{
+			resistancesGranted.clear();
+			resistancesGranted.addAll(res);
+			setCustom(true);
+		}
 	}
 
 	public List<String> getResistanceOptions()
@@ -493,8 +546,12 @@ public class Feature
 
 	public void setResistanceOptions(List<String> res)
 	{
-		resistanceOptions.clear();
-		resistanceOptions.addAll(res);
+		if (!resistanceOptions.equals(res))
+		{
+			resistanceOptions.clear();
+			resistanceOptions.addAll(res);
+			setCustom(true);
+		}
 	}
 
 	public String getResistanceSelected()
@@ -526,8 +583,12 @@ public class Feature
 
 	public void setResistancesByHomeworld(Map<String, String> traitToRes)
 	{
-		this.resistancesByHomeworld.clear();
-		this.resistancesByHomeworld.putAll(traitToRes);
+		if (!resistancesByHomeworld.equals(traitToRes))
+		{
+			this.resistancesByHomeworld.clear();
+			this.resistancesByHomeworld.putAll(traitToRes);
+			setCustom(true);
+		}
 	}
 
 	public List<Skill> getSkillSelectionOptions()
@@ -537,8 +598,12 @@ public class Feature
 
 	public void setSkillSelectionOptions(List<Skill> skills)
 	{
-		skillOptions.clear();
-		skillOptions.addAll(skills);
+		if (!skillOptions.equals(skills))
+		{
+			skillOptions.clear();
+			skillOptions.addAll(skills);
+			setCustom(true);
+		}
 	}
 
 	public int getSkillSelectionCount()
@@ -548,7 +613,11 @@ public class Feature
 
 	public void setSkillSelectionCount(int count)
 	{
-		skillSelectCount = count;
+		if (skillSelectCount != count)
+		{
+			skillSelectCount = count;
+			setCustom(true);
+		}
 	}
 
 	public List<Skill> getSkillsSelected()
@@ -569,8 +638,12 @@ public class Feature
 
 	public void setSkillExpertOptions(List<Skill> skills)
 	{
-		skillExpertOptions.clear();
-		skillExpertOptions.addAll(skills);
+		if (!skillExpertOptions.equals(skills))
+		{
+			skillExpertOptions.clear();
+			skillExpertOptions.addAll(skills);
+			setCustom(true);
+		}
 	}
 
 	public int getSkillExpertCount()
@@ -580,7 +653,11 @@ public class Feature
 
 	public void setSkillExpertCount(int count)
 	{
-		skillExpertCount = count;
+		if (skillExpertCount != count)
+		{
+			skillExpertCount = count;
+			setCustom(true);
+		}
 	}
 
 	public List<Skill> getSkillsExpert()
@@ -601,8 +678,12 @@ public class Feature
 
 	public void setLanguagesGranted(List<Language> langs)
 	{
-		languagesGranted.clear();
-		languagesGranted.addAll(langs);
+		if (!languagesGranted.equals(langs))
+		{
+			languagesGranted.clear();
+			languagesGranted.addAll(langs);
+			setCustom(true);
+		}
 	}
 
 	public List<Language> getLanguageSelectionOptions()
@@ -619,8 +700,12 @@ public class Feature
 
 	public void setLanguageOptionNames(List<String> langs)
 	{
-		languageOptionNames.clear();
-		languageOptionNames.addAll(langs);
+		if (!languageOptionNames.equals(langs))
+		{
+			languageOptionNames.clear();
+			languageOptionNames.addAll(langs);
+			setCustom(true);
+		}
 	}
 
 	public int getLanguageSelectionCount()
@@ -630,7 +715,11 @@ public class Feature
 
 	public void setLanguageSelectionCount(int count)
 	{
-		langSelectCount = count;
+		if (langSelectCount != count)
+		{
+			langSelectCount = count;
+			setCustom(true);
+		}
 	}
 
 	public List<Language> getLanguagesSelected()
@@ -651,7 +740,11 @@ public class Feature
 
 	public void setSelectableName(String name)
 	{
-		selectableName = name;
+		if (!selectableName.equals(name))
+		{
+			selectableName = name;
+			setCustom(true);
+		}
 	}
 
 	public Selectable getSelected()
@@ -671,7 +764,25 @@ public class Feature
 
 	public void setFeatTraitName(String ft)
 	{
-		featTraitName = ft;
+		if (!featTraitName.equals(ft))
+		{
+			featTraitName = ft;
+			setCustom(true);
+		}
+	}
+
+	public boolean featIgnoresPrereqs()
+	{
+		return featIgnoresPrereqs;
+	}
+
+	public void setFeatIgnoresPrereqs(boolean ignore)
+	{
+		if (featIgnoresPrereqs != ignore)
+		{
+			this.featIgnoresPrereqs = ignore;
+			setCustom(true);
+		}
 	}
 
 	public Feat getFeat()
@@ -682,6 +793,31 @@ public class Feature
 	public void setFeat(Feat f)
 	{
 		this.feat = f;
+	}
+
+	public List<Spell> getSpecificSpellChoices()
+	{
+		return specificSpellChoices;
+	}
+
+	public void setSpecificSpellChoices(List<Spell> spells)
+	{
+		if (!specificSpellChoices.equals(spells))
+		{
+			this.specificSpellChoices.clear();
+			this.specificSpellChoices.addAll(spells);
+			setCustom(true);
+		}
+	}
+
+	public Spell getSelectedSpecificSpell()
+	{
+		return chosenSpell;
+	}
+
+	public void chooseSpecificSpell(Spell s)
+	{
+		this.chosenSpell = s;
 	}
 
 	public List<SpellChoice> getSpellChoicesByLevel(int spellLevel)
@@ -700,8 +836,12 @@ public class Feature
 
 	public void setSpellChoices(Map<Integer, List<SpellChoice>> spellChoices)
 	{
-		this.spellChoices.clear();
-		this.spellChoices.putAll(spellChoices);
+		if (!this.spellChoices.equals(spellChoices))
+		{
+			this.spellChoices.clear();
+			this.spellChoices.putAll(spellChoices);
+			setCustom(true);
+		}
 	}
 
 	public List<Spell> getSpellsSelected()
@@ -723,21 +863,47 @@ public class Feature
 
 	public void setAbilitiesAddToSkills(Map<Skill, Ability> aForS)
 	{
-		this.abilitiesAddToSkills.clear();
-		this.abilitiesAddToSkills.putAll(aForS);
+		if (!abilitiesAddToSkills.equals(aForS))
+		{
+			this.abilitiesAddToSkills.clear();
+			this.abilitiesAddToSkills.putAll(aForS);
+			setCustom(true);
+		}
+	}
+
+	public boolean givesHalfProfAll()
+	{
+		return givesHalfProfAll;
+	}
+
+	public void setHalfProfAll(boolean b)
+	{
+		if (givesHalfProfAll != b)
+		{
+			this.givesHalfProfAll = b;
+			setCustom(true);
+		}
 	}
 
 	public boolean isCustom()
 	{
+		// For anything we are customizing, to be able to customize one of its children,
+		// we have to add that child to it, which marks it as custom, so don't need to
+		// check if any children are custom.
 		return custom;
 	}
 
-	public void setCustom(boolean custom)
+	protected void setCustom(boolean custom)
 	{
 		this.custom = custom;
 	}
 
-	// Combined getters/setters
+	public void clearCustom()
+	{
+		setCustom(false);
+	}
+
+	// Combined getters
 	public List<String> getAllText()
 	{
 		return getAllStrings((f) -> f.getText());
@@ -885,6 +1051,10 @@ public class Feature
 		List<Spell> spells = new ArrayList<>();
 
 		spells.addAll(getAllSpellsGranted());
+		if (chosenSpell != null)
+		{
+			spells.add(chosenSpell);
+		}
 		spells.addAll(getAllSpellsSelected());
 
 		return spells;
@@ -939,6 +1109,22 @@ public class Feature
 		return fs;
 	}
 
+	public boolean getAnyGivesHalfProfAll()
+	{
+		if (givesHalfProfAll)
+		{
+			return true;
+		}
+		else
+		{
+			if (getChildFeatures().stream().anyMatch(f -> f.getAnyGivesHalfProfAll()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	// Utility
 
 	/*
@@ -986,6 +1172,16 @@ public class Feature
 		return children;
 	}
 
+	/**
+	 * This is the same as the above except for class and species, which have
+	 * leveled features that aren't returned by the above but are needed for some
+	 * data checks
+	 */
+	protected List<? extends Feature> getAllChildFeatures()
+	{
+		return getChildFeatures();
+	}
+
 	@Override
 	public String toString()
 	{
@@ -1023,6 +1219,20 @@ public class Feature
 		if (feat != null)
 		{
 			json.put("feat", feat.saveState());
+		}
+		if (chosenSpell != null)
+		{
+			JSONObject spellData = new JSONObject();
+			spellData.put("spell", chosenSpell.getName());
+			if (!chosenSpell.getBaseName().isBlank())
+			{
+				spellData.put("baseName", chosenSpell.getBaseName());
+			}
+			if (!chosenSpell.getNotes().isBlank())
+			{
+				spellData.put("notes", chosenSpell.getNotes());
+			}
+			json.put("chosenSpell", spellData);
 		}
 		for (Map.Entry<Integer, List<SpellChoice>> scl : spellChoices.entrySet())
 		{
@@ -1080,6 +1290,11 @@ public class Feature
 				String featName = featData.getString("name");
 				feat = Feat.getByName(featName);
 				feat.loadState(featData);
+			}
+			JSONObject csData = data.optJSONObject("chosenSpell");
+			if (csData != null)
+			{
+				chosenSpell = Spell.getFromJSONObject(csData);
 			}
 			for (int i = 0; i <= 9; i++)
 			{

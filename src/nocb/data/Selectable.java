@@ -33,7 +33,11 @@ public class Selectable extends Feature
 
 	public void setType(String type)
 	{
-		this.type = type;
+		if (!this.type.equals(type))
+		{
+			this.type = type;
+			setCustom(true);
+		}
 	}
 
 	public List<SelectablePrereq> getPrereqs()
@@ -44,6 +48,13 @@ public class Selectable extends Feature
 	public void addNewPrereq()
 	{
 		prereqs.add(new SelectablePrereq());
+		setCustom(true);
+	}
+
+	public void removeLastPrereq()
+	{
+		prereqs.remove(prereqs.size() - 1);
+		setCustom(true);
 	}
 
 	public boolean prereqsMet(CharacterSheet sheet)
@@ -68,6 +79,13 @@ public class Selectable extends Feature
 		SelectableFeature sf = new SelectableFeature();
 		sf.setName(name);
 		features.add(sf);
+		setCustom(true);
+	}
+
+	public void removeLastFeature()
+	{
+		features.remove(features.size() - 1);
+		setCustom(true);
 	}
 
 	// Loading
@@ -130,7 +148,7 @@ public class Selectable extends Feature
 				return f;
 			}
 		}
-		System.out.println("Error! Could not find selectable with id " + id);
+		System.err.println("Error! Could not find selectable with id " + id);
 		return null;
 	}
 
@@ -143,7 +161,7 @@ public class Selectable extends Feature
 				return f;
 			}
 		}
-		System.out.println("Error! Could not find selectable with type " + type + " and name " + name);
+		System.err.println("Error! Could not find selectable with type " + type + " and name " + name);
 		return null;
 	}
 
@@ -151,6 +169,7 @@ public class Selectable extends Feature
 	{
 		Selectable newSel = new Selectable();
 		newSel.name = name;
+		newSel.type = "New Selectable";
 		allSelectables.add(newSel);
 	}
 
@@ -181,7 +200,7 @@ public class Selectable extends Feature
 		JsonDataLoader.jsonArrayToObjectArray(data.getJSONArray("features"))
 				.forEach(f -> newSel.features.add(new SelectableFeature(f)));
 
-		newSel.setCustom(data.optBoolean("custom", false));
+		newSel.custom = data.optBoolean("custom", false);
 
 		if (!newSel.getName().isBlank())
 		{

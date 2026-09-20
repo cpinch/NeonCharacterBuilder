@@ -41,7 +41,11 @@ public class Homeworld
 
 	public void setName(String name)
 	{
-		this.name = name;
+		if (!this.name.equals(name))
+		{
+			this.name = name;
+			setCustom(true);
+		}
 	}
 
 	public List<String> getTraits()
@@ -51,8 +55,12 @@ public class Homeworld
 
 	public void setTraits(List<String> t)
 	{
-		traits.clear();
-		traits.addAll(t);
+		if (!this.traits.equals(t))
+		{
+			traits.clear();
+			traits.addAll(t);
+			setCustom(true);
+		}
 	}
 
 	public boolean hasTrait(String trait)
@@ -67,7 +75,11 @@ public class Homeworld
 
 	public void setDesc(String d)
 	{
-		desc = d;
+		if (!desc.equals(d))
+		{
+			desc = d;
+			setCustom(true);
+		}
 	}
 
 	public boolean isCustom()
@@ -75,9 +87,14 @@ public class Homeworld
 		return custom;
 	}
 
-	public void setCustom(boolean cust)
+	private void setCustom(boolean cust)
 	{
 		this.custom = cust;
+	}
+
+	public void clearCustom()
+	{
+		setCustom(false);
 	}
 
 	// Loading
@@ -97,7 +114,7 @@ public class Homeworld
 				return h;
 			}
 		}
-		System.out.println("Unknown homeworld id " + id);
+		System.err.println("Unknown homeworld id " + id);
 		return null;
 	}
 
@@ -110,7 +127,7 @@ public class Homeworld
 				return h;
 			}
 		}
-		System.out.println("Unknown homeworld " + name);
+		System.err.println("Unknown homeworld " + name);
 		return null;
 	}
 
@@ -142,7 +159,7 @@ public class Homeworld
 		newWorld.name = name;
 		JsonDataLoader.jsonArrayToStringArray(data.getJSONArray("traits")).forEach(trait -> newWorld.traits.add(trait));
 		newWorld.desc = data.getString("desc");
-		newWorld.setCustom(data.optBoolean("custom", false));
+		newWorld.custom = data.optBoolean("custom", false);
 
 		if (!newWorld.getName().isBlank())
 		{

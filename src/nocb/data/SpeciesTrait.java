@@ -2,30 +2,46 @@ package nocb.data;
 
 import org.json.JSONObject;
 
-import nocb.io.JsonDataLoader;
-
 public class SpeciesTrait extends Feature
 {
+	private int level = 1;
+
 	public SpeciesTrait(JSONObject data)
 	{
 		super();
 		this.loadFromData(data);
 
-		this.spellsGranted.clear();
-		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("grantsSpells")).forEach(spell ->
-		{
-			String name = spell.getString("spell");
-			int level = spell.optInt("level", 1);
-			String note = spell.optString("note");
-
-			// TODO post1.0 - handle levels better when level up
-			Spell s = Spell.getCopyByName(name, (level > 1 ? "lvl " + level + ". " : "") + note);
-			this.spellsGranted.add(s);
-		});
+		this.level = data.optInt("level", 1);
 	}
 
 	public SpeciesTrait()
 	{
 		super();
+	}
+
+	public int getLevel()
+	{
+		return level;
+	}
+
+	public void setLevel(int lvl)
+	{
+		if (this.level != lvl)
+		{
+			this.level = lvl;
+			setCustom(true);
+		}
+	}
+
+	public JSONObject saveTrait()
+	{
+		JSONObject data = super.saveFeature();
+
+		if (level > 1)
+		{
+			data.put("level", level);
+		}
+
+		return data;
 	}
 }

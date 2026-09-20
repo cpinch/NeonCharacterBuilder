@@ -1,5 +1,7 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
+
 import javax.swing.JTextField;
 
 import nocb.data.Selectable;
@@ -20,7 +22,7 @@ public class SelectableEditPanel extends EditPanel
 		super();
 
 		type.addFocusListener(UILib.createFocusListener(() -> updateType()));
-		UILib.addLabeledComponent(this, "Selectable Type: ", type, c);
+		UILib.addLabeledComponent(this, "Selectable Type: ", type, c).setForeground(Color.black);
 		c.gridy++;
 
 		c.weighty = 1;
@@ -48,6 +50,15 @@ public class SelectableEditPanel extends EditPanel
 	protected void updateName()
 	{
 		select.setName(nameField.getText());
+	}
+
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (select != null)
+		{
+			select.clearCustom();
+		}
 	}
 
 	private void updateType()

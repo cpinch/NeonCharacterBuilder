@@ -1,5 +1,6 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -11,7 +12,9 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
@@ -40,29 +43,34 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 
 	private static final String OPT_TEXT = "Text", OPT_G_SKILLS = "Gives Skill Profs",
 			OPT_C_SKILLS = "Choose Skill Profs", OPT_G_SAVES = "Gives Save Profs", OPT_G_SPELLS = "Gives Spells",
-			OPT_C_SPELLS = "Choose Spells", OPT_G_ARMOR = "Gives Armor Train", OPT_G_LANGS = "Gives Languages",
-			OPT_C_LANGS = "Choose Languages", OPT_G_RES = "Gives Resistances",
-			OPT_R_BY_H = "Gives Resistances Based on Homeworld Traits", OPT_C_RES = "Choose Resistances",
-			OPT_C_EXP = "Choose Skill Expertise", OPT_G_TOOLS = "Gives Tool Profs", OPT_G_WEPS = "Gives Weapon Profs",
-			OPT_ABL_AC = "Add Ability to AC", OPT_ABL_SKILLS = "Adds Extra Ability to Skills",
-			OPT_SPD = "Increase Speed", OPT_HP = "+HP/Level", OPT_FEAT = "Choose Feat", OPT_SEL = "Choose Selectable",
-			OPT_NOTES = "Puts Notes on Sheet";
+			OPT_C_SPELLS = "Choose Spells", OPT_C_S_SPELLS = "Choose Specific Spells",
+			OPT_G_ARMOR = "Gives Armor Train", OPT_G_LANGS = "Gives Languages", OPT_C_LANGS = "Choose Languages",
+			OPT_G_RES = "Gives Resistances", OPT_R_BY_H = "Gives Resistances Based on Homeworld Traits",
+			OPT_C_RES = "Choose Resistances", OPT_C_EXP = "Choose Skill Expertise", OPT_G_TOOLS = "Gives Tool Profs",
+			OPT_G_WEPS = "Gives Weapon Profs", OPT_ABL_AC = "Add Ability to AC",
+			OPT_ABL_SKILLS = "Adds Extra Ability to Skills", OPT_SPD = "Increase Speed", OPT_HP = "+HP/Level",
+			OPT_FEAT = "Choose Feat", OPT_SEL = "Choose Selectable", OPT_NOTES = "Puts Notes on Sheet",
+			OPT_HALFPROF_ALL = "Gives Half Proficiency to all non-Proficient Skills";
 
 	private static final List<String> options = List.of(OPT_TEXT, OPT_G_SKILLS, OPT_C_SKILLS, OPT_G_SAVES, OPT_G_SPELLS,
-			OPT_C_SPELLS, OPT_G_ARMOR, OPT_G_LANGS, OPT_C_LANGS, OPT_G_RES, OPT_R_BY_H, OPT_C_RES, OPT_C_EXP,
-			OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP, OPT_FEAT, OPT_SEL, OPT_NOTES);
+			OPT_C_SPELLS, OPT_C_S_SPELLS, OPT_G_ARMOR, OPT_G_LANGS, OPT_C_LANGS, OPT_G_RES, OPT_R_BY_H, OPT_C_RES,
+			OPT_C_EXP, OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP, OPT_HALFPROF_ALL, OPT_FEAT,
+			OPT_SEL, OPT_NOTES);
 
 	private final Feature f;
 
 	private final JComboBox<String> optionSel = new JComboBox<>(options.toArray(new String[0]));
 	private final JButton add = new JButton("Add Feature");
 
+	protected final JPanel lvlSlot = new NoHorizontalScrollPanel();
+
 	private final JTextField skillProfs = new JTextField(20);
 	private final JTextField chooseSkills = new JTextField(20);
 	private final JSpinner chooseSkillCount = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
 	private final JTextField saveProfs = new JTextField(20);
-	private final JTextField spells = new JTextField(20);
+	private final JTextArea spells = new JTextArea(2, 20);
 	private final JTextField chooseSpells = new JTextField(20);
+	private final JTextField chooseSpecificSpells = new JTextField(20);
 	private final JTextField armor = new JTextField(20);
 	private final JTextField langs = new JTextField(20);
 	private final JTextField chooseLangs = new JTextField(20);
@@ -78,6 +86,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 	private final JTextField ablToSkills = new JTextField(20);
 	private final JSpinner speed = new JSpinner(new SpinnerNumberModel(0, 0, 50, 1));
 	private final JSpinner hp = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
+	private final JCheckBox halfProf = new JCheckBox();
 	private final JTextField feat = new JTextField(20);
 	private final JTextField selectable = new JTextField(20);
 	private final JTextArea text = new JTextArea(3, 20);
@@ -90,6 +99,11 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		super();
 
 		this.f = f;
+
+		lvlSlot.setLayout(new BoxLayout(lvlSlot, BoxLayout.X_AXIS));
+		lvlSlot.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+		add(lvlSlot, c);
+		c.gridy++;
 
 		add(getOptionSelectPanel(), c);
 		c.gridy++;
@@ -105,11 +119,16 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		saveProfs.addFocusListener(UILib.createFocusListener(() -> updateSaveProfs()));
 		addLabeledComp(OPT_G_SAVES, saveProfs, c);
 
+		spells.setLineWrap(true);
+		spells.setWrapStyleWord(true);
 		spells.addFocusListener(UILib.createFocusListener(() -> updateSpells()));
 		addLabeledComp(OPT_G_SPELLS, spells, c);
 
 		chooseSpells.addFocusListener(UILib.createFocusListener(() -> updateSpellOptions()));
 		addLabeledComp(OPT_C_SPELLS, chooseSpells, c);
+
+		chooseSpecificSpells.addFocusListener(UILib.createFocusListener(() -> updateSpecificSpells()));
+		addLabeledComp(OPT_C_S_SPELLS, chooseSpecificSpells, c);
 
 		armor.addFocusListener(UILib.createFocusListener(() -> updateArmor()));
 		addLabeledComp(OPT_G_ARMOR, armor, c);
@@ -156,6 +175,9 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		((JSpinner.DefaultEditor) hp.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
 		addLabeledComp(OPT_HP, hp, c);
 
+		halfProf.addActionListener(this);
+		addLabeledComp(OPT_HALFPROF_ALL, halfProf, c);
+
 		feat.addFocusListener(UILib.createFocusListener(() -> updateFeatTrait()));
 		addLabeledComp(OPT_FEAT, feat, c);
 
@@ -172,6 +194,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		sheetNotes.setWrapStyleWord(true);
 		sheetNotes.addFocusListener(UILib.createFocusListener(() -> updateSheetNotes()));
 		addLabeledComp(OPT_NOTES, sheetNotes, c);
+		c.weighty = 0;
 	}
 
 	private JPanel getOptionSelectPanel()
@@ -195,7 +218,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		panel.setLayout(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder());
 		optionPanels.put(label, panel);
-		UILib.addLabeledComponent(panel, label + ": ", component, c2);
+		UILib.addLabeledComponent(panel, label + ": ", component, c2).setForeground(Color.black);
 		add(panel, c);
 		c.gridy++;
 		panel.setVisible(false);
@@ -208,9 +231,9 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		panel.setLayout(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder());
 		optionPanels.put(label, panel);
-		UILib.addLabeledComponent(panel, label + ": ", sel, c2);
+		UILib.addLabeledComponent(panel, label + ": ", sel, c2).setForeground(Color.black);
 		c2.gridx = 1;
-		UILib.addLabeledComponent(panel, countLabel + ": ", count, c2);
+		UILib.addLabeledComponent(panel, countLabel + ": ", count, c2).setForeground(Color.black);
 		c2.gridx = 0;
 		add(panel, c);
 		c.gridy++;
@@ -227,6 +250,10 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		else if (e.getSource().equals(ablAddAc))
 		{
 			f.setAbilityAddToAC((Ability) ablAddAc.getSelectedItem());
+		}
+		else if (e.getSource().equals(halfProf))
+		{
+			f.setHalfProfAll(halfProf.isSelected());
 		}
 	}
 
@@ -298,11 +325,22 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			List<String> spellChoices = new ArrayList<>();
 			for (Map.Entry<Integer, List<SpellChoice>> sc : f.getSpellChoices().entrySet())
 			{
-				spellChoices.add(sc.getKey() + " " + sc.getValue().size() + " "
+				spellChoices.add(sc.getKey() + "-" + sc.getValue().size() + "-"
 						+ sc.getValue().get(0).getSpellList().toString());
 			}
 			chooseSpells.setText(String.join(", ", spellChoices));
 			optionPanels.get(OPT_C_SPELLS).setVisible(true);
+		}
+		if (!f.getSpecificSpellChoices().isEmpty())
+		{
+			List<String> spellOpts = new ArrayList<>();
+			for (Spell sp : f.getSpecificSpellChoices())
+			{
+				spellOpts.add(sp.getName() + (sp.getBaseName().isBlank() ? "" : "[" + sp.getBaseName() + "]")
+						+ (sp.getNotes().isBlank() ? "" : "(" + sp.getNotes() + ")"));
+			}
+			chooseSpecificSpells.setText(String.join(" | ", spellOpts));
+			optionPanels.get(OPT_C_S_SPELLS).setVisible(true);
 		}
 		if (!f.getArmorProfs().isEmpty())
 		{
@@ -382,9 +420,14 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			hp.setValue(f.getExtraHPPerLevel());
 			optionPanels.get(OPT_HP).setVisible(true);
 		}
+		if (f.givesHalfProfAll())
+		{
+			halfProf.setSelected(true);
+			optionPanels.get(OPT_HALFPROF_ALL).setVisible(true);
+		}
 		if (!f.getFeatTraitName().isBlank())
 		{
-			feat.setText(f.getFeatTraitName());
+			feat.setText(f.getFeatTraitName() + (f.featIgnoresPrereqs() ? " (ignores prereqs)" : ""));
 			optionPanels.get(OPT_FEAT).setVisible(true);
 		}
 		if (!f.getSelectableName().isBlank())
@@ -417,7 +460,15 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 	protected void updateName()
 	{
 		f.setName(nameField.getText());
-		f.setCustom(true);
+	}
+
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (f != null)
+		{
+			f.clearCustom();
+		}
 	}
 
 	private void updateSkillProfs()
@@ -441,7 +492,6 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 		}
 		f.setSkillsGranted(skills);
-		f.setCustom(true);
 		showErrorMessage(invalid, "skills");
 	}
 
@@ -466,7 +516,6 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 		}
 		f.setSkillSelectionOptions(skills);
-		f.setCustom(true);
 		showErrorMessage(invalid, "skills");
 	}
 
@@ -491,14 +540,12 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 		}
 		f.setSaveProfs(abilities);
-		f.setCustom(true);
 		showErrorMessage(invalid, "abilities");
 	}
 
 	private void updateSpells()
 	{
 		String[] spellNames = spells.getText().split("\\|");
-		System.out.println("Split into " + spellNames);
 		List<Spell> spells = new ArrayList<>();
 		List<String> invalid = new ArrayList<>();
 		for (String sn : spellNames)
@@ -509,31 +556,78 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 			try
 			{
-				if (sn.contains("("))
-				{
-					spells.add(Spell.getCopyByName(sn.substring(0, sn.indexOf('(')).trim(),
-							sn.substring(sn.indexOf('('), sn.indexOf(')')).trim()));
-				}
-				else
-				{
-					spells.add(Spell.getByName(sn.trim()));
-				}
-
+				spells.add(getSpellFromText(sn));
 			}
 			catch (Exception e)
 			{
 				invalid.add(sn);
 			}
 		}
-		System.out.println("Setting granted spells to " + spells + " for feature " + f.getName());
 		f.setSpellsGranted(spells);
-		f.setCustom(true);
 		showErrorMessage(invalid, "spells");
+	}
+
+	private void updateSpecificSpells()
+	{
+		String[] spellNames = chooseSpecificSpells.getText().split("\\|");
+		List<Spell> spells = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String sn : spellNames)
+		{
+			if (sn.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				spells.add(getSpellFromText(sn));
+			}
+			catch (Exception e)
+			{
+				invalid.add(sn);
+			}
+		}
+		f.setSpecificSpellChoices(spells);
+		showErrorMessage(invalid, "spells");
+	}
+
+	private Spell getSpellFromText(String text) throws Exception
+	{
+		String spellName = text.trim();
+		String altName = "";
+		String notes = "";
+		if (text.contains("("))
+		{
+			notes = text.substring(text.indexOf('(') + 1, text.indexOf(')')).trim();
+			spellName = text.substring(0, text.indexOf('(')).trim();
+		}
+		if (text.contains("["))
+		{
+			spellName = text.substring(text.indexOf('[') + 1, text.indexOf(']')).trim();
+			altName = text.substring(0, text.indexOf('[')).trim();
+		}
+
+		if (altName.isBlank() && notes.isBlank())
+		{
+			return Spell.getByName(spellName);
+		}
+		else if (altName.isBlank() && !notes.isBlank())
+		{
+			return Spell.getCopyByName(spellName, notes);
+		}
+		else if (!altName.isBlank() && notes.isBlank())
+		{
+			return Spell.getByAltName(altName, spellName);
+		}
+		else
+		{
+			return Spell.getCopyByAltName(altName, spellName, notes);
+		}
 	}
 
 	private void updateSpellOptions()
 	{
-		String[] spellOptions = spells.getText().split(",");
+		String[] spellOptions = chooseSpells.getText().split(",");
 		Map<Integer, List<SpellChoice>> spellChoices = new HashMap<>();
 		List<String> invalid = new ArrayList<>();
 		for (String so : spellOptions)
@@ -544,19 +638,19 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 			try
 			{
-				String[] split = so.split(" ");
+				String[] split = so.split("-");
 				if (split.length != 3)
 				{
 					invalid.add(so);
 					continue;
 				}
-				int lvl = Integer.parseInt(split[1]);
+				int lvl = Integer.parseInt(split[0].trim());
 				if (!spellChoices.containsKey(lvl))
 				{
 					spellChoices.put(lvl, new ArrayList<>());
 				}
 
-				int count = Integer.parseInt(split[0]);
+				int count = Integer.parseInt(split[1].trim());
 				for (int i = 0; i < count; i++)
 				{
 					SpellChoice sc = new SpellChoice(SpellList.getForClass(split[2].trim()), lvl);
@@ -569,7 +663,6 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 		}
 		f.setSpellChoices(spellChoices);
-		f.setCustom(true);
 		showErrorMessage(invalid, "spell options");
 	}
 
@@ -594,7 +687,6 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 		}
 		f.setArmorProfs(armor);
-		f.setCustom(true);
 		showErrorMessage(invalid, "armor trainings");
 	}
 
@@ -619,7 +711,6 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 		}
 		f.setLanguagesGranted(langs);
-		f.setCustom(true);
 		showErrorMessage(invalid, "language");
 	}
 
@@ -627,14 +718,12 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 	{
 		String[] langNames = chooseLangs.getText().split(",");
 		f.setLanguageOptionNames(Arrays.asList(langNames));
-		f.setCustom(true);
 	}
 
 	private void updateResists()
 	{
 		String[] resNames = resists.getText().split(",");
 		f.setResistancesGranted(Arrays.asList(resNames));
-		f.setCustom(true);
 	}
 
 	private void updateResByHome()
@@ -653,7 +742,6 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			resByHome.put(split[0], split[1]);
 		}
 		f.setResistancesByHomeworld(resByHome);
-		f.setCustom(true);
 		showErrorMessage(invalid, "homeworld trait-resistance mapping");
 	}
 
@@ -674,7 +762,6 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 		}
 		f.setSkillExpertOptions(skills);
-		f.setCustom(true);
 		showErrorMessage(invalid, "skills");
 	}
 
@@ -682,21 +769,18 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 	{
 		String[] resNames = chooseRes.getText().split(",");
 		f.setResistanceOptions(Arrays.asList(resNames));
-		f.setCustom(true);
 	}
 
 	private void updateTools()
 	{
 		String[] t = tools.getText().split(",");
 		f.setToolProfs(Arrays.asList(t));
-		f.setCustom(true);
 	}
 
 	private void updateWeapons()
 	{
 		String[] w = weapons.getText().split(",");
 		f.setWeaponProfs(Arrays.asList(w));
-		f.setCustom(true);
 	}
 
 	private void updateAblToSkills()
@@ -726,31 +810,32 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			}
 		}
 		f.setAbilitiesAddToSkills(aForS);
-		f.setCustom(true);
 		showErrorMessage(invalid, "skill ability");
 	}
 
 	private void updateFeatTrait()
 	{
-		f.setFeatTraitName(feat.getText());
-		f.setCustom(true);
+		String ftText = feat.getText();
+		if (ftText.contains("(ignore"))
+		{
+			f.setFeatIgnoresPrereqs(true);
+			ftText = ftText.substring(0, ftText.indexOf("(ignore"));
+		}
+		f.setFeatTraitName(ftText.trim());
 	}
 
 	private void updateSelectableType()
 	{
 		f.setSelectableName(selectable.getText());
-		f.setCustom(true);
 	}
 
 	private void updateText()
 	{
 		f.setText(text.getText());
-		f.setCustom(true);
 	}
 
 	private void updateSheetNotes()
 	{
 		f.setSheetNotes(sheetNotes.getText());
-		f.setCustom(true);
 	}
 }

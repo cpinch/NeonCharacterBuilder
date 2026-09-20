@@ -37,7 +37,10 @@ public class DataSlSelector extends SelectorPanel
 	@Override
 	protected void updateSelection()
 	{
-		slp.setSelectedId(selector.getSelectedValue().getId());
+		if (selector.getSelectedValue() != null)
+		{
+			slp.setSelectedId(selector.getSelectedValue().getId());
+		}
 	}
 
 	@Override
@@ -45,5 +48,11 @@ public class DataSlSelector extends SelectorPanel
 	{
 		SpellList.addNewSpellList(name);
 		updateSpellLists();
+	}
+
+	@Override
+	protected void clearSelectionCustom()
+	{
+		slp.clearSelectedCustom();
 	}
 }

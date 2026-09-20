@@ -37,7 +37,10 @@ public class DataHwSelector extends SelectorPanel
 	@Override
 	protected void updateSelection()
 	{
-		hwp.setSelectedId(selector.getSelectedValue().getId());
+		if (selector.getSelectedValue() != null)
+		{
+			hwp.setSelectedId(selector.getSelectedValue().getId());
+		}
 	}
 
 	@Override
@@ -45,5 +48,11 @@ public class DataHwSelector extends SelectorPanel
 	{
 		Homeworld.addNewHomeworld(name);
 		updateHomeworlds();
+	}
+
+	@Override
+	protected void clearSelectionCustom()
+	{
+		hwp.clearSelectedCustom();
 	}
 }

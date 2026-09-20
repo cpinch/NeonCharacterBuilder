@@ -33,7 +33,11 @@ public class Language
 
 	public void setName(String name)
 	{
-		this.name = name;
+		if (!this.name.equals(name))
+		{
+			this.name = name;
+			setCustom(true);
+		}
 	}
 
 	public List<String> getSpokenAt()
@@ -43,8 +47,12 @@ public class Language
 
 	public void setSpokeAt(List<String> spoken)
 	{
-		this.spokenAt.clear();
-		this.spokenAt.addAll(spoken);
+		if (!this.spokenAt.equals(spoken))
+		{
+			this.spokenAt.clear();
+			this.spokenAt.addAll(spoken);
+			setCustom(true);
+		}
 	}
 
 	public boolean isCustom()
@@ -52,9 +60,14 @@ public class Language
 		return custom;
 	}
 
-	public void setCustom(boolean custom)
+	private void setCustom(boolean custom)
 	{
 		this.custom = custom;
+	}
+
+	public void clearCustom()
+	{
+		setCustom(false);
 	}
 
 	// Loading
@@ -74,7 +87,7 @@ public class Language
 				return l;
 			}
 		}
-		System.out.println("Unknown language id " + id);
+		System.err.println("Unknown language id " + id);
 		return null;
 	}
 
@@ -87,7 +100,7 @@ public class Language
 				return l;
 			}
 		}
-		System.out.println("Unknown language " + name);
+		System.err.println("Unknown language " + name);
 		return null;
 	}
 
@@ -144,5 +157,17 @@ public class Language
 	public String toString()
 	{
 		return name;
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o)
+			return true;
+
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		return getId() == ((Language) o).getId();
 	}
 }

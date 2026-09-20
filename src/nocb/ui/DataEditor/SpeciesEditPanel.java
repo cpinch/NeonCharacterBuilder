@@ -133,13 +133,22 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener, Chang
 		}
 	}
 
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (species != null)
+		{
+			species.clearCustom();
+		}
+	}
+
 	private void updateTraitPanels()
 	{
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.weighty = 1;
 		c.ipady = 20;
 		traitsPanel.removeAll();
-		for (SpeciesTrait st : species.getTraits())
+		for (SpeciesTrait st : species.getAllTraits())
 		{
 			SpeciesTraitEditPanel step = new SpeciesTraitEditPanel(st);
 			step.updateSelection();

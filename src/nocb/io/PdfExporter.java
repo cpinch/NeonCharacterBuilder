@@ -84,9 +84,11 @@ public class PdfExporter
 	{
 		if (c.getName().isBlank())
 		{
-			System.out.println("Cannot export character with a blank name.");
+			System.err.println("Cannot export character with a blank name.");
 			return false;
 		}
+		// TODO - check if pdf exists, if so, open for editing
+		// Figure out and doc how edit works, what is and is not replaced
 		try (PDDocument pdf = Loader.loadPDF(new RandomAccessReadBufferedFile(TEMPLATE)))
 		{
 			PDDocumentCatalog docCatalog = pdf.getDocumentCatalog();
@@ -178,7 +180,6 @@ public class PdfExporter
 	private static void fillFeatures(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
 		List<String> featureStrings = c.getFeatureStrings();
-		// TODO post1.0 - overflow into notes?
 		fillField(acroForm, FEATURES_F, String.join(System.lineSeparator(), featureStrings));
 	}
 
@@ -248,7 +249,7 @@ public class PdfExporter
 					checkField(acroForm, SPELLABILITY_CHA_F, true);
 				break;
 				default:
-					System.out.println("Got unknown spellcasting ability " + spellcastingAbility);
+					System.err.println("Got unknown spellcasting ability " + spellcastingAbility);
 			}
 
 			fillField(acroForm, SPELLMOD_F, sam);
@@ -258,7 +259,7 @@ public class PdfExporter
 			// No such thing as 0th level spell slots
 			for (int i = 1; i <= 9; i++)
 			{
-				int slotCount = c.getCharClass().getSpellSlots(c.getLevel(), i);
+				int slotCount = c.getCharClass().getClassSpells().getSpellSlots(c.getLevel(), i);
 
 				if (slotCount > 0)
 				{

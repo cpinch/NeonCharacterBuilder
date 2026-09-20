@@ -1,12 +1,15 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -23,6 +26,7 @@ import nocb.data.ArmorProf;
 import nocb.data.CharacterClass;
 import nocb.data.ClassEquipment;
 import nocb.data.ClassFeature;
+import nocb.data.ClassSpells;
 import nocb.data.Skill;
 import nocb.ui.NoHorizontalScrollPanel;
 import nocb.ui.UILib;
@@ -43,6 +47,8 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 	private final JTextField tools = new JTextField(20);
 	private final JTextField armor = new JTextField(20);
 	private final JTextArea equip = new JTextArea(3, 20);
+	private final JTextArea knownSpells = new JTextArea(2, 20);
+	private final JTextArea spellSlots = new JTextArea(2, 20);
 
 	private final JButton addFeature = new JButton("Add Class Feature");
 	private final JPanel featuresPanel = new NoHorizontalScrollPanel();
@@ -55,49 +61,61 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 		desc.setLineWrap(true);
 		desc.setWrapStyleWord(true);
 		desc.addFocusListener(UILib.createFocusListener(() -> updateDesc()));
-		UILib.addLabeledComponent(this, "Desc: ", desc, c);
+		UILib.addLabeledComponent(this, "Desc: ", desc, c).setForeground(Color.black);
 		c.gridy++;
 		c.weighty = 0;
 
 		primary.addFocusListener(UILib.createFocusListener(() -> updatePrimary()));
-		UILib.addLabeledComponent(this, "Primary Ability: ", primary, c);
+		UILib.addLabeledComponent(this, "Primary Ability: ", primary, c).setForeground(Color.black);
 		c.gridy++;
 
 		hd.addChangeListener(this);
 		((JSpinner.DefaultEditor) hd.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
-		UILib.addLabeledComponent(this, "HD: ", hd, c);
+		UILib.addLabeledComponent(this, "HD: ", hd, c).setForeground(Color.black);
 		c.gridy++;
 
 		saves.addFocusListener(UILib.createFocusListener(() -> updateSaves()));
-		UILib.addLabeledComponent(this, "Save Profs: ", saves, c);
+		UILib.addLabeledComponent(this, "Save Profs: ", saves, c).setForeground(Color.black);
 		c.gridy++;
 
 		skills.addFocusListener(UILib.createFocusListener(() -> updateSkillOpts()));
-		UILib.addLabeledComponent(this, "Skill Options: ", skills, c);
+		UILib.addLabeledComponent(this, "Skill Options: ", skills, c).setForeground(Color.black);
 		c.gridy++;
 
 		skillCount.addChangeListener(this);
 		((JSpinner.DefaultEditor) skillCount.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
-		UILib.addLabeledComponent(this, "Skill Count: ", skillCount, c);
+		UILib.addLabeledComponent(this, "Skill Count: ", skillCount, c).setForeground(Color.black);
 		c.gridy++;
 
 		weps.addFocusListener(UILib.createFocusListener(() -> updateWeapons()));
-		UILib.addLabeledComponent(this, "Weapons Profs: ", weps, c);
+		UILib.addLabeledComponent(this, "Weapons Profs: ", weps, c).setForeground(Color.black);
 		c.gridy++;
 
 		tools.addFocusListener(UILib.createFocusListener(() -> updateTools()));
-		UILib.addLabeledComponent(this, "Tool Profs: ", tools, c);
+		UILib.addLabeledComponent(this, "Tool Profs: ", tools, c).setForeground(Color.black);
 		c.gridy++;
 
 		armor.addFocusListener(UILib.createFocusListener(() -> updateArmor()));
-		UILib.addLabeledComponent(this, "Armor Trainings: ", armor, c);
+		UILib.addLabeledComponent(this, "Armor Trainings: ", armor, c).setForeground(Color.black);
 		c.gridy++;
 
 		c.weighty = 1;
 		equip.setWrapStyleWord(true);
 		equip.setLineWrap(true);
 		equip.addFocusListener(UILib.createFocusListener(() -> updateEquipment()));
-		UILib.addLabeledComponent(this, "Equipment: ", equip, c);
+		UILib.addLabeledComponent(this, "Equipment: ", equip, c).setForeground(Color.black);
+		c.gridy++;
+
+		knownSpells.setWrapStyleWord(true);
+		knownSpells.setLineWrap(true);
+		knownSpells.addFocusListener(UILib.createFocusListener(() -> updateKnownSpells()));
+		UILib.addLabeledComponent(this, "Known Spells/Lvl: ", knownSpells, c).setForeground(Color.black);
+		c.gridy++;
+
+		spellSlots.setWrapStyleWord(true);
+		spellSlots.setLineWrap(true);
+		spellSlots.addFocusListener(UILib.createFocusListener(() -> updateSpellSlots()));
+		UILib.addLabeledComponent(this, "Spell Slots/Lvl: ", spellSlots, c).setForeground(Color.black);
 		c.gridy++;
 
 		addFeature.addActionListener(this);
@@ -140,6 +158,80 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 			}
 		}
 		equip.setText(String.join(" | ", equipStrings));
+		List<String> knownStrings = new ArrayList<>();
+		if (cls.getClassSpells() != null)
+		{
+			if (cls.getClassSpells().getKnownStyle() == ClassSpells.FLAT)
+			{
+				Map<Integer, Integer> cantrips = cls.getClassSpells().getAllFlatCantrips();
+				Map<Integer, Integer> knowns = cls.getClassSpells().getAllFlatKnown();
+				for (int i = 1; i <= 20; i++)
+				{
+					int cCount = cantrips.containsKey(i) ? cantrips.get(i) : 0;
+					int sCount = knowns.containsKey(i) ? knowns.get(i) : 0;
+
+					if (cCount > 0 || sCount > 0)
+					{
+						knownStrings.add(i + "-" + cCount + "-" + sCount);
+					}
+				}
+			}
+			else
+			{
+				Map<Integer, Integer> cantrips = cls.getClassSpells().getAllGainCantrips();
+				Map<Integer, Integer> knowns = cls.getClassSpells().getAllGainKnown();
+				for (int i = 1; i <= 20; i++)
+				{
+					int cCount = cantrips.containsKey(i) ? cantrips.get(i) : 0;
+					int sCount = knowns.containsKey(i) ? knowns.get(i) : 0;
+
+					if (cCount > 0 || sCount > 0)
+					{
+						knownStrings.add(i + "+" + cCount + "+" + sCount);
+					}
+				}
+			}
+		}
+		knownSpells.setText(String.join(", ", knownStrings));
+		List<String> slotStrings = new ArrayList<>();
+		if (cls.getClassSpells() != null)
+		{
+			if (cls.getClassSpells().getSlotsStyle() == ClassSpells.FLAT)
+			{
+				// If we use entryset we get random order, want these ordered for easy reading
+				Map<Integer, Map<Integer, Integer>> fslots = cls.getClassSpells().getAllFlatSlots();
+				List<Integer> orderedSlotClsLvls = new ArrayList<>(fslots.keySet());
+				orderedSlotClsLvls.sort(Integer::compareTo);
+				for (int charLvl : orderedSlotClsLvls)
+				{
+					int spellLvl = 0;
+					int count = 0;
+					for (Map.Entry<Integer, Integer> spellLevelToCount : fslots.get(charLvl).entrySet())
+					{
+						spellLvl = spellLevelToCount.getKey();
+						count = spellLevelToCount.getValue();
+					}
+					slotStrings.add(charLvl + "-" + spellLvl + "-" + count);
+				}
+			}
+			else
+			{
+				// If we use entryset we get random order, want these ordered for easy reading
+				Map<Integer, Map<Integer, Integer>> fslots = cls.getClassSpells().getAllFlatSlots();
+				List<Integer> orderedSlotClsLvls = new ArrayList<>(fslots.keySet());
+				orderedSlotClsLvls.sort(Integer::compareTo);
+				for (int charLvl : orderedSlotClsLvls)
+				{
+					List<String> slots = new ArrayList<>();
+					for (Map.Entry<Integer, Integer> slotsBySpellLvl : fslots.get(charLvl).entrySet())
+					{
+						slots.add(slotsBySpellLvl.getKey() + "-" + slotsBySpellLvl.getValue());
+					}
+					slotStrings.add(charLvl + " [" + String.join(" | ", slots) + "]");
+				}
+			}
+		}
+		spellSlots.setText(String.join(", ", slotStrings));
 
 		updateFeaturePanels();
 
@@ -175,13 +267,22 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 		}
 	}
 
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (cls != null)
+		{
+			cls.clearCustom();
+		}
+	}
+
 	private void updateFeaturePanels()
 	{
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.weighty = 1;
 		c.ipady = 20;
 		featuresPanel.removeAll();
-		for (ClassFeature cf : cls.getClassFeatures())
+		for (ClassFeature cf : cls.getAllClassFeatures())
 		{
 			ClassFeatureEditPanel cfep = new ClassFeatureEditPanel(cf);
 			cfep.updateSelection();
@@ -194,15 +295,12 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 	@Override
 	protected void updateName()
 	{
-		System.out.println("Setting class name to " + nameField.getText());
 		cls.setName(nameField.getText());
-		cls.setCustom(true);
 	}
 
 	private void updateDesc()
 	{
 		cls.setDesc(desc.getText());
-		cls.setCustom(true);
 	}
 
 	private void updatePrimary()
@@ -249,8 +347,7 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 					invalid.add(an);
 				}
 			}
-			cls.setSaveProfs(abilities);
-			cls.setCustom(true);
+			cls.setPrimaryAbilities(abilities);
 		}
 		showErrorMessage(invalid, "abilities");
 	}
@@ -276,7 +373,6 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 			}
 		}
 		cls.setSaveProfs(abilities);
-		cls.setCustom(true);
 		showErrorMessage(invalid, "abilities");
 	}
 
@@ -301,20 +397,17 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 			}
 		}
 		cls.setSkillSelectionOptions(skills);
-		cls.setCustom(true);
 		showErrorMessage(invalid, "skills");
 	}
 
 	private void updateWeapons()
 	{
 		cls.setWeaponProfs(Arrays.asList(weps.getText().split(",")).stream().map(s -> s.trim()).toList());
-		cls.setCustom(true);
 	}
 
 	private void updateTools()
 	{
 		cls.setToolProfs(Arrays.asList(tools.getText().split(",")).stream().map(s -> s.trim()).toList());
-		cls.setCustom(true);
 	}
 
 	private void updateArmor()
@@ -338,13 +431,12 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 			}
 		}
 		cls.setArmorProfs(armor);
-		cls.setCustom(true);
 		showErrorMessage(invalid, "armor trainings");
 	}
 
 	private void updateEquipment()
 	{
-		String[] equipmentOptions = armor.getText().split("|");
+		String[] equipmentOptions = equip.getText().split("\\|");
 		List<ClassEquipment> equips = new ArrayList<>();
 		List<String> invalid = new ArrayList<>();
 		for (String eo : equipmentOptions)
@@ -377,23 +469,148 @@ public class ClassEditPanel extends EditPanel implements ActionListener, ChangeL
 						invalid.add(eo);
 						continue;
 					}
-					notes = Integer.parseInt(notesString.replace("Notes", "").trim());
+					notes = Integer.parseInt(notesString.replace("Notes:", "").trim());
 				}
 				else
 				{
-					notes = Integer.parseInt(eo.replace("Notes", "").trim());
+					notes = Integer.parseInt(eo.replace("Notes:", "").trim());
 				}
 				ClassEquipment ce = new ClassEquipment(items, notes);
 				equips.add(ce);
 			}
 			catch (Exception e)
 			{
+				e.printStackTrace();
 				invalid.add(eo);
 			}
 		}
 		cls.setEquipmentOptions(equips);
-		cls.setCustom(true);
 		showErrorMessage(invalid, "equipment options");
+	}
+
+	private void updateSpellSlots()
+	{
+		String[] slotLevels = spellSlots.getText().split(",");
+		Map<Integer, Map<Integer, Integer>> slotsByLevel = new HashMap<>();
+		boolean fullStyle = spellSlots.getText().contains("[");
+		List<String> invalid = new ArrayList<>();
+		for (String sl : slotLevels)
+		{
+			if (sl.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				if (fullStyle)
+				{
+					if (!sl.contains("["))
+					{
+						invalid.add(sl);
+						continue;
+					}
+					int clsLvl = Integer.parseInt(sl.substring(0, sl.indexOf('[')).trim());
+
+					Map<Integer, Integer> slots = new HashMap<>();
+					String slotStr = sl.substring(sl.indexOf('[') + 1, sl.indexOf(']'));
+					String[] splitSlots = slotStr.split("\\|");
+
+					for (String slot : splitSlots)
+					{
+						String[] splitSlot = slot.split("-");
+						if (splitSlot.length != 2)
+						{
+							invalid.add(sl);
+							continue;
+						}
+						slots.put(Integer.parseInt(splitSlot[0].trim()), Integer.parseInt(splitSlot[1].trim()));
+					}
+
+					slotsByLevel.put(clsLvl, slots);
+				}
+				else
+				{
+					String[] split = sl.split("-");
+					if (split.length != 3)
+					{
+						invalid.add(sl);
+						continue;
+					}
+					int charLvl = Integer.parseInt(split[0].trim());
+					int spLvl = Integer.parseInt(split[1].trim());
+					int count = Integer.parseInt(split[2].trim());
+					Map<Integer, Integer> spLvlToCount = new HashMap<>();
+					spLvlToCount.put(spLvl, count);
+					slotsByLevel.put(charLvl, spLvlToCount);
+				}
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+				invalid.add(sl);
+			}
+		}
+		if (fullStyle)
+		{
+			cls.getClassSpells().setAllFullSlots(slotsByLevel);
+		}
+		else
+		{
+			cls.getClassSpells().setAllFlatSlots(slotsByLevel);
+		}
+		showErrorMessage(invalid, "spell slots");
+	}
+
+	private void updateKnownSpells()
+	{
+		String[] knownLevels = knownSpells.getText().split(",");
+		Map<Integer, Integer> cantripsByLvl = new HashMap<>();
+		Map<Integer, Integer> spellsByLvl = new HashMap<>();
+		boolean flatStyle = knownSpells.getText().contains("-");
+		List<String> invalid = new ArrayList<>();
+		for (String kl : knownLevels)
+		{
+			if (kl.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				String[] split = kl.split(flatStyle ? "-" : "\\+");
+				if (split.length != 3)
+				{
+					invalid.add(kl);
+					continue;
+				}
+				int lvl = Integer.parseInt(split[0].trim());
+				int cCount = Integer.parseInt(split[1].trim());
+				int sCount = Integer.parseInt(split[2].trim());
+				if (cCount > 0)
+				{
+					cantripsByLvl.put(lvl, cCount);
+				}
+				if (sCount > 0)
+				{
+					spellsByLvl.put(lvl, sCount);
+				}
+			}
+			catch (Exception e)
+			{
+				e.printStackTrace();
+				invalid.add(kl);
+			}
+		}
+		if (flatStyle)
+		{
+			cls.getClassSpells().setAllFlatCantrips(cantripsByLvl);
+			cls.getClassSpells().setAllFlatKnown(spellsByLvl);
+		}
+		else
+		{
+			cls.getClassSpells().setAllGainCantrips(cantripsByLvl);
+			cls.getClassSpells().setAllGainKnown(spellsByLvl);
+		}
+		showErrorMessage(invalid, "known spells");
 	}
 
 	private void showErrorMessage(List<String> invalid, String type)

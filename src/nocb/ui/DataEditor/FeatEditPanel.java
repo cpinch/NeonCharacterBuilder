@@ -1,5 +1,7 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
+
 import javax.swing.JTextField;
 
 import nocb.data.Feat;
@@ -20,7 +22,7 @@ public class FeatEditPanel extends EditPanel
 		super();
 
 		featType.addFocusListener(UILib.createFocusListener(() -> updateFeatType()));
-		UILib.addLabeledComponent(this, "Feat Type: ", featType, c);
+		UILib.addLabeledComponent(this, "Feat Type: ", featType, c).setForeground(Color.black);
 		c.gridy++;
 
 		c.weighty = 1;
@@ -50,9 +52,17 @@ public class FeatEditPanel extends EditPanel
 		feat.setName(nameField.getText());
 	}
 
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (feat != null)
+		{
+			feat.clearCustom();
+		}
+	}
+
 	private void updateFeatType()
 	{
 		feat.setFeatType(featType.getText());
-		feat.setCustom(true);
 	}
 }

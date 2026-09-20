@@ -50,9 +50,19 @@ public class SpellSelectionPanel extends CollapsablePanel implements ActionListe
 		c.anchor = GridBagConstraints.WEST;
 		bodyPanel.setLayout(new GridBagLayout());
 
-		// TODO post1.0 - when level up also pull from lower level lists above 0
 		SpellList list = sc.getSpellList();
-		list.getSpellsForLevel(spellLvl).forEach(s -> spellSelector.addItem(s));
+		if (spellLvl > 0)
+		{
+			// Allow selecting spells from lower levels too
+			for (int spLvl = spellLvl; spLvl > 0; spLvl--)
+			{
+				list.getSpellsForLevel(spLvl).forEach(s -> spellSelector.addItem(s));
+			}
+		}
+		else
+		{
+			list.getSpellsForLevel(spellLvl).forEach(s -> spellSelector.addItem(s));
+		}
 		spellSelector.addActionListener(this);
 		spellSelector.setBackground(VaporwaveColors.DEEP_VIOLET);
 		spellSelector.setForeground(VaporwaveColors.LASER_YELLOW);

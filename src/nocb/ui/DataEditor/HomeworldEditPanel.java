@@ -55,15 +55,22 @@ public class HomeworldEditPanel extends EditPanel
 		homeworld.setName(nameField.getText());
 	}
 
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (homeworld != null)
+		{
+			homeworld.clearCustom();
+		}
+	}
+
 	private void updateTraits()
 	{
 		homeworld.setTraits(Arrays.asList(traits.getText().split(",")).stream().map(t -> t.trim()).toList());
-		homeworld.setCustom(true);
 	}
 
 	private void updateDesc()
 	{
 		homeworld.setDesc(desc.getText());
-		homeworld.setCustom(true);
 	}
 }

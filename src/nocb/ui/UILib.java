@@ -52,7 +52,6 @@ public class UILib
 		textPane.setEditable(false);
 		textPane.setOpaque(false);
 		textPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
-		textPane.setBackground(VaporwaveColors.DARK_PURPLE);
 		textPane.setForeground(VaporwaveColors.HOT_PINK);
 		return textPane;
 	}
@@ -74,7 +73,7 @@ public class UILib
 		JLabel l = new JLabel(label);
 		l.setAlignmentX(Component.LEFT_ALIGNMENT);
 		l.setFont(standardFont);
-		l.setBackground(VaporwaveColors.DARK_PURPLE);
+		l.setOpaque(false);
 		l.setForeground(VaporwaveColors.HOT_PINK);
 		return l;
 	}
@@ -96,9 +95,10 @@ public class UILib
 	public static JLabel addLabeledComponent(JPanel panelToAddTo, String label, Component field, GridBagConstraints c)
 	{
 		JPanel panel = new JPanel();
+		panel.setOpaque(false);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 		JLabel l = getLabel(label);
-		panel.setBackground(VaporwaveColors.DARK_PURPLE);
+		l.setOpaque(false);
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 20));
 		l.setForeground(VaporwaveColors.HOT_PINK);
 		panel.add(l);
@@ -110,9 +110,10 @@ public class UILib
 	public static JLabel addLabeledComponent(JPanel panelToAddTo, String label, Component field)
 	{
 		JPanel panel = new JPanel();
+		panel.setOpaque(false);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 		JLabel l = getLabel(label);
-		panel.setBackground(VaporwaveColors.DARK_PURPLE);
+		l.setOpaque(false);
 		l.setForeground(VaporwaveColors.HOT_PINK);
 		panel.add(l);
 		panel.add(field);

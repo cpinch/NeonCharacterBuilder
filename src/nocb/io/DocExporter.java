@@ -25,7 +25,7 @@ public class DocExporter
 	{
 		if (c.getName().isBlank())
 		{
-			System.out.println("Cannot export character with a blank name.");
+			System.err.println("Cannot export character with a blank name.");
 			return false;
 		}
 		try

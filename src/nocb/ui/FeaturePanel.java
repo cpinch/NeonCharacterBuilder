@@ -42,6 +42,8 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 	private final JComboBox<Selectable> selectableOptions = new JComboBox<>();
 	private final JComboBox<Feat> featOptions = new JComboBox<>();
 	private SelectablePanel selectablePanel, featPanel;
+	private final JComboBox<Selectable> selOrFeatOptions = new JComboBox<>();
+	private final JComboBox<Spell> specificSpellOptions = new JComboBox<>();
 
 	private String priorHomeworldName = "", featTrait = "";
 	private JLabel resLabel;
@@ -83,6 +85,11 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 		if (feature.getExtraHPPerLevel() > 0)
 		{
 			UILib.addLabel(bodyPanel, "<html>Extra HP per Level " + feature.getExtraHPPerLevel() + "</html>", c);
+			c.gridy++;
+		}
+		if (feature.givesHalfProfAll())
+		{
+			UILib.addLabel(bodyPanel, "<html>Gives Half Proficiency to all non-proficient skills.", c);
 			c.gridy++;
 		}
 
@@ -264,7 +271,45 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 				langOptions.setSelectedItem(feature.getLanguagesSelected().get(0));
 			}
 		}
-		if (!feature.getSelectableName().isBlank())
+		if (!feature.getFeatTraitName().isBlank() && !feature.getSelectableName().isBlank())
+		{
+			selectablePanel = new SelectablePanel(sheet);
+			selOrFeatOptions.setFont(UILib.standardFont);
+			selOrFeatOptions.setBackground(VaporwaveColors.DEEP_VIOLET);
+			selOrFeatOptions.setForeground(VaporwaveColors.LASER_YELLOW);
+			String selName = feature.getSelectableName();
+			featTrait = feature.getFeatTraitName();
+			List<Selectable> selOpts = Selectable.getAllValidSelectablesOfType(sheet, selName);
+			if (feature.featIgnoresPrereqs())
+			{
+				selOpts.addAll(Feat.getAllFeatsOfType(sheet, featTrait));
+			}
+			else
+			{
+				selOpts.addAll(Feat.getAllValidFeatsOfType(sheet, featTrait));
+			}
+			selOpts.forEach(s -> selOrFeatOptions.addItem(s));
+			selOrFeatOptions.addActionListener(this);
+			UILib.addLabeledComponent(bodyPanel, selName + ": ", selOrFeatOptions, c)
+					.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+			c.gridy++;
+			c.weighty = 1;
+			bodyPanel.add(selectablePanel, c);
+			c.gridy++;
+			if (feature.getSelected() == null && feature.getFeat() == null)
+			{
+				selOrFeatOptions.setSelectedIndex(0);
+			}
+			else if (feature.getSelected() == null)
+			{
+				selOrFeatOptions.setSelectedItem(feature.getFeat());
+			}
+			else
+			{
+				selOrFeatOptions.setSelectedItem(feature.getSelected());
+			}
+		}
+		else if (!feature.getSelectableName().isBlank())
 		{
 			selectablePanel = new SelectablePanel(sheet);
 			selectableOptions.setFont(UILib.standardFont);
@@ -289,14 +334,22 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 				selectableOptions.setSelectedItem(feature.getSelected());
 			}
 		}
-		if (!feature.getFeatTraitName().isBlank())
+		else if (!feature.getFeatTraitName().isBlank())
 		{
 			featPanel = new SelectablePanel(sheet);
 			featOptions.setFont(UILib.standardFont);
 			featOptions.setBackground(VaporwaveColors.DEEP_VIOLET);
 			featOptions.setForeground(VaporwaveColors.LASER_YELLOW);
 			featTrait = feature.getFeatTraitName();
-			List<Feat> featOpts = Feat.getAllValidFeatsOfType(sheet, featTrait);
+			List<Feat> featOpts = new ArrayList<>();
+			if (feature.featIgnoresPrereqs())
+			{
+				featOpts = Feat.getAllFeatsOfType(sheet, featTrait);
+			}
+			else
+			{
+				featOpts = Feat.getAllValidFeatsOfType(sheet, featTrait);
+			}
 			featOpts.forEach(s -> featOptions.addItem(s));
 			featOptions.addActionListener(this);
 			UILib.addLabeledComponent(bodyPanel, "Feat: ", featOptions, c)
@@ -312,6 +365,26 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 			else
 			{
 				featOptions.setSelectedItem(feature.getFeat());
+			}
+		}
+		if (!feature.getSpecificSpellChoices().isEmpty())
+		{
+			// TODO post1.0 - for now this only supports picking 1 specific spell. If a
+			// feature exists that lets you select more than 1 will need to revisit
+			feature.getSpecificSpellChoices().forEach(sp -> specificSpellOptions.addItem(sp));
+			specificSpellOptions.addActionListener(this);
+			specificSpellOptions.setBackground(VaporwaveColors.DEEP_VIOLET);
+			specificSpellOptions.setForeground(VaporwaveColors.LASER_YELLOW);
+			UILib.addLabeledComponent(bodyPanel, "Select Spell:", specificSpellOptions, c)
+					.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+			c.gridy++;
+			if (feature.getLanguagesSelected().isEmpty())
+			{
+				specificSpellOptions.setSelectedIndex(0);
+			}
+			else
+			{
+				specificSpellOptions.setSelectedItem(feature.getSpecificSpellChoices().get(0));
 			}
 		}
 	}
@@ -367,6 +440,27 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 				featPanel.setSelected(f);
 				revalidate();
 			}
+		}
+		else if (e.getSource().equals(selOrFeatOptions))
+		{
+			Selectable sel = (Selectable) selOrFeatOptions.getSelectedItem();
+			if (sel != null)
+			{
+				if (sel.getClass().equals(Feat.class))
+				{
+					feature.setFeat((Feat) sel);
+				}
+				else
+				{
+					feature.setSelection(sel);
+				}
+				selectablePanel.setSelected(sel);
+				revalidate();
+			}
+		}
+		else if (e.getSource().equals(specificSpellOptions))
+		{
+			feature.chooseSpecificSpell((Spell) specificSpellOptions.getSelectedItem());
 		}
 	}
 

@@ -11,7 +11,7 @@ public class Spell implements Cloneable
 
 	private final int id;
 	private String name = "", school = "", castTime = "", trigger = "", components = "", range = "", duration = "",
-			text = "", notes = "", materials = "";
+			text = "", notes = "", materials = "", baseName = "";
 	private int level = 0;
 	private boolean ritual = false, custom = false;
 
@@ -32,7 +32,11 @@ public class Spell implements Cloneable
 
 	public void setName(String name)
 	{
-		this.name = name;
+		if (!this.name.equals(name))
+		{
+			this.name = name;
+			setCustom(true);
+		}
 	}
 
 	public String getSchool()
@@ -42,7 +46,11 @@ public class Spell implements Cloneable
 
 	public void setSchool(String school)
 	{
-		this.school = school;
+		if (!this.school.equals(school))
+		{
+			this.school = school;
+			setCustom(true);
+		}
 	}
 
 	public String getCastTime()
@@ -52,7 +60,11 @@ public class Spell implements Cloneable
 
 	public void setCastTime(String castTime)
 	{
-		this.castTime = castTime;
+		if (!this.castTime.equals(castTime))
+		{
+			this.castTime = castTime;
+			setCustom(true);
+		}
 	}
 
 	public String getTrigger()
@@ -62,7 +74,11 @@ public class Spell implements Cloneable
 
 	public void setTrigger(String trigger)
 	{
-		this.trigger = trigger;
+		if (!this.trigger.equals(trigger))
+		{
+			this.trigger = trigger;
+			setCustom(true);
+		}
 	}
 
 	public String getComponents()
@@ -72,7 +88,11 @@ public class Spell implements Cloneable
 
 	public void setComponents(String components)
 	{
-		this.components = components;
+		if (!this.components.equals(components))
+		{
+			this.components = components;
+			setCustom(true);
+		}
 	}
 
 	public String getRange()
@@ -82,7 +102,11 @@ public class Spell implements Cloneable
 
 	public void setRange(String range)
 	{
-		this.range = range;
+		if (!this.range.equals(range))
+		{
+			this.range = range;
+			setCustom(true);
+		}
 	}
 
 	public String getDuration()
@@ -92,7 +116,11 @@ public class Spell implements Cloneable
 
 	public void setDuration(String duration)
 	{
-		this.duration = duration;
+		if (!this.duration.equals(duration))
+		{
+			this.duration = duration;
+			setCustom(true);
+		}
 	}
 
 	public String getText()
@@ -102,7 +130,11 @@ public class Spell implements Cloneable
 
 	public void setText(String text)
 	{
-		this.text = text;
+		if (!this.text.equals(text))
+		{
+			this.text = text;
+			setCustom(true);
+		}
 	}
 
 	public int getLevel()
@@ -112,7 +144,11 @@ public class Spell implements Cloneable
 
 	public void setLevel(int level)
 	{
-		this.level = level;
+		if (this.level != level)
+		{
+			this.level = level;
+			setCustom(true);
+		}
 	}
 
 	public String getNotes()
@@ -127,7 +163,11 @@ public class Spell implements Cloneable
 
 	public void setMaterials(String materials)
 	{
-		this.materials = materials;
+		if (!this.materials.equals(materials))
+		{
+			this.materials = materials;
+			setCustom(true);
+		}
 	}
 
 	public boolean isRitual()
@@ -137,7 +177,11 @@ public class Spell implements Cloneable
 
 	public void setRitual(boolean ritual)
 	{
-		this.ritual = ritual;
+		if (this.ritual != ritual)
+		{
+			this.ritual = ritual;
+			setCustom(true);
+		}
 	}
 
 	public boolean isConcentration()
@@ -150,9 +194,19 @@ public class Spell implements Cloneable
 		return custom;
 	}
 
-	public void setCustom(boolean custom)
+	private void setCustom(boolean custom)
 	{
 		this.custom = custom;
+	}
+
+	public void clearCustom()
+	{
+		setCustom(false);
+	}
+
+	public String getBaseName()
+	{
+		return baseName;
 	}
 
 	// Loading
@@ -172,7 +226,7 @@ public class Spell implements Cloneable
 				return s;
 			}
 		}
-		System.out.println("No spell with id " + id + " was loaded.");
+		System.err.println("No spell with id " + id + " was loaded.");
 		return null;
 	}
 
@@ -185,7 +239,7 @@ public class Spell implements Cloneable
 				return s;
 			}
 		}
-		System.out.println("No spell with name " + name + " was loaded.");
+		System.err.println("No spell with name " + name + " was loaded.");
 		return null;
 	}
 
@@ -204,6 +258,7 @@ public class Spell implements Cloneable
 		Spell baseSpell = getByName(baseName);
 		Spell copy = (Spell) baseSpell.clone();
 		copy.setName(altName);
+		copy.baseName = baseName;
 		allSpells.add(copy);
 		return copy;
 	}
@@ -211,6 +266,14 @@ public class Spell implements Cloneable
 	public static Spell getCopyByName(String name, String notes)
 	{
 		Spell spell = Spell.getByName(name);
+		Spell copy = (Spell) spell.clone();
+		copy.notes = notes;
+		return copy;
+	}
+
+	public static Spell getCopyByAltName(String altName, String baseName, String notes)
+	{
+		Spell spell = Spell.getByAltName(altName, baseName);
 		Spell copy = (Spell) spell.clone();
 		copy.notes = notes;
 		return copy;
@@ -242,18 +305,18 @@ public class Spell implements Cloneable
 
 		Spell newSpell = new Spell();
 
-		newSpell.setName(name);
-		newSpell.setLevel(data.getInt("level"));
-		newSpell.setSchool(data.getString("school"));
-		newSpell.setCastTime(data.getString("time"));
-		newSpell.setComponents(data.getString("components"));
-		newSpell.setRange(data.getString("range"));
-		newSpell.setDuration(data.getString("duration"));
-		newSpell.setText(data.getString("text"));
-		newSpell.setTrigger(data.optString("trigger", ""));
-		newSpell.setMaterials(data.optString("materials", ""));
-		newSpell.setRitual(data.optBoolean("ritual", false));
-		newSpell.setCustom(data.optBoolean("custom", false));
+		newSpell.name = name;
+		newSpell.level = data.getInt("level");
+		newSpell.school = data.getString("school");
+		newSpell.castTime = data.getString("time");
+		newSpell.components = data.getString("components");
+		newSpell.range = data.getString("range");
+		newSpell.duration = data.getString("duration");
+		newSpell.text = data.getString("text");
+		newSpell.trigger = data.optString("trigger", "");
+		newSpell.materials = data.optString("materials", "");
+		newSpell.ritual = data.optBoolean("ritual", false);
+		newSpell.custom = data.optBoolean("custom", false);
 
 		if (!newSpell.name.isBlank())
 		{
@@ -310,6 +373,53 @@ public class Spell implements Cloneable
 		catch (CloneNotSupportedException e)
 		{
 			return null;
+		}
+	}
+
+	@Override
+	public boolean equals(Object o)
+	{
+		if (this == o)
+			return true;
+
+		if (o == null || getClass() != o.getClass())
+			return false;
+
+		return getId() == ((Spell) o).getId();
+	}
+
+	public JSONObject toJSONObject()
+	{
+		JSONObject sp = new JSONObject();
+		sp.put("spell", getName());
+		if (!getNotes().isBlank())
+		{
+			sp.put("note", getNotes());
+		}
+		if (!getBaseName().isBlank())
+		{
+			sp.put("baseName", getBaseName());
+		}
+		return sp;
+	}
+
+	public static Spell getFromJSONObject(JSONObject sp)
+	{
+		if (sp.has("baseName") && sp.has("note"))
+		{
+			return Spell.getCopyByAltName(sp.getString("spell"), sp.getString("baseName"), sp.getString("note"));
+		}
+		else if (sp.has("baseName"))
+		{
+			return Spell.getByAltName(sp.getString("spell"), sp.getString("baseName"));
+		}
+		else if (sp.has("note"))
+		{
+			return Spell.getCopyByName(sp.getString("spell"), sp.getString("note"));
+		}
+		else
+		{
+			return Spell.getByName(sp.getString("spell"));
 		}
 	}
 }
