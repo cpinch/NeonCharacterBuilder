@@ -45,15 +45,13 @@ public class SpellListEditPanel extends EditPanel
 	protected void updateSelection()
 	{
 		list = SpellList.getById(id);
+		System.out.println("Got spell list " + list);
 
 		nameField.setText(list.getName());
 		for (int lvl = 0; lvl <= 9; lvl++)
 		{
 			List<String> spells = list.getSpellNamesForLevel(lvl);
-			if (!spells.isEmpty())
-			{
-				spellsByLevel.get(lvl).setText(String.join(", ", spells));
-			}
+			spellsByLevel.get(lvl).setText(String.join(", ", spells));
 		}
 
 		setVisible(true);

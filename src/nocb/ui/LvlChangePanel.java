@@ -7,13 +7,14 @@ import java.util.List;
 
 import javax.swing.JLabel;
 
+import nocb.data.ClassFeature;
 import nocb.main.CharacterSheet;
 
 public class LvlChangePanel extends CollapsablePanel
 {
 	private static final long serialVersionUID = -4522031612337864604L;
 
-	public LvlChangePanel(int lvl, CharacterSheet sheet, boolean startCollapsed)
+	public LvlChangePanel(int lvl, CharacterSheet sheet, boolean startCollapsed, Runnable showSubclass)
 	{
 		super(startCollapsed);
 
@@ -26,17 +27,27 @@ public class LvlChangePanel extends CollapsablePanel
 
 		List<String> changes = new ArrayList<>();
 
-		changes.addAll(sheet.getCharClass().getFeaturesAtLevel(lvl).stream().map(cf -> "Class Feature: " + cf.getName())
-				.toList());
+		List<ClassFeature> updatedFeatures = sheet.getCharClass().getFeaturesAtLevel(lvl);
+		changes.addAll(updatedFeatures.stream().map(cf -> "Class Feature: " + cf.getName()).toList());
+		if (sheet.getCharClass().getSubclass() != null)
+		{
+			changes.addAll(sheet.getCharClass().getSubclass().getFeaturesAtLevel(lvl).stream()
+					.map(cf -> "Sublass Feature: " + cf.getName()).toList());
+		}
 		changes.addAll(
 				sheet.getSpecies().getTraitsAtLevel(lvl).stream().map(st -> "Species Trait: " + st.getName()).toList());
 
+		if (updatedFeatures.stream().anyMatch(cf -> cf.getName().equals("Gain a Subclass")))
+		{
+			showSubclass.run();
+		}
+
 		// For simplicity we just assume that, if the character's class is a
-		// spellcasting class, that it got new known spells. I don't think any
-		// spellcasting class ever has a dead level for known spells.
+		// spellcasting class, that it got new known spells or can update its old
+		// selections.
 		if (sheet.getCharClass().isSpellcaster())
 		{
-			changes.add("New Known Spells");
+			changes.add("New Spell Options");
 		}
 
 		UILib.addTextDisplay(bodyPanel, "<html>" + String.join("<br>", changes) + "</html>", c);

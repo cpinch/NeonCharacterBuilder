@@ -6,6 +6,8 @@ import java.util.List;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import nocb.main.PropertyListener;
+
 // TODO - will need to properly set custom when this is save/load capable
 public class Background extends Feature
 {
@@ -55,7 +57,12 @@ public class Background extends Feature
 
 	public void setHomeworld(Homeworld h)
 	{
-		this.homeworld = h;
+		if (!homeworld.getName().equals(h.getName()))
+		{
+			Homeworld old = homeworld;
+			this.homeworld = h;
+			pcs.firePropertyChange(PropertyListener.HOMEWORLD, old, h);
+		}
 	}
 
 	// Calculated

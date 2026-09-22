@@ -35,6 +35,7 @@ import nocb.data.Selectable;
 import nocb.data.Species;
 import nocb.data.Spell;
 import nocb.data.SpellList;
+import nocb.data.Subclass;
 import nocb.main.CharacterSheet;
 import nocb.ui.Toast;
 
@@ -50,6 +51,7 @@ public class JsonDataLoader
 	private static final String homeworldFolder = "homeworlds";
 	private static final String languageFolder = "languages";
 	private static final String selectableFolder = "selectables";
+	private static final String subclassFolder = "subclasses";
 
 	public static void loadAllFiles()
 	{
@@ -77,6 +79,7 @@ public class JsonDataLoader
 		List<byte[]> allHomeworlds = new ArrayList<>();
 		List<byte[]> allLanguages = new ArrayList<>();
 		List<byte[]> allSelectables = new ArrayList<>();
+		List<byte[]> allSubclasses = new ArrayList<>();
 		for (File lib : libraries)
 		{
 			try (ZipFile libZip = new ZipFile(lib))
@@ -128,6 +131,10 @@ public class JsonDataLoader
 							else if (entry.getName().startsWith(selectableFolder))
 							{
 								allSelectables.add(readAllBytes(in));
+							}
+							else if (entry.getName().startsWith(subclassFolder))
+							{
+								allSubclasses.add(readAllBytes(in));
 							}
 							else
 							{
@@ -199,6 +206,13 @@ public class JsonDataLoader
 			Species.loadSpecies(readDataFromBytes(f));
 		}
 		Species.sortAll();
+
+		// Load all subclasses
+		for (byte[] f : allSubclasses)
+		{
+			Subclass.loadSubclass(readDataFromBytes(f));
+		}
+		Subclass.sortAll();
 
 		// Load all classes
 		for (byte[] f : allClasses)
@@ -419,6 +433,16 @@ public class JsonDataLoader
 				{
 					byte[] data = s.saveSpecies().toString(4).getBytes(StandardCharsets.UTF_8);
 					ZipEntry ze = new ZipEntry(speciesFolder + "/" + s.getName() + ".json");
+					out.putNextEntry(ze);
+					out.write(data, 0, data.length);
+				}
+			}
+			for (Subclass s : Subclass.getAllSubclasses())
+			{
+				if (s.isCustom())
+				{
+					byte[] data = s.saveSubclass().toString(4).getBytes(StandardCharsets.UTF_8);
+					ZipEntry ze = new ZipEntry(subclassFolder + "/" + s.getName() + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}

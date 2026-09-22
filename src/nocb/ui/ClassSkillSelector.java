@@ -26,12 +26,9 @@ public class ClassSkillSelector extends JPanel implements ActionListener
 
 	private final List<JComboBox<Skill>> selectors = new ArrayList<>();
 
-	private final Runnable skillsUpdatedCallback;
-
-	public ClassSkillSelector(CharacterSheet sheet, Runnable skillsUpdatedCallback)
+	public ClassSkillSelector(CharacterSheet sheet)
 	{
 		this.sheet = sheet;
-		this.skillsUpdatedCallback = skillsUpdatedCallback;
 
 		setLayout(new GridBagLayout());
 		setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -113,6 +110,5 @@ public class ClassSkillSelector extends JPanel implements ActionListener
 			}
 		}
 		sheet.getCharClass().setSkillsSelected(selectedSkills);
-		skillsUpdatedCallback.run();
 	}
 }

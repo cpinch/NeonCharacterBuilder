@@ -29,7 +29,7 @@ public class ClassTraitsPanel extends JPanel
 	private final JLabel armor = UILib.getLabel("");
 	private final EquipmentSelectionPanel equipmentSelectionPanel;
 
-	public ClassTraitsPanel(CharacterSheet sheet, Runnable skillsUpdatedCallback)
+	public ClassTraitsPanel(CharacterSheet sheet)
 	{
 		this.sheet = sheet;
 
@@ -57,7 +57,7 @@ public class ClassTraitsPanel extends JPanel
 		saves.setFont(UILib.boldFont);
 		c.gridy++;
 
-		skills = new ClassSkillSelector(sheet, skillsUpdatedCallback);
+		skills = new ClassSkillSelector(sheet);
 		add(skills, c);
 		c.gridy++;
 

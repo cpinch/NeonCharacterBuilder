@@ -1,5 +1,6 @@
 package nocb.data;
 
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -366,5 +367,19 @@ public class Species extends Feature
 			success = false;
 		}
 		return success;
+	}
+
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener l)
+	{
+		super.addPropertyChangeListener(l);
+		traits.forEach(t -> t.addPropertyChangeListener(l));
+	}
+
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener l)
+	{
+		super.removePropertyChangeListener(l);
+		traits.forEach(t -> t.removePropertyChangeListener(l));
 	}
 }

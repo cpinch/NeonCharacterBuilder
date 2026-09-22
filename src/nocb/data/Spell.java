@@ -256,11 +256,20 @@ public class Spell implements Cloneable
 
 		// Add a copy of the spell under the alternative name
 		Spell baseSpell = getByName(baseName);
-		Spell copy = (Spell) baseSpell.clone();
-		copy.setName(altName);
-		copy.baseName = baseName;
-		allSpells.add(copy);
-		return copy;
+		if (baseSpell == null)
+		{
+			System.err.println(
+					"Could not create spell " + altName + " because no spell with name " + baseName + " was found.");
+			return null;
+		}
+		else
+		{
+			Spell copy = (Spell) baseSpell.clone();
+			copy.name = altName;
+			copy.baseName = baseName;
+			allSpells.add(copy);
+			return copy;
+		}
 	}
 
 	public static Spell getCopyByName(String name, String notes)

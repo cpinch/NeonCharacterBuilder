@@ -11,13 +11,14 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import nocb.io.JsonDataLoader;
+import nocb.main.PropertyListener;
 
 /**
  * This class is a baseline for all sorts of "things that you can pick that
  * affect your character" and just provides standardized getters/setters for
  * them so each class can have a minimal implementation.
  */
-public class Feature
+public class Feature extends AlertsChanges
 {
 	private static int nId = 1;
 	private final int id;
@@ -25,11 +26,12 @@ public class Feature
 	// Basic
 	protected String name = "";
 	protected String text = "";
-	protected Ability abilityAddToAC;
 	protected int speedMod = 0;
 	protected String sheetNotes = "";
+	protected int extraHPLvl1 = 0;
 	protected int extraHPPerLevel = 0;
 	protected boolean givesHalfProfAll = false;
+	protected boolean givesProfToInit = false;
 
 	// List
 	protected final List<Ability> saveProfs = new ArrayList<>();
@@ -40,6 +42,7 @@ public class Feature
 	protected final List<Spell> spellsGranted = new ArrayList<>();
 	protected final List<Language> languagesGranted = new ArrayList<>();
 	protected final List<String> resistancesGranted = new ArrayList<>();
+	protected final List<Ability> abilitiesToAC = new ArrayList<>();
 
 	// Selections
 	protected final List<String> resistanceOptions = new ArrayList<>();
@@ -78,12 +81,12 @@ public class Feature
 		// Basic
 		this.name = data.getString("name");
 		this.text = data.optString("text", "");
-		String abilityToAddToAC = data.optString("addAbilityToAc", "");
-		this.abilityAddToAC = abilityToAddToAC.isBlank() ? null : Ability.valueOf(abilityToAddToAC);
 		this.speedMod = data.optInt("speedMod", 0);
 		this.sheetNotes = data.optString("sheetNotes", "");
 		this.extraHPPerLevel = data.optInt("extraHPPerLevel", 0);
+		this.extraHPLvl1 = data.optInt("extraHPLvl1", 0);
 		this.givesHalfProfAll = data.optBoolean("halfProfAll", false);
+		this.givesProfToInit = data.optBoolean("profInit", false);
 
 		// List
 		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("saves"))
@@ -99,6 +102,8 @@ public class Feature
 		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("langs"))
 				.forEach(l -> this.languagesGranted.add(Language.getByName(l)));
 		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("res")).forEach(r -> resistancesGranted.add(r));
+		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("acAbilities"))
+				.forEach(a -> abilitiesToAC.add(Ability.valueOf(a)));
 
 		// Selections
 		JsonDataLoader.jsonArrayToStringArray(data.optJSONArray("resOptions"))
@@ -157,10 +162,6 @@ public class Feature
 		{
 			data.put("text", text);
 		}
-		if (abilityAddToAC != null)
-		{
-			data.put("addAbilityToAc", abilityAddToAC.toString());
-		}
 		if (speedMod > 0)
 		{
 			data.put("speedMod", speedMod);
@@ -173,9 +174,17 @@ public class Feature
 		{
 			data.put("extraHPPerLevel", extraHPPerLevel);
 		}
+		if (extraHPLvl1 > 0)
+		{
+			data.put("extraHPLvl1", extraHPLvl1);
+		}
 		if (givesHalfProfAll)
 		{
 			data.put("halfProfAll", true);
+		}
+		if (givesProfToInit)
+		{
+			data.put("profInit", true);
 		}
 
 		// List
@@ -226,6 +235,12 @@ public class Feature
 			JSONArray res = new JSONArray();
 			resistancesGranted.forEach(r -> res.put(r));
 			data.put("res", res);
+		}
+		if (!abilitiesToAC.isEmpty())
+		{
+			JSONArray abls = new JSONArray();
+			abilitiesToAC.forEach(a -> abls.put(a.toString()));
+			data.put("acAbilities", abls);
 		}
 
 		// Selections
@@ -467,16 +482,17 @@ public class Feature
 		}
 	}
 
-	public Ability getAbilityAddToAC()
+	public List<Ability> getAbilitiesToAC()
 	{
-		return abilityAddToAC;
+		return abilitiesToAC;
 	}
 
-	public void setAbilityAddToAC(Ability a)
+	public void setAbilitiesToAC(List<Ability> abilities)
 	{
-		if (abilityAddToAC != a)
+		if (abilitiesToAC == null || (abilities != null && !abilitiesToAC.equals(abilities)))
 		{
-			abilityAddToAC = a;
+			abilitiesToAC.clear();
+			abilitiesToAC.addAll(abilities);
 			setCustom(true);
 		}
 	}
@@ -520,6 +536,20 @@ public class Feature
 		if (extraHPPerLevel != hp)
 		{
 			extraHPPerLevel = hp;
+			setCustom(true);
+		}
+	}
+
+	public int getExtraHPLvl1()
+	{
+		return extraHPLvl1;
+	}
+
+	public void setExtraHPLvl1(int hp)
+	{
+		if (extraHPLvl1 != hp)
+		{
+			extraHPLvl1 = hp;
 			setCustom(true);
 		}
 	}
@@ -627,8 +657,13 @@ public class Feature
 
 	public void setSkillsSelected(List<Skill> skills)
 	{
-		this.skillsSelected.clear();
-		this.skillsSelected.addAll(skills);
+		if (!skillsSelected.equals(skills))
+		{
+			List<Skill> oldSkills = new ArrayList<>(skillsSelected);
+			this.skillsSelected.clear();
+			this.skillsSelected.addAll(skills);
+			pcs.firePropertyChange(PropertyListener.SKILLS, oldSkills, skills);
+		}
 	}
 
 	public List<Skill> getSkillExpertOptions()
@@ -754,7 +789,14 @@ public class Feature
 
 	public void setSelection(Selectable s)
 	{
-		this.selected = s;
+		if (selected == null || (s != null && !selected.getName().equals(s.getName())))
+		{
+			Selectable old = selected;
+			this.selected = s;
+			// Only one of feat/selectable can be selected at a time for a feature
+			this.feat = null;
+			pcs.firePropertyChange(PropertyListener.SELECTED, old, s);
+		}
 	}
 
 	public String getFeatTraitName()
@@ -792,7 +834,14 @@ public class Feature
 
 	public void setFeat(Feat f)
 	{
-		this.feat = f;
+		if (feat == null || (f != null && !feat.getName().equals(f.getName())))
+		{
+			Feat old = feat;
+			this.feat = f;
+			// Only one of feat/selectable can be selected at a time for a feature
+			this.selected = null;
+			pcs.firePropertyChange(PropertyListener.SELECTED, old, f);
+		}
 	}
 
 	public List<Spell> getSpecificSpellChoices()
@@ -885,6 +934,20 @@ public class Feature
 		}
 	}
 
+	public boolean givesProfToInit()
+	{
+		return givesProfToInit;
+	}
+
+	public void setProfToInit(boolean b)
+	{
+		if (givesProfToInit != b)
+		{
+			this.givesProfToInit = b;
+			setCustom(true);
+		}
+	}
+
 	public boolean isCustom()
 	{
 		// For anything we are customizing, to be able to customize one of its children,
@@ -961,7 +1024,19 @@ public class Feature
 		total += this.getExtraHPPerLevel();
 		for (Feature child : getChildFeatures())
 		{
-			total += child.getExtraHPPerLevel();
+			total += child.getTotalExtraHPLvl1();
+		}
+		return total;
+	}
+
+	public int getTotalExtraHPLvl1()
+	{
+
+		int total = 0;
+		total += this.getExtraHPLvl1();
+		for (Feature child : getChildFeatures())
+		{
+			total += child.getTotalExtraHPLvl1();
 		}
 		return total;
 	}
@@ -1070,6 +1145,19 @@ public class Feature
 		return all;
 	}
 
+	public List<List<Ability>> getAllAbilitiesToAC()
+	{
+		List<List<Ability>> abls = new ArrayList<>();
+
+		if (!getAbilitiesToAC().isEmpty())
+		{
+			abls.add(getAbilitiesToAC());
+		}
+		getChildFeatures().forEach(ab -> abls.addAll(ab.getAllAbilitiesToAC()));
+
+		return abls;
+	}
+
 	public Map<Skill, Ability> getAllAbilitiesAddToSkills()
 	{
 		Map<Skill, Ability> all = new HashMap<>();
@@ -1118,6 +1206,22 @@ public class Feature
 		else
 		{
 			if (getChildFeatures().stream().anyMatch(f -> f.getAnyGivesHalfProfAll()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public boolean getAnyGivesProfToInit()
+	{
+		if (givesProfToInit)
+		{
+			return true;
+		}
+		else
+		{
+			if (getChildFeatures().stream().anyMatch(f -> f.getAnyGivesProfToInit()))
 			{
 				return true;
 			}

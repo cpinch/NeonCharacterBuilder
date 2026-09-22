@@ -1,5 +1,6 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
 import java.util.Arrays;
 
 import javax.swing.BorderFactory;
@@ -25,14 +26,14 @@ public class HomeworldEditPanel extends EditPanel
 		traits.setBorder(BorderFactory.createEtchedBorder());
 		traits.setLineWrap(true);
 		traits.setWrapStyleWord(true);
-		UILib.addLabeledComponent(this, "Traits: ", traits, c);
+		UILib.addLabeledComponent(this, "Traits: ", traits, c).setForeground(Color.black);
 		c.gridy++;
 		c.weighty = 0.8;
 		desc.setBorder(BorderFactory.createEtchedBorder());
 		desc.addFocusListener(UILib.createFocusListener(() -> updateDesc()));
 		desc.setLineWrap(true);
 		desc.setWrapStyleWord(true);
-		UILib.addLabeledComponent(this, "Desc:  ", desc, c);
+		UILib.addLabeledComponent(this, "Desc:  ", desc, c).setForeground(Color.black);
 
 		setVisible(false);
 	}

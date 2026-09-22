@@ -47,15 +47,16 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			OPT_G_ARMOR = "Gives Armor Train", OPT_G_LANGS = "Gives Languages", OPT_C_LANGS = "Choose Languages",
 			OPT_G_RES = "Gives Resistances", OPT_R_BY_H = "Gives Resistances Based on Homeworld Traits",
 			OPT_C_RES = "Choose Resistances", OPT_C_EXP = "Choose Skill Expertise", OPT_G_TOOLS = "Gives Tool Profs",
-			OPT_G_WEPS = "Gives Weapon Profs", OPT_ABL_AC = "Add Ability to AC",
-			OPT_ABL_SKILLS = "Adds Extra Ability to Skills", OPT_SPD = "Increase Speed", OPT_HP = "+HP/Level",
-			OPT_FEAT = "Choose Feat", OPT_SEL = "Choose Selectable", OPT_NOTES = "Puts Notes on Sheet",
-			OPT_HALFPROF_ALL = "Gives Half Proficiency to all non-Proficient Skills";
+			OPT_G_WEPS = "Gives Weapon Profs", OPT_ABL_AC = "Sets AC Abilities",
+			OPT_ABL_SKILLS = "Adds Extra Ability to Skills", OPT_SPD = "Increase Speed", OPT_HP_1 = "+HP Lvl 1 Only",
+			OPT_HP_LVL = "+HP/Level", OPT_FEAT = "Choose Feat", OPT_SEL = "Choose Selectable",
+			OPT_NOTES = "Puts Notes on Sheet", OPT_HALFPROF_ALL = "Gives Half Proficiency to all non-Proficient Skills",
+			OPT_PROF_INIT = "Gives Proficiency to Initiative";
 
 	private static final List<String> options = List.of(OPT_TEXT, OPT_G_SKILLS, OPT_C_SKILLS, OPT_G_SAVES, OPT_G_SPELLS,
 			OPT_C_SPELLS, OPT_C_S_SPELLS, OPT_G_ARMOR, OPT_G_LANGS, OPT_C_LANGS, OPT_G_RES, OPT_R_BY_H, OPT_C_RES,
-			OPT_C_EXP, OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP, OPT_HALFPROF_ALL, OPT_FEAT,
-			OPT_SEL, OPT_NOTES);
+			OPT_C_EXP, OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP_1, OPT_HP_LVL,
+			OPT_HALFPROF_ALL, OPT_PROF_INIT, OPT_FEAT, OPT_SEL, OPT_NOTES);
 
 	private final Feature f;
 
@@ -82,11 +83,13 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 	private final JSpinner chooseExpCount = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
 	private final JTextField tools = new JTextField(20);
 	private final JTextField weapons = new JTextField(20);
-	private final JComboBox<Ability> ablAddAc = new JComboBox<>(Ability.realValues());
+	private final JTextField ablAddAc = new JTextField(20);
 	private final JTextField ablToSkills = new JTextField(20);
 	private final JSpinner speed = new JSpinner(new SpinnerNumberModel(0, 0, 50, 1));
-	private final JSpinner hp = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
+	private final JSpinner hp1 = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
+	private final JSpinner hpLvl = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
 	private final JCheckBox halfProf = new JCheckBox();
+	private final JCheckBox initProf = new JCheckBox();
 	private final JTextField feat = new JTextField(20);
 	private final JTextField selectable = new JTextField(20);
 	private final JTextArea text = new JTextArea(3, 20);
@@ -161,7 +164,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		weapons.addFocusListener(UILib.createFocusListener(() -> updateWeapons()));
 		addLabeledComp(OPT_G_WEPS, weapons, c);
 
-		ablAddAc.addActionListener(this);
+		ablAddAc.addFocusListener(UILib.createFocusListener(() -> updateAblToAC()));
 		addLabeledComp(OPT_ABL_AC, ablAddAc, c);
 
 		ablToSkills.addFocusListener(UILib.createFocusListener(() -> updateAblToSkills()));
@@ -171,12 +174,19 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		((JSpinner.DefaultEditor) speed.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
 		addLabeledComp(OPT_SPD, speed, c);
 
-		hp.addChangeListener(this);
-		((JSpinner.DefaultEditor) hp.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
-		addLabeledComp(OPT_HP, hp, c);
+		hp1.addChangeListener(this);
+		((JSpinner.DefaultEditor) hp1.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
+		addLabeledComp(OPT_HP_1, hp1, c);
+
+		hpLvl.addChangeListener(this);
+		((JSpinner.DefaultEditor) hpLvl.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
+		addLabeledComp(OPT_HP_LVL, hpLvl, c);
 
 		halfProf.addActionListener(this);
 		addLabeledComp(OPT_HALFPROF_ALL, halfProf, c);
+
+		initProf.addActionListener(this);
+		addLabeledComp(OPT_PROF_INIT, initProf, c);
 
 		feat.addFocusListener(UILib.createFocusListener(() -> updateFeatTrait()));
 		addLabeledComp(OPT_FEAT, feat, c);
@@ -247,13 +257,13 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		{
 			optionPanels.get(optionSel.getSelectedItem()).setVisible(true);
 		}
-		else if (e.getSource().equals(ablAddAc))
-		{
-			f.setAbilityAddToAC((Ability) ablAddAc.getSelectedItem());
-		}
 		else if (e.getSource().equals(halfProf))
 		{
 			f.setHalfProfAll(halfProf.isSelected());
+		}
+		else if (e.getSource().equals(initProf))
+		{
+			f.setProfToInit(initProf.isSelected());
 		}
 	}
 
@@ -276,9 +286,13 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 		{
 			f.setSpeedMod((int) speed.getValue());
 		}
-		else if (e.getSource().equals(hp))
+		else if (e.getSource().equals(hp1))
 		{
-			f.setExtraHPPerLevel((int) hp.getValue());
+			f.setExtraHPLvl1((int) hp1.getValue());
+		}
+		else if (e.getSource().equals(hpLvl))
+		{
+			f.setExtraHPPerLevel((int) hpLvl.getValue());
 		}
 	}
 
@@ -395,9 +409,9 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			resists.setText(String.join(", ", f.getWeaponProfs().stream().map(s -> s.toString()).toList()));
 			optionPanels.get(OPT_G_WEPS).setVisible(true);
 		}
-		if (f.getAbilityAddToAC() != null)
+		if (!f.getAbilitiesToAC().isEmpty())
 		{
-			ablAddAc.setSelectedItem(f.getAbilityAddToAC());
+			ablAddAc.setText(String.join(", ", f.getAbilitiesToAC().stream().map(a -> a.toString()).toList()));
 			optionPanels.get(OPT_ABL_AC).setVisible(true);
 		}
 		if (!f.getAbilitiesAddToSkills().isEmpty())
@@ -415,15 +429,25 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			speed.setValue(f.getSpeedMod());
 			optionPanels.get(OPT_SPD).setVisible(true);
 		}
+		if (f.getExtraHPLvl1() > 0)
+		{
+			hp1.setValue(f.getExtraHPLvl1());
+			optionPanels.get(OPT_HP_1).setVisible(true);
+		}
 		if (f.getExtraHPPerLevel() > 0)
 		{
-			hp.setValue(f.getExtraHPPerLevel());
-			optionPanels.get(OPT_HP).setVisible(true);
+			hpLvl.setValue(f.getExtraHPPerLevel());
+			optionPanels.get(OPT_HP_LVL).setVisible(true);
 		}
 		if (f.givesHalfProfAll())
 		{
 			halfProf.setSelected(true);
 			optionPanels.get(OPT_HALFPROF_ALL).setVisible(true);
+		}
+		if (f.givesProfToInit())
+		{
+			initProf.setSelected(true);
+			optionPanels.get(OPT_PROF_INIT).setVisible(true);
 		}
 		if (!f.getFeatTraitName().isBlank())
 		{
@@ -607,22 +631,28 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 			altName = text.substring(0, text.indexOf('[')).trim();
 		}
 
+		Spell s = null;
 		if (altName.isBlank() && notes.isBlank())
 		{
-			return Spell.getByName(spellName);
+			s = Spell.getByName(spellName);
 		}
 		else if (altName.isBlank() && !notes.isBlank())
 		{
-			return Spell.getCopyByName(spellName, notes);
+			s = Spell.getCopyByName(spellName, notes);
 		}
 		else if (!altName.isBlank() && notes.isBlank())
 		{
-			return Spell.getByAltName(altName, spellName);
+			s = Spell.getByAltName(altName, spellName);
 		}
 		else
 		{
-			return Spell.getCopyByAltName(altName, spellName, notes);
+			s = Spell.getCopyByAltName(altName, spellName, notes);
 		}
+		if (s == null)
+		{
+			throw new Exception("Failed to load spell");
+		}
+		return s;
 	}
 
 	private void updateSpellOptions()
@@ -781,6 +811,30 @@ public class FeatureEditPanel extends EditPanel implements ActionListener, Chang
 	{
 		String[] w = weapons.getText().split(",");
 		f.setWeaponProfs(Arrays.asList(w));
+	}
+
+	private void updateAblToAC()
+	{
+		String[] ablACOpts = ablAddAc.getText().split(",");
+		List<Ability> aToAC = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String ac : ablACOpts)
+		{
+			if (ac.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				aToAC.add(Ability.valueOf(ac.trim()));
+			}
+			catch (Exception e)
+			{
+				invalid.add(ac);
+			}
+		}
+		f.setAbilitiesToAC(aToAC);
+		showErrorMessage(invalid, "abilities");
 	}
 
 	private void updateAblToSkills()

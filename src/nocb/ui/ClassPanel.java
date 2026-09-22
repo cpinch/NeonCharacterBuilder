@@ -14,8 +14,9 @@ import javax.swing.JScrollPane;
 
 import nocb.data.CharacterClass;
 import nocb.main.CharacterSheet;
+import nocb.main.PropertyListener;
 
-public class ClassPanel extends JPanel implements ActionListener
+public class ClassPanel extends JPanel implements ActionListener, ListensForChanges
 {
 	private static final long serialVersionUID = -2739120980015488390L;
 
@@ -29,6 +30,7 @@ public class ClassPanel extends JPanel implements ActionListener
 	public ClassPanel(CharacterSheet sheet)
 	{
 		this.sheet = sheet;
+		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 
 		setBorder(BorderFactory.createEtchedBorder());
 		setLayout(new GridBagLayout());
@@ -54,7 +56,7 @@ public class ClassPanel extends JPanel implements ActionListener
 		c.weighty = 1;
 
 		JPanel splitPane = new JPanel(new GridLayout(1, 2));
-		traitsPanel = new ClassTraitsPanel(sheet, () -> skillsUpdated());
+		traitsPanel = new ClassTraitsPanel(sheet);
 		splitPane.add(traitsPanel);
 
 		featuresPanel = new ClassFeaturesPanel(sheet);
@@ -83,18 +85,14 @@ public class ClassPanel extends JPanel implements ActionListener
 		}
 	}
 
-	private void skillsUpdated()
+	@Override
+	public void updateProperty(String prop)
 	{
-		if (featuresPanel != null)
+		if (prop.equals(PropertyListener.CLASSLEVEL))
 		{
-			featuresPanel.skillsUpdated();
+			classLevelLabel.setText("Level " + sheet.getCharClass().getLevel());
+			traitsPanel.updateDetails();
+			featuresPanel.updateDetails();
 		}
-	}
-
-	public void updateDetails()
-	{
-		classNameSelector.setSelectedItem(sheet.getCharClass().getName());
-		traitsPanel.updateDetails();
-		featuresPanel.updateDetails();
 	}
 }

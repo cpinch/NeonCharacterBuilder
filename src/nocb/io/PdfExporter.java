@@ -145,7 +145,7 @@ public class PdfExporter
 		fillField(acroForm, AC_F, c.getAC());
 		fillField(acroForm, SIZE_F, c.getSpecies().getSize());
 		fillField(acroForm, SPEED_F, c.getSpeed());
-		fillField(acroForm, INITIATIVE_F, c.getTotalAbilityMod(Ability.Dex));
+		fillField(acroForm, INITIATIVE_F, c.getInitiative());
 
 		fillField(acroForm, HPCUR_F, c.getMaxHP());
 		fillField(acroForm, HPMAX_F, c.getMaxHP());
