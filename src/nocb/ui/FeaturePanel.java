@@ -25,8 +25,9 @@ import nocb.data.Skill;
 import nocb.data.Spell;
 import nocb.data.SpellChoice;
 import nocb.main.CharacterSheet;
+import nocb.main.PropertyListener;
 
-public class FeaturePanel extends CollapsablePanel implements ActionListener
+public class FeaturePanel extends CollapsablePanel implements ActionListener, ListensForChanges
 {
 	private static final long serialVersionUID = -2739120980015488390L;
 
@@ -40,12 +41,9 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 	private final List<JComboBox<Skill>> skillExpertOptions = new ArrayList<>();
 	private final JComboBox<Language> langOptions = new JComboBox<>();
 	private final JComboBox<Selectable> selectableOptions = new JComboBox<>();
-	private final JComboBox<Feat> featOptions = new JComboBox<>();
-	private SelectablePanel selectablePanel, featPanel;
-	private final JComboBox<Selectable> selOrFeatOptions = new JComboBox<>();
+	private SelectablePanel selectablePanel;
 	private final JComboBox<Spell> specificSpellOptions = new JComboBox<>();
 
-	private String priorHomeworldName = "", featTrait = "";
 	private JLabel resLabel;
 
 	public FeaturePanel(CharacterSheet sheet, Feature feature, boolean startCollapsed)
@@ -54,10 +52,6 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 
 		this.sheet = sheet;
 		this.feature = feature;
-		if (sheet.getBackground() != null)
-		{
-			this.priorHomeworldName = sheet.getBackground().getHomeworld().getName();
-		}
 
 		bodyPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = UILib.getStandardGBC();
@@ -76,10 +70,14 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 			c.gridy++;
 			c.weighty = 0;
 		}
-		// abilityToAC always has accompanying text, so don't show it
 		if (feature.getSpeedMod() > 0)
 		{
 			UILib.addLabel(bodyPanel, "<html>Speed + " + feature.getSpeedMod() + "</html>", c);
+			c.gridy++;
+		}
+		if (feature.getExtraHPLvl1() > 0)
+		{
+			UILib.addLabel(bodyPanel, "<html>Extra HP " + feature.getExtraHPLvl1() + "</html>", c);
 			c.gridy++;
 		}
 		if (feature.getExtraHPPerLevel() > 0)
@@ -89,7 +87,12 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 		}
 		if (feature.givesHalfProfAll())
 		{
-			UILib.addLabel(bodyPanel, "<html>Gives Half Proficiency to all non-proficient skills.", c);
+			UILib.addLabel(bodyPanel, "<html>Gives Half Proficiency to all non-proficient skills.</html>", c);
+			c.gridy++;
+		}
+		if (feature.givesProfToInit())
+		{
+			UILib.addLabel(bodyPanel, "<html>Gives Proficincy Bonus to Initiative</html>.", c);
 			c.gridy++;
 		}
 
@@ -159,6 +162,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 				.getAllResistancesGranted(sheet.getBackground() != null ? sheet.getBackground().getHomeworld() : null);
 		if (!res.isEmpty())
 		{
+			PropertyListener.listenForChanges(PropertyListener.HOMEWORLD, this);
 			resLabel = UILib.addLabel(bodyPanel,
 					"<html>Grants Resistance: <i>" + String.join(", ", res) + "</i></html>", c);
 			resLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
@@ -186,6 +190,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 			UILib.addLabel(bodyPanel, String.join(", ", adds), c);
 			c.gridy++;
 		}
+		// abilitiesToAC always has accompanying text, so don't show it
 
 		// Selections
 		if (!feature.getResistanceOptions().isEmpty())
@@ -234,6 +239,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 		}
 		if (feature.getSkillExpertCount() > 0)
 		{
+			PropertyListener.listenForChanges(PropertyListener.SKILLS, this);
 			JPanel skillEPanel = new JPanel();
 			skillEPanel.setOpaque(false);
 			for (int i = 0; i < feature.getSkillExpertCount(); i++)
@@ -271,101 +277,23 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 				langOptions.setSelectedItem(feature.getLanguagesSelected().get(0));
 			}
 		}
-		if (!feature.getFeatTraitName().isBlank() && !feature.getSelectableName().isBlank())
+		if (!feature.getFeatTraitName().isBlank() || !feature.getSelectableName().isBlank())
 		{
-			selectablePanel = new SelectablePanel(sheet);
-			selOrFeatOptions.setFont(UILib.standardFont);
-			selOrFeatOptions.setBackground(VaporwaveColors.DEEP_VIOLET);
-			selOrFeatOptions.setForeground(VaporwaveColors.LASER_YELLOW);
-			String selName = feature.getSelectableName();
-			featTrait = feature.getFeatTraitName();
-			List<Selectable> selOpts = Selectable.getAllValidSelectablesOfType(sheet, selName);
-			if (feature.featIgnoresPrereqs())
-			{
-				selOpts.addAll(Feat.getAllFeatsOfType(sheet, featTrait));
-			}
-			else
-			{
-				selOpts.addAll(Feat.getAllValidFeatsOfType(sheet, featTrait));
-			}
-			selOpts.forEach(s -> selOrFeatOptions.addItem(s));
-			selOrFeatOptions.addActionListener(this);
-			UILib.addLabeledComponent(bodyPanel, selName + ": ", selOrFeatOptions, c)
-					.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-			c.gridy++;
-			c.weighty = 1;
-			bodyPanel.add(selectablePanel, c);
-			c.gridy++;
-			if (feature.getSelected() == null && feature.getFeat() == null)
-			{
-				selOrFeatOptions.setSelectedIndex(0);
-			}
-			else if (feature.getSelected() == null)
-			{
-				selOrFeatOptions.setSelectedItem(feature.getFeat());
-			}
-			else
-			{
-				selOrFeatOptions.setSelectedItem(feature.getSelected());
-			}
-		}
-		else if (!feature.getSelectableName().isBlank())
-		{
+			PropertyListener.listenForChanges(PropertyListener.SELECTED, this);
 			selectablePanel = new SelectablePanel(sheet);
 			selectableOptions.setFont(UILib.standardFont);
 			selectableOptions.setBackground(VaporwaveColors.DEEP_VIOLET);
 			selectableOptions.setForeground(VaporwaveColors.LASER_YELLOW);
-			String selName = feature.getSelectableName();
-			List<Selectable> selOpts = Selectable.getAllValidSelectablesOfType(sheet, selName);
-			selOpts.forEach(s -> selectableOptions.addItem(s));
 			selectableOptions.addActionListener(this);
-			UILib.addLabeledComponent(bodyPanel, selName + ": ", selectableOptions, c)
+			String label = (feature.getSelectableName().isBlank() ? feature.getFeatTraitName()
+					: feature.getSelectableName()) + ": ";
+			updateSelectables();
+			UILib.addLabeledComponent(bodyPanel, label, selectableOptions, c)
 					.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 			c.gridy++;
 			c.weighty = 1;
 			bodyPanel.add(selectablePanel, c);
 			c.gridy++;
-			if (feature.getSelected() == null)
-			{
-				selectableOptions.setSelectedIndex(0);
-			}
-			else
-			{
-				selectableOptions.setSelectedItem(feature.getSelected());
-			}
-		}
-		else if (!feature.getFeatTraitName().isBlank())
-		{
-			featPanel = new SelectablePanel(sheet);
-			featOptions.setFont(UILib.standardFont);
-			featOptions.setBackground(VaporwaveColors.DEEP_VIOLET);
-			featOptions.setForeground(VaporwaveColors.LASER_YELLOW);
-			featTrait = feature.getFeatTraitName();
-			List<Feat> featOpts = new ArrayList<>();
-			if (feature.featIgnoresPrereqs())
-			{
-				featOpts = Feat.getAllFeatsOfType(sheet, featTrait);
-			}
-			else
-			{
-				featOpts = Feat.getAllValidFeatsOfType(sheet, featTrait);
-			}
-			featOpts.forEach(s -> featOptions.addItem(s));
-			featOptions.addActionListener(this);
-			UILib.addLabeledComponent(bodyPanel, "Feat: ", featOptions, c)
-					.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-			c.gridy++;
-			c.weighty = 1;
-			bodyPanel.add(featPanel, c);
-			c.gridy++;
-			if (feature.getFeat() == null)
-			{
-				featOptions.setSelectedIndex(0);
-			}
-			else
-			{
-				featOptions.setSelectedItem(feature.getFeat());
-			}
 		}
 		if (!feature.getSpecificSpellChoices().isEmpty())
 		{
@@ -426,26 +354,6 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 			Selectable sel = (Selectable) selectableOptions.getSelectedItem();
 			if (sel != null)
 			{
-				feature.setSelection(sel);
-				selectablePanel.setSelected(sel);
-				revalidate();
-			}
-		}
-		else if (e.getSource().equals(featOptions))
-		{
-			Feat f = (Feat) featOptions.getSelectedItem();
-			if (f != null)
-			{
-				feature.setFeat(f);
-				featPanel.setSelected(f);
-				revalidate();
-			}
-		}
-		else if (e.getSource().equals(selOrFeatOptions))
-		{
-			Selectable sel = (Selectable) selOrFeatOptions.getSelectedItem();
-			if (sel != null)
-			{
 				if (sel.getClass().equals(Feat.class))
 				{
 					feature.setFeat((Feat) sel);
@@ -464,11 +372,38 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 		}
 	}
 
-	/**
-	 * Needed for cases where another panel on the same tab updates the character's
-	 * skill proficiencies
-	 */
-	public void updateSkillExpertiseLists()
+	private void updateSelectables()
+	{
+		String selName = feature.getSelectableName();
+		String featTrait = feature.getFeatTraitName();
+		List<Selectable> selOpts = Selectable.getAllValidSelectablesOfType(sheet, selName);
+		if (feature.featIgnoresPrereqs())
+		{
+			selOpts.addAll(Feat.getAllFeatsOfType(sheet, featTrait));
+		}
+		else
+		{
+			selOpts.addAll(Feat.getAllValidFeatsOfType(sheet, featTrait));
+		}
+		selectableOptions.removeActionListener(this);
+		selectableOptions.removeAllItems();
+		selOpts.forEach(s -> selectableOptions.addItem(s));
+		selectableOptions.addActionListener(this);
+		if (feature.getSelected() != null && selOpts.contains(feature.getSelected()))
+		{
+			selectableOptions.setSelectedItem(feature.getSelected());
+		}
+		else if (feature.getFeat() != null && selOpts.contains(feature.getFeat()))
+		{
+			selectableOptions.setSelectedItem(feature.getFeat());
+		}
+		else if (selectableOptions.getItemCount() > 0)
+		{
+			selectableOptions.setSelectedIndex(0);
+		}
+	}
+
+	private void updateSkillExpertiseLists()
 	{
 		List<Skill> seo = feature.getSkillExpertOptions();
 		List<Skill> validSkills = new ArrayList<>();
@@ -482,8 +417,10 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 		for (int i = 0; i < skillExpertOptions.size(); i++)
 		{
 			JComboBox<Skill> skillE = skillExpertOptions.get(i);
+			skillE.removeActionListener(this); // Don't want to "hear" this bit
 			skillE.removeAllItems();
 			validSkills.forEach(s -> skillE.addItem(s));
+			skillE.addActionListener(this);
 			if (feature.getSkillsExpert().size() <= i)
 			{
 				skillE.setSelectedIndex(0);
@@ -495,11 +432,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 		}
 	}
 
-	/**
-	 * Needed for cases where we have homeworld-dependent fields and the homeworld
-	 * got updated
-	 */
-	public void updateHomeworld()
+	private void updateHomeworldResists()
 	{
 		if (resLabel != null)
 		{
@@ -514,15 +447,22 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener
 				resLabel.setText("<html>Grants Resistance: <i>" + String.join(", ", res) + "</i></html>");
 			}
 		}
+	}
 
-		if (featTrait != null && featTrait.equals("Origin")
-				&& !sheet.getBackground().getHomeworld().getName().equals(priorHomeworldName))
+	@Override
+	public void updateProperty(String prop)
+	{
+		switch (prop)
 		{
-			// If homeworld changed and our feat selection was based on that, need to update
-			// the feat options
-			List<Feat> featOpts = Feat.getAllValidFeatsOfType(sheet, featTrait);
-			featOptions.removeAllItems();
-			featOpts.forEach(s -> featOptions.addItem(s));
+			case PropertyListener.HOMEWORLD:
+				updateHomeworldResists();
+			break;
+			case PropertyListener.SKILLS:
+				updateSkillExpertiseLists();
+			break;
+			case PropertyListener.SELECTED:
+				this.updateSelectables();
+			break;
 		}
 	}
 }

@@ -1,5 +1,6 @@
 package nocb.data;
 
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import nocb.io.JsonDataLoader;
+import nocb.main.PropertyListener;
 
 public class CharacterClass extends Feature
 {
@@ -23,6 +25,7 @@ public class CharacterClass extends Feature
 	private final List<ClassFeature> classFeatures = new ArrayList<>();
 
 	private int level = 1;
+	private Subclass subclass;
 
 	public CharacterClass()
 	{
@@ -51,6 +54,12 @@ public class CharacterClass extends Feature
 				features.add(f);
 			}
 		}
+		if (lvl == 3)
+		{
+			ClassFeature subclassF = new ClassFeature();
+			subclassF.setName("Gain a Subclass");
+			features.add(subclassF);
+		}
 		return features;
 	}
 
@@ -68,7 +77,16 @@ public class CharacterClass extends Feature
 
 	public void setLevel(int lvl)
 	{
-		this.level = lvl;
+		if (lvl != level)
+		{
+			int old = level;
+			this.level = lvl;
+			pcs.firePropertyChange(PropertyListener.CLASSLEVEL, old, lvl);
+			if (level >= 3 && subclass == null)
+			{
+				setSubclass(Subclass.getForClassName(name).get(0));
+			}
+		}
 	}
 
 	public String getDesc()
@@ -150,7 +168,7 @@ public class CharacterClass extends Feature
 		return classFeatures;
 	}
 
-	public List<ClassFeature> getClassFeatures()
+	public List<ClassFeature> getClassOnlyFeatures()
 	{
 		// Only return features of our class level or lower and drop any features of a
 		// lower level that have the same name as a higher level feature
@@ -175,6 +193,16 @@ public class CharacterClass extends Feature
 				}
 			}
 			features.add(f);
+		}
+		return features;
+	}
+
+	public List<ClassFeature> getClassFeatures()
+	{
+		List<ClassFeature> features = getClassOnlyFeatures();
+		if (subclass != null)
+		{
+			features.addAll(subclass.getSubclassFeatures());
 		}
 		return features;
 	}
@@ -320,6 +348,22 @@ public class CharacterClass extends Feature
 			}
 		}
 		return false;
+	}
+
+	public Subclass getSubclass()
+	{
+		return subclass;
+	}
+
+	public void setSubclass(Subclass sc)
+	{
+		if (this.subclass == null || (sc != null && !this.subclass.getName().equals(sc.getName())))
+		{
+			Subclass old = subclass;
+			this.subclass = sc;
+			this.subclass.setCharClass(this);
+			pcs.firePropertyChange(PropertyListener.SUBCLASS, old, sc);
+		}
 	}
 
 	// Loading
@@ -472,6 +516,11 @@ public class CharacterClass extends Feature
 		json.put("selectedEquipmentIndex", selectedEquipmentIndex);
 		json.put("classFeatures", new JSONArray(classFeatures.stream().map(cf -> cf.saveState()).toList()));
 		json.put("spellChoices", classSpells.saveState());
+		if (subclass != null)
+		{
+			json.put("subclassName", subclass.getName());
+			json.put("subclassState", subclass.saveState());
+		}
 
 		return json;
 	}
@@ -501,6 +550,12 @@ public class CharacterClass extends Feature
 				}
 			}
 			this.classSpells.loadState(data.optJSONObject("spellChoices"));
+			String scName = data.optString("subclassName", "");
+			if (!scName.isBlank())
+			{
+				this.subclass = Subclass.getByName(scName);
+				this.subclass.loadFromData(data.getJSONObject("subclassState"));
+			}
 		}
 		catch (Exception e)
 		{
@@ -508,5 +563,19 @@ public class CharacterClass extends Feature
 			successful = false;
 		}
 		return successful;
+	}
+
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener l)
+	{
+		super.addPropertyChangeListener(l);
+		classFeatures.forEach(cf -> cf.addPropertyChangeListener(l));
+	}
+
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener l)
+	{
+		pcs.removePropertyChangeListener(l);
+		classFeatures.forEach(cf -> cf.removePropertyChangeListener(l));
 	}
 }

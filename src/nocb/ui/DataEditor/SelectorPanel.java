@@ -80,7 +80,7 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 			String name = JOptionPane.showInputDialog(null, "Name?:", "New " + this.typeName,
 					JOptionPane.QUESTION_MESSAGE);
 
-			if (!name.isBlank())
+			if (name != null && !name.isBlank())
 			{
 				createNew(name);
 			}

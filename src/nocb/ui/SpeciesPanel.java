@@ -70,13 +70,6 @@ public class SpeciesPanel extends JPanel implements ActionListener
 		}
 	}
 
-	public void updateHomeworld()
-	{
-		// Some species care about the selected homeworld, so need to update feature
-		// panels in case that's changed
-		featuresPanel.updateHomeworld();
-	}
-
 	public void updateDetails()
 	{
 		speciesName.setSelectedItem(sheet.getSpecies());

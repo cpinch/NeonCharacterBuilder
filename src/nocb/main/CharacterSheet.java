@@ -1,5 +1,6 @@
 package nocb.main;
 
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +9,7 @@ import org.json.JSONObject;
 
 import nocb.data.Ability;
 import nocb.data.AbilityScores;
+import nocb.data.AlertsChanges;
 import nocb.data.ArmorProf;
 import nocb.data.Background;
 import nocb.data.CharacterClass;
@@ -18,7 +20,7 @@ import nocb.data.Skill;
 import nocb.data.Species;
 import nocb.data.Spell;
 
-public class CharacterSheet
+public class CharacterSheet extends AlertsChanges
 {
 	private String name = "";
 
@@ -45,7 +47,17 @@ public class CharacterSheet
 
 	public void setCharClass(CharacterClass c)
 	{
-		this.charClass = c;
+		if (charClass == null || (c != null && !charClass.getName().equals(c.getName())))
+		{
+			if (charClass != null)
+			{
+				// Transfer the old class level over
+				c.setLevel(charClass.getLevel());
+			}
+			CharacterClass old = charClass;
+			this.charClass = c;
+			pcs.firePropertyChange(PropertyListener.CLASS, old, c);
+		}
 	}
 
 	public Species getSpecies()
@@ -55,8 +67,13 @@ public class CharacterSheet
 
 	public void setSpecies(Species s)
 	{
-		this.species = s;
-		species.setupGetCharLevel(() -> getLevel());
+		if (species == null || (s != null && !species.getName().equals(s.getName())))
+		{
+			Species old = species;
+			this.species = s;
+			species.setupGetCharLevel(() -> getLevel());
+			pcs.firePropertyChange(PropertyListener.SPECIES, old, s);
+		}
 	}
 
 	public Background getBackground()
@@ -123,7 +140,7 @@ public class CharacterSheet
 				total += getProficiency();
 			}
 		}
-		else if (charClass.givesHalfProfAll())
+		else if (charClass.givesHalfProfAll() || charClass.getSubclass().givesHalfProfAll())
 		{
 			total += Math.floorDiv(getProficiency(), 2);
 		}
@@ -149,9 +166,9 @@ public class CharacterSheet
 	{
 		List<Feat> allFeats = new ArrayList<>();
 
-		allFeats.addAll(charClass.getAllFeats());
-		allFeats.addAll(species.getAllFeats());
 		allFeats.addAll(background.getAllFeats());
+		allFeats.addAll(species.getAllFeats());
+		allFeats.addAll(charClass.getAllFeats());
 
 		return allFeats;
 	}
@@ -160,9 +177,9 @@ public class CharacterSheet
 	{
 		List<Skill> allSkills = new ArrayList<>();
 
-		allSkills.addAll(charClass.getAllSkills());
-		allSkills.addAll(species.getAllSkills());
 		allSkills.addAll(background.getAllSkills());
+		allSkills.addAll(species.getAllSkills());
+		allSkills.addAll(charClass.getAllSkills());
 
 		return allSkills;
 	}
@@ -179,17 +196,21 @@ public class CharacterSheet
 
 	public List<String> getAllWeaponProfs()
 	{
+		List<String> allWeapons = new ArrayList<>();
+
 		// Neither species nor background ever give weapon proficiencies
-		return charClass.getWeaponProfs();
+		allWeapons.addAll(charClass.getWeaponProfs());
+
+		return allWeapons;
 	}
 
 	public List<String> getAllToolProfs()
 	{
 		List<String> allToolProfs = new ArrayList<>();
 
-		allToolProfs.addAll(charClass.getAllToolProfs());
-		allToolProfs.addAll(species.getAllToolProfs());
 		allToolProfs.addAll(background.getAllToolProfs());
+		allToolProfs.addAll(species.getAllToolProfs());
+		allToolProfs.addAll(charClass.getAllToolProfs());
 
 		return allToolProfs;
 	}
@@ -202,17 +223,21 @@ public class CharacterSheet
 
 	public List<ArmorProf> getAllArmorProfs()
 	{
+		List<ArmorProf> armorProfs = new ArrayList<>();
+
 		// Neither species nor background ever give armor proficiencies
-		return charClass.getArmorProfs();
+		armorProfs.addAll(charClass.getArmorProfs());
+
+		return armorProfs;
 	}
 
 	public List<Language> getAllLanguages()
 	{
 		List<Language> langs = new ArrayList<>();
 
-		langs.addAll(charClass.getAllLanguages());
-		// Species never gives languages
 		langs.addAll(background.getAllLanguages());
+		// Species never gives languages
+		langs.addAll(charClass.getAllLanguages());
 
 		return langs;
 	}
@@ -227,9 +252,9 @@ public class CharacterSheet
 	{
 		List<String> allRes = new ArrayList<>();
 
-		allRes.addAll(charClass.getAllResistances(background.getHomeworld()));
-		allRes.addAll(species.getAllResistances(background.getHomeworld()));
 		allRes.addAll(background.getAllResistances(background.getHomeworld()));
+		allRes.addAll(species.getAllResistances(background.getHomeworld()));
+		allRes.addAll(charClass.getAllResistances(background.getHomeworld()));
 
 		return allRes;
 	}
@@ -270,14 +295,26 @@ public class CharacterSheet
 	public int getAC()
 	{
 		// This just handles basic unarmored ac
-		int base = 10 + getTotalAbilityMod(Ability.Dex);
+		int ac = 10 + getTotalAbilityMod(Ability.Dex);
 
-		if (charClass.getAbilityAddToAC() != null)
+		if (!charClass.getAllAbilitiesToAC().isEmpty())
 		{
-			return base + getTotalAbilityMod(charClass.getAbilityAddToAC());
+			// Compare each option, returning the max
+			for (List<Ability> abilitiesToAC : charClass.getAllAbilitiesToAC())
+			{
+				int newAC = 10;
+				for (Ability a : abilitiesToAC)
+				{
+					newAC += getTotalAbilityMod(a);
+				}
+				if (newAC > ac)
+				{
+					ac = newAC;
+				}
+			}
 		}
 
-		return base;
+		return ac;
 	}
 
 	public boolean isSpellcaster()
@@ -289,9 +326,9 @@ public class CharacterSheet
 	{
 		List<Spell> gs = new ArrayList<>();
 
-		gs.addAll(charClass.getAllSpellsGranted());
-		gs.addAll(species.getAllSpellsGranted());
 		gs.addAll(background.getAllSpellsGranted());
+		gs.addAll(species.getAllSpellsGranted());
+		gs.addAll(charClass.getAllSpellsGranted());
 
 		return gs;
 	}
@@ -300,9 +337,9 @@ public class CharacterSheet
 	{
 		List<Spell> gs = new ArrayList<>();
 
-		gs.addAll(charClass.getAllSpells());
-		gs.addAll(species.getAllSpellsGranted());
 		gs.addAll(background.getAllSpellsGranted());
+		gs.addAll(species.getAllSpellsGranted());
+		gs.addAll(charClass.getAllSpells());
 
 		return gs;
 	}
@@ -314,22 +351,46 @@ public class CharacterSheet
 
 	public int getMaxHP()
 	{
-		int maxHP = getCharClass().getHd() + getTotalAbilityMod(Ability.Con);
+		// Neither species nor background affects hit points
 
-		maxHP += charClass.getTotalExtraHPPerLevel();
-		maxHP += species.getTotalExtraHPPerLevel();
-		maxHP += background.getTotalExtraHPPerLevel();
+		int conMod = getTotalAbilityMod(Ability.Con);
+		int extraHPPerLevel = charClass.getTotalExtraHPPerLevel();
+		int hd = getCharClass().getHd();
+
+		int maxHP = hd + conMod + extraHPPerLevel + charClass.getTotalExtraHPLvl1();
+
+		// TODO Multiclass changes needed
+		if (getLevel() > 1)
+		{
+			int normalHPPerLevel = (int) Math.ceil(charClass.getHd() / 2 + 0.5);
+			for (int i = 2; i <= getLevel(); i++)
+			{
+				maxHP += conMod + normalHPPerLevel + extraHPPerLevel;
+			}
+		}
 
 		return maxHP;
+	}
+
+	public int getInitiative()
+	{
+		int init = getTotalAbilityMod(Ability.Dex);
+
+		if (charClass.getAnyGivesProfToInit() || species.getAnyGivesProfToInit())
+		{
+			init += getProficiency();
+		}
+
+		return init;
 	}
 
 	public List<String> getSheetNotes()
 	{
 		List<String> sn = new ArrayList<>();
 
-		sn.addAll(charClass.getAllSheetNotes());
-		sn.addAll(species.getAllSheetNotes());
 		sn.addAll(background.getAllSheetNotes());
+		sn.addAll(species.getAllSheetNotes());
+		sn.addAll(charClass.getAllSheetNotes());
 
 		return sn;
 	}
@@ -392,5 +453,25 @@ public class CharacterSheet
 			success = false;
 		}
 		return success;
+	}
+
+	@Override
+	public void addPropertyChangeListener(PropertyChangeListener l)
+	{
+		super.addPropertyChangeListener(l);
+		charClass.addPropertyChangeListener(l);
+		species.addPropertyChangeListener(l);
+		background.addPropertyChangeListener(l);
+		// abilityScores.addPropertyChangeListener(l);
+	}
+
+	@Override
+	public void removePropertyChangeListener(PropertyChangeListener l)
+	{
+		super.removePropertyChangeListener(l);
+		charClass.removePropertyChangeListener(l);
+		species.removePropertyChangeListener(l);
+		background.removePropertyChangeListener(l);
+		// abilityScores.removePropertyChangeListener(l);
 	}
 }

@@ -1,5 +1,6 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -46,25 +47,25 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener, Chang
 		desc.setLineWrap(true);
 		desc.setWrapStyleWord(true);
 		desc.addFocusListener(UILib.createFocusListener(() -> updateDesc()));
-		UILib.addLabeledComponent(this, "Desc: ", desc, c);
+		UILib.addLabeledComponent(this, "Desc: ", desc, c).setForeground(Color.black);
 		c.gridy++;
 		c.weighty = 0;
 
 		type.addFocusListener(UILib.createFocusListener(() -> updateType()));
-		UILib.addLabeledComponent(this, "Type: ", type, c);
+		UILib.addLabeledComponent(this, "Type: ", type, c).setForeground(Color.black);
 		c.gridy++;
 
 		size.addActionListener(this);
-		UILib.addLabeledComponent(this, "Size: ", size, c);
+		UILib.addLabeledComponent(this, "Size: ", size, c).setForeground(Color.black);
 		c.gridy++;
 
 		speed.addChangeListener(this);
 		((JSpinner.DefaultEditor) speed.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
-		UILib.addLabeledComponent(this, "Speed: ", speed, c);
+		UILib.addLabeledComponent(this, "Speed: ", speed, c).setForeground(Color.black);
 		c.gridy++;
 
 		homeworld.addFocusListener(UILib.createFocusListener(() -> updateHomeworld()));
-		UILib.addLabeledComponent(this, "Homeworld: ", homeworld, c);
+		UILib.addLabeledComponent(this, "Homeworld: ", homeworld, c).setForeground(Color.black);
 		c.gridy++;
 
 		addTrait.addActionListener(this);

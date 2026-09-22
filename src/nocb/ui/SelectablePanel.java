@@ -55,5 +55,6 @@ public class SelectablePanel extends NoHorizontalScrollPanel
 			add(ffp);
 			featurePanels.add(ffp);
 		}
+		revalidate();
 	}
 }

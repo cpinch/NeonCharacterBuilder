@@ -29,6 +29,7 @@ import nocb.ui.ClassPanel;
 import nocb.ui.LevelUpPanel;
 import nocb.ui.SpeciesPanel;
 import nocb.ui.SpellsPanel;
+import nocb.ui.SubclassPanel;
 import nocb.ui.SummaryPanel;
 import nocb.ui.Toast;
 import nocb.ui.UILib;
@@ -44,14 +45,15 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private final JTextField nameF = new JTextField(45);
 	private final ClassPanel classP = new ClassPanel(sheet);
+	private final SubclassPanel subclassP = new SubclassPanel(sheet);
 	private final SpeciesPanel speciesP = new SpeciesPanel(sheet);
 	private final AbilityPanel abilityP = new AbilityPanel(sheet);
 	private final BackgroundPanel backP = new BackgroundPanel(sheet);
 	private final SpellsPanel spellP = new SpellsPanel(sheet);
 	private final SummaryPanel summaryP = new SummaryPanel(sheet);
-	private final LevelUpPanel levelP = new LevelUpPanel(sheet);
+	private final LevelUpPanel levelP = new LevelUpPanel(sheet, () -> showSubclassTab());
 
-	private static final String backS = "<- Back", dataES = "Data Editor";
+	private final String backS = "<- Back", dataES = "Data Editor";
 	private final JButton back = new JButton();
 	private final JButton next = new JButton("Next ->");
 	private final JButton save = new JButton("Save");
@@ -76,7 +78,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 
 		JPanel navBar = new JPanel(new GridLayout(1, 3));
 		back.addActionListener(this);
-		// We start on the details tab, no back from there
+		// We start on the details tab, there is no back from there
 		// but we repurpose this button for the data editor here
 		back.setEnabled(true);
 		back.setText(dataES);
@@ -110,6 +112,8 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setLocationRelativeTo(null);
 		setVisible(true);
+
+		PropertyListener.setup(sheet);
 	}
 
 	private JPanel createCharacterDetailsTab()
@@ -158,9 +162,9 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		// We could try to be more specific, but this is safer
 		if (e.getSource().equals(tabbedPane))
 		{
-			if (tabbedPane.getSelectedComponent().equals(classP))
+			if (tabbedPane.getSelectedComponent().equals(subclassP))
 			{
-				classP.updateDetails();
+				// subclassP.updateDetails();
 			}
 			else if (tabbedPane.getSelectedComponent().equals(speciesP))
 			{
@@ -243,6 +247,15 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		}
 		back.setText(tabbedPane.getSelectedIndex() > 0 ? backS : dataES);
 		next.setEnabled(tabbedPane.getSelectedIndex() < tabbedPane.getTabCount() - 1);
+	}
+
+	public void showSubclassTab()
+	{
+		if (tabbedPane.indexOfComponent(subclassP) < 0)
+		{
+			// Insert before Species
+			tabbedPane.insertTab("Subclass", null, subclassP, null, tabbedPane.indexOfTab("Species"));
+		}
 	}
 
 	public static void main(String[] args)

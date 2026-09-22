@@ -126,11 +126,13 @@ A lot of things in this application are classified as "Features", a generic catc
 + Choose Skill Expertise - Comma separated list of Skills, users will be able to select Skills from this list only if they already have proficiency, "Any" for any.
 + Gives Tool Profs - Comma separated list of Tool Proficiencies.
 + Gives Weapon Profs - Comma separated list of Weapon Proficiencies.
-+ Add Ability to AC - Dropdown, lets you select an extra ability to add to AC. This will update the listed AC on the sheet, but it's recommended to include a Text explaining how and when this increase is added so users know what armor types they can/can't use and can add the same bonus to any AC they put in after buying armor.
++ Sets AC Abilities - Comma separated list of Ability mods to add to base AC (ie "Dex, Wis" or "Con, Int")
 + Adds Extra Ability to Skills - Comma separated list of Skill-Ability mappings. For example, if your feature gives Wis to Religion and Arcana, you would enter "Religion-Wis, Arcana-Wis"
 + Increase Speed - Number field, supports 0-50 in increments of 5
++ +HP Lvl 1 Only - Number field, supports 0-5
 + +HP/Level - Number field, supports 0-5
 + Gives Half Proficiency to all non-Proficient Skills - Exactly what it says, used for stuff like the 5.5E Bard Jack of All Trades feature. Simple on/off checkbox.
++ Gives Proficiency to Initiative - Exactly what it says. Simple on/off checkbox.
 + Choose Feat - Expects a single feat type (ie "Origin" or "Fighting Style", etc). Optionally you may add "(ignores prereqs)" after the feat trait name to indicate that it ignores feat prereqs (for example, a feature that allows picking any Origin feat, regardless of homeworld)
 + Choose Selectable - Expects a single selectable type (see Selectables above for more details). Note that if both Feat and Selectable are added for a single feature they will be combined into a single list, useful for features that offer selections like "Choose a feat of type. You may also choose from the options below"
 + Puts Notes on Sheet - Text field, goes straight into the Notes field on the character sheet without being shown anywhere in the app.

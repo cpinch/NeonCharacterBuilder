@@ -10,7 +10,7 @@ import nocb.data.ClassFeature;
 import nocb.main.CharacterSheet;
 import nocb.main.PropertyListener;
 
-public class ClassFeaturesPanel extends NoHorizontalScrollPanel
+public class SubclassFeaturesPanel extends NoHorizontalScrollPanel
 {
 	private static final long serialVersionUID = -2739120980015488390L;
 
@@ -18,7 +18,7 @@ public class ClassFeaturesPanel extends NoHorizontalScrollPanel
 
 	private final List<FeaturePanel> featurePanels = new ArrayList<>();
 
-	public ClassFeaturesPanel(CharacterSheet sheet)
+	public SubclassFeaturesPanel(CharacterSheet sheet)
 	{
 		this.sheet = sheet;
 
@@ -28,12 +28,12 @@ public class ClassFeaturesPanel extends NoHorizontalScrollPanel
 
 	public void updateDetails()
 	{
-		if (sheet.getCharClass() != null)
+		if (sheet.getCharClass() != null && sheet.getCharClass().getSubclass() != null)
 		{
 			removeAll();
 			featurePanels.forEach(fp -> PropertyListener.stopListening(fp));
 			featurePanels.clear();
-			for (ClassFeature feature : sheet.getCharClass().getClassOnlyFeatures())
+			for (ClassFeature feature : sheet.getCharClass().getSubclass().getSubclassFeatures())
 			{
 				FeaturePanel fp = new FeaturePanel(sheet, feature, false);
 				featurePanels.add(fp);

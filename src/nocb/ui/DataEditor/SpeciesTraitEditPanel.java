@@ -1,5 +1,7 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
+
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
@@ -24,7 +26,7 @@ public class SpeciesTraitEditPanel extends FeatureEditPanel
 
 		lvl.addChangeListener(this);
 		((JSpinner.DefaultEditor) lvl.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
-		UILib.addLabeledComponent(lvlSlot, "Level: ", lvl);
+		UILib.addLabeledComponent(lvlSlot, "Level: ", lvl).setForeground(Color.black);
 	}
 
 	@Override

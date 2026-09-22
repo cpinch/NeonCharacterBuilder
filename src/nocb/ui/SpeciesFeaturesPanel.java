@@ -8,6 +8,7 @@ import javax.swing.BoxLayout;
 
 import nocb.data.SpeciesTrait;
 import nocb.main.CharacterSheet;
+import nocb.main.PropertyListener;
 
 public class SpeciesFeaturesPanel extends NoHorizontalScrollPanel
 {
@@ -30,6 +31,7 @@ public class SpeciesFeaturesPanel extends NoHorizontalScrollPanel
 		if (sheet.getSpecies() != null)
 		{
 			removeAll();
+			featurePanels.forEach(fp -> PropertyListener.stopListening(fp));
 			featurePanels.clear();
 			for (SpeciesTrait feature : sheet.getSpecies().getTraits())
 			{
@@ -38,14 +40,6 @@ public class SpeciesFeaturesPanel extends NoHorizontalScrollPanel
 				add(fp);
 				add(Box.createVerticalStrut(5));
 			}
-		}
-	}
-
-	public void updateHomeworld()
-	{
-		for (FeaturePanel fp : featurePanels)
-		{
-			fp.updateHomeworld();
 		}
 	}
 }

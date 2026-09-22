@@ -1,5 +1,6 @@
 package nocb.ui.DataEditor;
 
+import java.awt.Color;
 import java.util.Arrays;
 
 import javax.swing.BorderFactory;
@@ -22,7 +23,7 @@ public class LanguageEditPanel extends EditPanel
 
 		spokenAt.addFocusListener(UILib.createFocusListener(() -> updateSpokenAt()));
 		spokenAt.setBorder(BorderFactory.createEtchedBorder());
-		UILib.addLabeledComponent(this, "Spoken Locations: ", spokenAt, c);
+		UILib.addLabeledComponent(this, "Spoken Locations: ", spokenAt, c).setForeground(Color.black);
 
 		setVisible(false);
 	}

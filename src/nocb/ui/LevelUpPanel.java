@@ -22,9 +22,12 @@ public class LevelUpPanel extends JPanel implements ActionListener
 	private final JButton lvlUp = new JButton("Level Up");
 	private final JPanel changesPanel = new NoHorizontalScrollPanel();
 
-	public LevelUpPanel(CharacterSheet sheet)
+	private Runnable showSubclassTab;
+
+	public LevelUpPanel(CharacterSheet sheet, Runnable showSubclassTab)
 	{
 		this.sheet = sheet;
+		this.showSubclassTab = showSubclassTab;
 
 		setBorder(BorderFactory.createEtchedBorder());
 		setLayout(new GridBagLayout());
@@ -56,7 +59,7 @@ public class LevelUpPanel extends JPanel implements ActionListener
 		changesPanel.removeAll();
 		for (int i = 2; i <= charLevel; i++)
 		{
-			changesPanel.add(new LvlChangePanel(i, sheet, i != charLevel));
+			changesPanel.add(new LvlChangePanel(i, sheet, i != charLevel, showSubclassTab));
 		}
 		revalidate();
 	}

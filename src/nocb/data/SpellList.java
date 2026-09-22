@@ -68,26 +68,37 @@ public class SpellList
 	{
 		if (!spellNames.containsKey(spellLevel) || !spellNames.get(spellLevel).equals(spn))
 		{
+			System.out.println("Saving spell level " + spellLevel + " for list " + name + " / " + spn);
 			spellNames.put(spellLevel, spn);
 			setCustom(true);
 		}
 	}
 
-	public List<Spell> getSpells(List<String> spellNames)
+	public static List<Spell> getSpells(List<String> spellNames)
 	{
 		List<Spell> spells = new ArrayList<>();
 		for (String s : spellNames)
 		{
+			if (s.isBlank())
+			{
+				continue;
+			}
+			Spell spell;
 			if (s.contains("("))
 			{
 				// Alternate spell name
 				String altName = s.substring(0, s.indexOf('(')).trim();
 				String baseName = s.substring(s.indexOf('(') + 1, s.indexOf(')')).trim();
-				spells.add(Spell.getByAltName(altName, baseName));
+				spell = Spell.getByAltName(altName, baseName);
 			}
 			else
 			{
-				spells.add(Spell.getByName(s));
+				spell = Spell.getByName(s);
+			}
+
+			if (spell != null)
+			{
+				spells.add(spell);
 			}
 		}
 		return spells;

@@ -22,6 +22,7 @@ public class DataObjectSelector extends JPanel
 	private final DataSpeSelector speSel = new DataSpeSelector();
 	private final DataSlSelector slSel = new DataSlSelector();
 	private final DataSpSelector spSel = new DataSpSelector();
+	private final DataSubClsSelector subSel = new DataSubClsSelector();
 
 	CardLayout layout = new CardLayout();
 
@@ -43,6 +44,7 @@ public class DataObjectSelector extends JPanel
 		add(speSel, DataTypeSelector.speStr);
 		add(slSel, DataTypeSelector.slStr);
 		add(spSel, DataTypeSelector.spStr);
+		add(subSel, DataTypeSelector.subStr);
 	}
 
 	public void setType(String type)

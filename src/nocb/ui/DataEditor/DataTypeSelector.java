@@ -13,10 +13,11 @@ public class DataTypeSelector extends JPanel implements ListSelectionListener
 	private static final long serialVersionUID = 7705589923724594447L;
 
 	public static final String bgStr = "Background", clsStr = "Class", ftStr = "Feat", hwStr = "Homeworld",
-			lgStr = "Language", selStr = "Selectable", speStr = "Species", slStr = "SpellList", spStr = "Spell";
+			lgStr = "Language", selStr = "Selectable", speStr = "Species", slStr = "SpellList", spStr = "Spell",
+			subStr = "Subclass";
 
 	private final JList<String> type = new JList<>(new String[]
-	{ bgStr, clsStr, ftStr, hwStr, lgStr, selStr, speStr, slStr, spStr });
+	{ bgStr, clsStr, ftStr, hwStr, lgStr, selStr, speStr, slStr, spStr, subStr });
 	private final DataObjectSelector dos = new DataObjectSelector();
 
 	public DataTypeSelector()
