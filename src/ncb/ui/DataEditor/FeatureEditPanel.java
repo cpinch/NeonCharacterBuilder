@@ -1,0 +1,896 @@
+package ncb.ui.DataEditor;
+
+import java.awt.Color;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+
+import ncb.data.Feature;
+import ncb.data.SpellChoice;
+import ncb.data.enums.Ability;
+import ncb.data.enums.ArmorTraining;
+import ncb.data.enums.Skill;
+import ncb.data.loadables.Language;
+import ncb.data.loadables.Spell;
+import ncb.data.loadables.SpellList;
+import ncb.ui.NoHorizontalScrollPanel;
+import ncb.ui.UILib;
+
+public class FeatureEditPanel extends EditPanel implements ActionListener, ChangeListener
+{
+	private static final long serialVersionUID = -4113129376172120186L;
+
+	private static final String OPT_TEXT = "Text", OPT_G_SKILLS = "Gives Skill Profs",
+			OPT_C_SKILLS = "Choose Skill Profs", OPT_G_SAVES = "Gives Save Profs", OPT_G_SPELLS = "Gives Spells",
+			OPT_C_SPELLS = "Choose Spells", OPT_C_S_SPELLS = "Choose Specific Spells",
+			OPT_G_ARMOR = "Gives Armor Train", OPT_G_LANGS = "Gives Languages", OPT_C_LANGS = "Choose Languages",
+			OPT_G_RES = "Gives Resistances", OPT_R_BY_H = "Gives Resistances Based on Homeworld Traits",
+			OPT_C_RES = "Choose Resistances", OPT_C_EXP = "Choose Skill Expertise", OPT_G_TOOLS = "Gives Tool Profs",
+			OPT_G_WEPS = "Gives Weapon Profs", OPT_ABL_AC = "Sets AC Abilities",
+			OPT_ABL_SKILLS = "Adds Extra Ability to Skills", OPT_SPD = "Increase Speed", OPT_HP_1 = "+HP Lvl 1 Only",
+			OPT_HP_LVL = "+HP/Level", OPT_FEAT = "Choose Feat", OPT_SEL = "Choose Selectable",
+			OPT_NOTES = "Puts Notes on Sheet", OPT_HALFPROF_ALL = "Gives Half Proficiency to all non-Proficient Skills",
+			OPT_PROF_INIT = "Gives Proficiency to Initiative";
+
+	private static final List<String> options = List.of(OPT_TEXT, OPT_G_SKILLS, OPT_C_SKILLS, OPT_G_SAVES, OPT_G_SPELLS,
+			OPT_C_SPELLS, OPT_C_S_SPELLS, OPT_G_ARMOR, OPT_G_LANGS, OPT_C_LANGS, OPT_G_RES, OPT_R_BY_H, OPT_C_RES,
+			OPT_C_EXP, OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP_1, OPT_HP_LVL,
+			OPT_HALFPROF_ALL, OPT_PROF_INIT, OPT_FEAT, OPT_SEL, OPT_NOTES);
+
+	private final Feature f;
+
+	private final JComboBox<String> optionSel = new JComboBox<>(options.toArray(new String[0]));
+	private final JButton add = new JButton("Add Feature");
+
+	protected final JPanel lvlSlot = new NoHorizontalScrollPanel();
+
+	private final JTextField skillProfs = new JTextField(20);
+	private final JTextField chooseSkills = new JTextField(20);
+	private final JSpinner chooseSkillCount = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
+	private final JTextField saveProfs = new JTextField(20);
+	private final JTextArea spells = new JTextArea(2, 20);
+	private final JTextField chooseSpells = new JTextField(20);
+	private final JTextField chooseSpecificSpells = new JTextField(20);
+	private final JTextField armor = new JTextField(20);
+	private final JTextField langs = new JTextField(20);
+	private final JTextField chooseLangs = new JTextField(20);
+	private final JSpinner chooseLangsCount = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
+	private final JTextField resists = new JTextField(20);
+	private final JTextField resByHome = new JTextField(20);
+	private final JTextField chooseRes = new JTextField(20);
+	private final JTextField chooseExp = new JTextField(20);
+	private final JSpinner chooseExpCount = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
+	private final JTextField tools = new JTextField(20);
+	private final JTextField weapons = new JTextField(20);
+	private final JTextField ablAddAc = new JTextField(20);
+	private final JTextField ablToSkills = new JTextField(20);
+	private final JSpinner speed = new JSpinner(new SpinnerNumberModel(0, 0, 50, 1));
+	private final JSpinner hp1 = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
+	private final JSpinner hpLvl = new JSpinner(new SpinnerNumberModel(0, 0, 5, 1));
+	private final JCheckBox halfProf = new JCheckBox();
+	private final JCheckBox initProf = new JCheckBox();
+	private final JTextField feat = new JTextField(20);
+	private final JTextField selectable = new JTextField(20);
+	private final JTextArea text = new JTextArea(3, 20);
+	private final JTextArea sheetNotes = new JTextArea(4, 20);
+
+	private final Map<String, JPanel> optionPanels = new HashMap<>();
+
+	public FeatureEditPanel(Feature f)
+	{
+		super();
+
+		this.f = f;
+
+		lvlSlot.setLayout(new BoxLayout(lvlSlot, BoxLayout.X_AXIS));
+		lvlSlot.setAlignmentX(JComponent.LEFT_ALIGNMENT);
+		add(lvlSlot, c);
+		c.gridy++;
+
+		add(getOptionSelectPanel(), c);
+		c.gridy++;
+
+		skillProfs.addFocusListener(UILib.createFocusListener(() -> updateSkillProfs()));
+		addLabeledComp(OPT_G_SKILLS, skillProfs, c);
+
+		chooseSkills.addFocusListener(UILib.createFocusListener(() -> updateSkillOptions()));
+		chooseSkillCount.addChangeListener(this);
+		((JSpinner.DefaultEditor) chooseSkillCount.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
+		addLabeledSelComps(OPT_C_SKILLS, chooseSkills, " Count", chooseSkillCount, c);
+
+		saveProfs.addFocusListener(UILib.createFocusListener(() -> updateSaveProfs()));
+		addLabeledComp(OPT_G_SAVES, saveProfs, c);
+
+		spells.setLineWrap(true);
+		spells.setWrapStyleWord(true);
+		spells.addFocusListener(UILib.createFocusListener(() -> updateSpells()));
+		addLabeledComp(OPT_G_SPELLS, spells, c);
+
+		chooseSpells.addFocusListener(UILib.createFocusListener(() -> updateSpellOptions()));
+		addLabeledComp(OPT_C_SPELLS, chooseSpells, c);
+
+		chooseSpecificSpells.addFocusListener(UILib.createFocusListener(() -> updateSpecificSpells()));
+		addLabeledComp(OPT_C_S_SPELLS, chooseSpecificSpells, c);
+
+		armor.addFocusListener(UILib.createFocusListener(() -> updateArmor()));
+		addLabeledComp(OPT_G_ARMOR, armor, c);
+
+		langs.addFocusListener(UILib.createFocusListener(() -> updateLangs()));
+		addLabeledComp(OPT_G_LANGS, langs, c);
+
+		chooseLangs.addFocusListener(UILib.createFocusListener(() -> updateLangOptions()));
+		chooseLangsCount.addChangeListener(this);
+		((JSpinner.DefaultEditor) chooseLangsCount.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
+		addLabeledSelComps(OPT_C_LANGS, chooseLangs, " Count", chooseLangsCount, c);
+
+		resists.addFocusListener(UILib.createFocusListener(() -> updateResists()));
+		addLabeledComp(OPT_G_RES, resists, c);
+
+		resByHome.addFocusListener(UILib.createFocusListener(() -> updateResByHome()));
+		addLabeledComp(OPT_R_BY_H, resByHome, c);
+
+		chooseRes.addFocusListener(UILib.createFocusListener(() -> updateResOptions()));
+		addLabeledComp(OPT_C_RES, chooseRes, c);
+
+		chooseExp.addFocusListener(UILib.createFocusListener(() -> updateExpOptions()));
+		chooseExpCount.addChangeListener(this);
+		((JSpinner.DefaultEditor) chooseExpCount.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
+		addLabeledSelComps(OPT_C_EXP, chooseExp, " Count", chooseExpCount, c);
+
+		tools.addFocusListener(UILib.createFocusListener(() -> updateTools()));
+		addLabeledComp(OPT_G_TOOLS, tools, c);
+
+		weapons.addFocusListener(UILib.createFocusListener(() -> updateWeapons()));
+		addLabeledComp(OPT_G_WEPS, weapons, c);
+
+		ablAddAc.addFocusListener(UILib.createFocusListener(() -> updateAblToAC()));
+		addLabeledComp(OPT_ABL_AC, ablAddAc, c);
+
+		ablToSkills.addFocusListener(UILib.createFocusListener(() -> updateAblToSkills()));
+		addLabeledComp(OPT_ABL_SKILLS, ablToSkills, c);
+
+		speed.addChangeListener(this);
+		((JSpinner.DefaultEditor) speed.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
+		addLabeledComp(OPT_SPD, speed, c);
+
+		hp1.addChangeListener(this);
+		((JSpinner.DefaultEditor) hp1.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
+		addLabeledComp(OPT_HP_1, hp1, c);
+
+		hpLvl.addChangeListener(this);
+		((JSpinner.DefaultEditor) hpLvl.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
+		addLabeledComp(OPT_HP_LVL, hpLvl, c);
+
+		halfProf.addActionListener(this);
+		addLabeledComp(OPT_HALFPROF_ALL, halfProf, c);
+
+		initProf.addActionListener(this);
+		addLabeledComp(OPT_PROF_INIT, initProf, c);
+
+		feat.addFocusListener(UILib.createFocusListener(() -> updateFeatTrait()));
+		addLabeledComp(OPT_FEAT, feat, c);
+
+		selectable.addFocusListener(UILib.createFocusListener(() -> updateSelectableType()));
+		addLabeledComp(OPT_SEL, selectable, c);
+
+		c.weighty = 1;
+		text.setLineWrap(true);
+		text.setWrapStyleWord(true);
+		text.addFocusListener(UILib.createFocusListener(() -> updateText()));
+		addLabeledComp(OPT_TEXT, text, c);
+
+		sheetNotes.setLineWrap(true);
+		sheetNotes.setWrapStyleWord(true);
+		sheetNotes.addFocusListener(UILib.createFocusListener(() -> updateSheetNotes()));
+		addLabeledComp(OPT_NOTES, sheetNotes, c);
+		c.weighty = 0;
+	}
+
+	private JPanel getOptionSelectPanel()
+	{
+		JPanel optionsPanel = new NoHorizontalScrollPanel();
+		optionsPanel.setLayout(new GridBagLayout());
+		GridBagConstraints c2 = UILib.getStandardGBC();
+		optionsPanel.add(optionSel, c2);
+		c2.weightx = 0;
+		c2.gridx++;
+		add.addActionListener(this);
+		optionsPanel.add(add, c2);
+		return optionsPanel;
+	}
+
+	private static final GridBagConstraints c2 = UILib.getStandardGBC();
+
+	private void addLabeledComp(String label, JComponent component, GridBagConstraints c)
+	{
+		JPanel panel = new NoHorizontalScrollPanel();
+		panel.setLayout(new GridBagLayout());
+		panel.setBorder(BorderFactory.createEtchedBorder());
+		optionPanels.put(label, panel);
+		UILib.addLabeledComponent(panel, label + ": ", component, c2).setForeground(Color.black);
+		add(panel, c);
+		c.gridy++;
+		panel.setVisible(false);
+	}
+
+	private void addLabeledSelComps(String label, JComponent sel, String countLabel, JComponent count,
+			GridBagConstraints c)
+	{
+		JPanel panel = new NoHorizontalScrollPanel();
+		panel.setLayout(new GridBagLayout());
+		panel.setBorder(BorderFactory.createEtchedBorder());
+		optionPanels.put(label, panel);
+		UILib.addLabeledComponent(panel, label + ": ", sel, c2).setForeground(Color.black);
+		c2.gridx = 1;
+		UILib.addLabeledComponent(panel, countLabel + ": ", count, c2).setForeground(Color.black);
+		c2.gridx = 0;
+		add(panel, c);
+		c.gridy++;
+		panel.setVisible(false);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e)
+	{
+		if (e.getSource().equals(add))
+		{
+			optionPanels.get(optionSel.getSelectedItem()).setVisible(true);
+		}
+		else if (e.getSource().equals(halfProf))
+		{
+			f.setHalfProfAll(halfProf.isSelected());
+		}
+		else if (e.getSource().equals(initProf))
+		{
+			f.setProfToInit(initProf.isSelected());
+		}
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e)
+	{
+		if (e.getSource().equals(chooseSkillCount))
+		{
+			f.setSkillSelectionCount((int) chooseSkillCount.getValue());
+		}
+		else if (e.getSource().equals(chooseLangsCount))
+		{
+			f.setLanguageSelectionCount((int) chooseLangsCount.getValue());
+		}
+		else if (e.getSource().equals(chooseExpCount))
+		{
+			f.setSkillExpertCount((int) chooseExpCount.getValue());
+		}
+		else if (e.getSource().equals(speed))
+		{
+			f.setSpeedMod((int) speed.getValue());
+		}
+		else if (e.getSource().equals(hp1))
+		{
+			f.setExtraHPLvl1((int) hp1.getValue());
+		}
+		else if (e.getSource().equals(hpLvl))
+		{
+			f.setExtraHPPerLevel((int) hpLvl.getValue());
+		}
+	}
+
+	@Override
+	protected void updateSelection()
+	{
+		nameField.setText(f.getName());
+		if (!f.getSkillsGranted().isEmpty())
+		{
+			skillProfs.setText(String.join(", ", f.getSkillsGranted().stream().map(s -> s.toString()).toList()));
+			optionPanels.get(OPT_G_SKILLS).setVisible(true);
+		}
+		if (!f.getSkillSelectionOptions().isEmpty())
+		{
+			chooseSkills
+					.setText(String.join(", ", f.getSkillSelectionOptions().stream().map(s -> s.toString()).toList()));
+			chooseSkillCount.setValue(f.getSkillSelectionCount());
+			optionPanels.get(OPT_C_SKILLS).setVisible(true);
+		}
+		if (!f.getSaveProfs().isEmpty())
+		{
+			saveProfs.setText(String.join(", ", f.getSaveProfs().stream().map(s -> s.toString()).toList()));
+			optionPanels.get(OPT_G_SAVES).setVisible(true);
+		}
+		if (!f.getSpellsGranted().isEmpty())
+		{
+			final List<String> sns = new ArrayList<>();
+			f.getSpellsGranted().forEach(s ->
+			{
+				if (s.getNotes().isBlank())
+				{
+					sns.add(s.getName());
+				}
+				else
+				{
+					sns.add(s.getName() + " (" + s.getNotes() + ")");
+				}
+			});
+			spells.setText(String.join(" | ", sns));
+			optionPanels.get(OPT_G_SPELLS).setVisible(true);
+		}
+		if (!f.getSpellChoices().isEmpty())
+		{
+			List<String> spellChoices = new ArrayList<>();
+			for (Map.Entry<Integer, List<SpellChoice>> sc : f.getSpellChoices().entrySet())
+			{
+				spellChoices.add(sc.getKey() + "-" + sc.getValue().size() + "-"
+						+ sc.getValue().get(0).getSpellList().toString());
+			}
+			chooseSpells.setText(String.join(", ", spellChoices));
+			optionPanels.get(OPT_C_SPELLS).setVisible(true);
+		}
+		if (!f.getSpecificSpellChoices().isEmpty())
+		{
+			List<String> spellOpts = new ArrayList<>();
+			for (Spell sp : f.getSpecificSpellChoices())
+			{
+				spellOpts.add(sp.getName() + (sp.getBaseName().isBlank() ? "" : "[" + sp.getBaseName() + "]")
+						+ (sp.getNotes().isBlank() ? "" : "(" + sp.getNotes() + ")"));
+			}
+			chooseSpecificSpells.setText(String.join(" | ", spellOpts));
+			optionPanels.get(OPT_C_S_SPELLS).setVisible(true);
+		}
+		if (!f.getArmorProfs().isEmpty())
+		{
+			armor.setText(String.join(", ", f.getArmorProfs().stream().map(s -> s.toString()).toList()));
+			optionPanels.get(OPT_G_ARMOR).setVisible(true);
+		}
+		if (!f.getLanguagesGranted().isEmpty())
+		{
+			langs.setText(String.join(", ", f.getLanguagesGranted().stream().map(s -> s.toString()).toList()));
+			optionPanels.get(OPT_G_LANGS).setVisible(true);
+		}
+		if (!f.getLanguageSelectionOptions().isEmpty())
+		{
+			chooseLangs.setText(
+					String.join(", ", f.getLanguageSelectionOptions().stream().map(s -> s.toString()).toList()));
+			chooseLangsCount.setValue(f.getLanguageSelectionCount());
+			optionPanels.get(OPT_C_LANGS).setVisible(true);
+		}
+		if (!f.getResistancesGranted().isEmpty())
+		{
+			resists.setText(String.join(", ", f.getResistancesGranted().stream().map(s -> s.toString()).toList()));
+			optionPanels.get(OPT_G_RES).setVisible(true);
+		}
+		if (!f.getResistancesByHomeworld().isEmpty())
+		{
+			List<String> resByH = new ArrayList<>();
+			for (Map.Entry<String, String> rH : f.getResistancesByHomeworld().entrySet())
+			{
+				resByH.add(rH.getKey() + "-" + rH.getValue());
+			}
+			resByHome.setText(String.join(", ", resByH));
+			optionPanels.get(OPT_R_BY_H).setVisible(true);
+		}
+		if (!f.getResistanceOptions().isEmpty())
+		{
+			chooseRes.setText(String.join(", ", f.getResistanceOptions().stream().map(s -> s.toString()).toList()));
+			optionPanels.get(OPT_C_RES).setVisible(true);
+		}
+		if (!f.getSkillExpertOptions().isEmpty())
+		{
+			chooseExp.setText(String.join(", ", f.getSkillExpertOptions().stream().map(s -> s.toString()).toList()));
+			chooseExpCount.setValue(f.getSkillExpertCount());
+			optionPanels.get(OPT_C_EXP).setVisible(true);
+		}
+		if (!f.getToolProfs().isEmpty())
+		{
+			tools.setText(String.join(", ", f.getToolProfs().stream().map(s -> s.toString()).toList()));
+			optionPanels.get(OPT_G_TOOLS).setVisible(true);
+		}
+		if (!f.getWeaponProfs().isEmpty())
+		{
+			resists.setText(String.join(", ", f.getWeaponProfs().stream().map(s -> s.toString()).toList()));
+			optionPanels.get(OPT_G_WEPS).setVisible(true);
+		}
+		if (!f.getAbilitiesToAC().isEmpty())
+		{
+			ablAddAc.setText(String.join(", ", f.getAbilitiesToAC().stream().map(a -> a.toString()).toList()));
+			optionPanels.get(OPT_ABL_AC).setVisible(true);
+		}
+		if (!f.getAbilitiesAddToSkills().isEmpty())
+		{
+			List<String> ats = new ArrayList<>();
+			for (Map.Entry<Skill, Ability> sc : f.getAbilitiesAddToSkills().entrySet())
+			{
+				ats.add(sc.getKey().toString() + "-" + sc.getValue().toString());
+			}
+			ablToSkills.setText(String.join(", ", ats));
+			optionPanels.get(OPT_ABL_SKILLS).setVisible(true);
+		}
+		if (f.getSpeedMod() > 0)
+		{
+			speed.setValue(f.getSpeedMod());
+			optionPanels.get(OPT_SPD).setVisible(true);
+		}
+		if (f.getExtraHPLvl1() > 0)
+		{
+			hp1.setValue(f.getExtraHPLvl1());
+			optionPanels.get(OPT_HP_1).setVisible(true);
+		}
+		if (f.getExtraHPPerLevel() > 0)
+		{
+			hpLvl.setValue(f.getExtraHPPerLevel());
+			optionPanels.get(OPT_HP_LVL).setVisible(true);
+		}
+		if (f.givesHalfProfAll())
+		{
+			halfProf.setSelected(true);
+			optionPanels.get(OPT_HALFPROF_ALL).setVisible(true);
+		}
+		if (f.givesProfToInit())
+		{
+			initProf.setSelected(true);
+			optionPanels.get(OPT_PROF_INIT).setVisible(true);
+		}
+		if (!f.getFeatTraitName().isBlank())
+		{
+			feat.setText(f.getFeatTraitName() + (f.featIgnoresPrereqs() ? " (ignores prereqs)" : ""));
+			optionPanels.get(OPT_FEAT).setVisible(true);
+		}
+		if (!f.getSelectableName().isBlank())
+		{
+			selectable.setText(f.getSelectableName());
+			optionPanels.get(OPT_SEL).setVisible(true);
+		}
+		if (!f.getText().isBlank())
+		{
+			text.setText(f.getText());
+			optionPanels.get(OPT_TEXT).setVisible(true);
+		}
+		if (!f.getSheetNotes().isBlank())
+		{
+			sheetNotes.setText(f.getSheetNotes());
+			optionPanels.get(OPT_NOTES).setVisible(true);
+		}
+	}
+
+	private void showErrorMessage(List<String> invalid, String type)
+	{
+		if (!invalid.isEmpty())
+		{
+			JOptionPane.showMessageDialog(this, String.join(", ", invalid) + " were not valid " + type + ".",
+					"Invalid Entries", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+
+	@Override
+	protected void updateName()
+	{
+		f.setName(nameField.getText());
+	}
+
+	@Override
+	protected void clearSelectedCustom()
+	{
+		if (f != null)
+		{
+			f.setCustom(false);
+		}
+	}
+
+	private void updateSkillProfs()
+	{
+		String[] skillNames = skillProfs.getText().split(",");
+		List<Skill> skills = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String sn : skillNames)
+		{
+			if (sn.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				skills.add(Skill.skillByName(sn.trim()));
+			}
+			catch (Exception e)
+			{
+				invalid.add(sn);
+			}
+		}
+		f.setSkillsGranted(skills);
+		showErrorMessage(invalid, "skills");
+	}
+
+	private void updateSkillOptions()
+	{
+		String[] skillNames = chooseSkills.getText().split(",");
+		List<Skill> skills = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String sn : skillNames)
+		{
+			if (sn.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				skills.add(Skill.skillByName(sn.trim()));
+			}
+			catch (Exception e)
+			{
+				invalid.add(sn);
+			}
+		}
+		f.setSkillSelectionOptions(skills);
+		showErrorMessage(invalid, "skills");
+	}
+
+	private void updateSaveProfs()
+	{
+		String[] abilityNames = saveProfs.getText().split(",");
+		List<Ability> abilities = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String an : abilityNames)
+		{
+			if (an.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				abilities.add(Ability.valueOf(an.trim()));
+			}
+			catch (Exception e)
+			{
+				invalid.add(an);
+			}
+		}
+		f.setSaveProfs(abilities);
+		showErrorMessage(invalid, "abilities");
+	}
+
+	private void updateSpells()
+	{
+		String[] spellNames = spells.getText().split("\\|");
+		List<Spell> spells = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String sn : spellNames)
+		{
+			if (sn.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				spells.add(getSpellFromText(sn));
+			}
+			catch (Exception e)
+			{
+				invalid.add(sn);
+			}
+		}
+		f.setSpellsGranted(spells);
+		showErrorMessage(invalid, "spells");
+	}
+
+	private void updateSpecificSpells()
+	{
+		String[] spellNames = chooseSpecificSpells.getText().split("\\|");
+		List<Spell> spells = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String sn : spellNames)
+		{
+			if (sn.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				spells.add(getSpellFromText(sn));
+			}
+			catch (Exception e)
+			{
+				invalid.add(sn);
+			}
+		}
+		f.setSpecificSpellChoices(spells);
+		showErrorMessage(invalid, "spells");
+	}
+
+	private Spell getSpellFromText(String text) throws Exception
+	{
+		String spellName = text.trim();
+		String altName = "";
+		String notes = "";
+		if (text.contains("("))
+		{
+			notes = text.substring(text.indexOf('(') + 1, text.indexOf(')')).trim();
+			spellName = text.substring(0, text.indexOf('(')).trim();
+		}
+		if (text.contains("["))
+		{
+			spellName = text.substring(text.indexOf('[') + 1, text.indexOf(']')).trim();
+			altName = text.substring(0, text.indexOf('[')).trim();
+		}
+
+		Spell s = null;
+		if (altName.isBlank() && notes.isBlank())
+		{
+			s = Spell.getByName(spellName);
+		}
+		else if (altName.isBlank() && !notes.isBlank())
+		{
+			s = Spell.getCopyByName(spellName, notes);
+		}
+		else if (!altName.isBlank() && notes.isBlank())
+		{
+			s = Spell.getByAltName(altName, spellName);
+		}
+		else
+		{
+			s = Spell.getCopyByAltName(altName, spellName, notes);
+		}
+		if (s == null)
+		{
+			throw new Exception("Failed to load spell");
+		}
+		return s;
+	}
+
+	private void updateSpellOptions()
+	{
+		String[] spellOptions = chooseSpells.getText().split(",");
+		Map<Integer, List<SpellChoice>> spellChoices = new HashMap<>();
+		List<String> invalid = new ArrayList<>();
+		for (String so : spellOptions)
+		{
+			if (so.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				String[] split = so.split("-");
+				if (split.length != 3)
+				{
+					invalid.add(so);
+					continue;
+				}
+				int lvl = Integer.parseInt(split[0].trim());
+				if (!spellChoices.containsKey(lvl))
+				{
+					spellChoices.put(lvl, new ArrayList<>());
+				}
+
+				int count = Integer.parseInt(split[1].trim());
+				for (int i = 0; i < count; i++)
+				{
+					SpellChoice sc = new SpellChoice(SpellList.getForClass(split[2].trim()), lvl);
+					spellChoices.get(lvl).add(sc);
+				}
+			}
+			catch (Exception e)
+			{
+				invalid.add(so);
+			}
+		}
+		f.setSpellChoices(spellChoices);
+		showErrorMessage(invalid, "spell options");
+	}
+
+	private void updateArmor()
+	{
+		String[] armorNames = armor.getText().split(",");
+		List<ArmorTraining> armor = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String an : armorNames)
+		{
+			if (an.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				armor.add(ArmorTraining.valueOf(an.trim()));
+			}
+			catch (Exception e)
+			{
+				invalid.add(an);
+			}
+		}
+		f.setArmorProfs(armor);
+		showErrorMessage(invalid, "armor trainings");
+	}
+
+	private void updateLangs()
+	{
+		String[] langNames = langs.getText().split(",");
+		List<Language> langs = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String ln : langNames)
+		{
+			if (ln.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				langs.add(Language.getByName(ln));
+			}
+			catch (Exception e)
+			{
+				invalid.add(ln);
+			}
+		}
+		f.setLanguagesGranted(langs);
+		showErrorMessage(invalid, "language");
+	}
+
+	private void updateLangOptions()
+	{
+		String[] langNames = chooseLangs.getText().split(",");
+		// TODO - validate languages, setup "any" option
+		// f.setLanguageOptionNames(Arrays.asList(langNames));
+	}
+
+	private void updateResists()
+	{
+		String[] resNames = resists.getText().split(",");
+		f.setResistancesGranted(Arrays.asList(resNames));
+	}
+
+	private void updateResByHome()
+	{
+		String[] resOptions = resByHome.getText().split(",");
+		Map<String, String> resByHome = new HashMap<>();
+		List<String> invalid = new ArrayList<>();
+		for (String ro : resOptions)
+		{
+			String[] split = ro.split("-");
+			if (split.length != 2)
+			{
+				invalid.add(ro);
+				continue;
+			}
+			resByHome.put(split[0], split[1]);
+		}
+		f.setResistancesByHomeworld(resByHome);
+		showErrorMessage(invalid, "homeworld trait-resistance mapping");
+	}
+
+	private void updateExpOptions()
+	{
+		String[] skillNames = chooseExp.getText().split(",");
+		List<Skill> skills = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String sn : skillNames)
+		{
+			try
+			{
+				skills.add(Skill.skillByName(sn.trim()));
+			}
+			catch (Exception e)
+			{
+				invalid.add(sn);
+			}
+		}
+		f.setSkillExpertOptions(skills);
+		showErrorMessage(invalid, "skills");
+	}
+
+	private void updateResOptions()
+	{
+		String[] resNames = chooseRes.getText().split(",");
+		f.setResistanceOptions(Arrays.asList(resNames));
+	}
+
+	private void updateTools()
+	{
+		String[] t = tools.getText().split(",");
+		f.setToolProfs(Arrays.asList(t));
+	}
+
+	private void updateWeapons()
+	{
+		String[] w = weapons.getText().split(",");
+		f.setWeaponProfs(Arrays.asList(w));
+	}
+
+	private void updateAblToAC()
+	{
+		String[] ablACOpts = ablAddAc.getText().split(",");
+		List<Ability> aToAC = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String ac : ablACOpts)
+		{
+			if (ac.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				aToAC.add(Ability.valueOf(ac.trim()));
+			}
+			catch (Exception e)
+			{
+				invalid.add(ac);
+			}
+		}
+		f.setAbilitiesToAC(aToAC);
+		showErrorMessage(invalid, "abilities");
+	}
+
+	private void updateAblToSkills()
+	{
+		String[] ablSOptions = ablToSkills.getText().split(",");
+		Map<Skill, Ability> aForS = new HashMap<>();
+		List<String> invalid = new ArrayList<>();
+		for (String as : ablSOptions)
+		{
+			if (as.isBlank())
+			{
+				continue;
+			}
+			try
+			{
+				String[] split = as.split("-");
+				if (split.length != 2)
+				{
+					invalid.add(as);
+					continue;
+				}
+				aForS.put(Skill.skillByName(split[0].trim()), Ability.valueOf(split[1].trim()));
+			}
+			catch (Exception e)
+			{
+				invalid.add(as);
+			}
+		}
+		f.setAbilitiesAddToSkills(aForS);
+		showErrorMessage(invalid, "skill ability");
+	}
+
+	private void updateFeatTrait()
+	{
+		String ftText = feat.getText();
+		if (ftText.contains("(ignore"))
+		{
+			f.setFeatIgnoresPrereqs(true);
+			ftText = ftText.substring(0, ftText.indexOf("(ignore"));
+		}
+		f.setFeatTraitName(ftText.trim());
+	}
+
+	private void updateSelectableType()
+	{
+		f.setSelectableName(selectable.getText());
+	}
+
+	private void updateText()
+	{
+		f.setText(text.getText());
+	}
+
+	private void updateSheetNotes()
+	{
+		f.setSheetNotes(sheetNotes.getText());
+	}
+}
