@@ -76,9 +76,10 @@ public class PdfExporter
 			SPELLCAST_PRE_F = "Spell Casting Time ", SPELLRANGE_PRE_F = "Spell Range ",
 			SPELLFEATURES_PRE_F = "Spell Features ", SPELLSCHOOL_PRE_F = "Spell School ",
 			SPELLNOTES_PRE_F = "Spell Notes ";
+	// The spell rows aren't in index order on the sheet
+	private static final List<Integer> SPELLROW_INDEXES = List.of(1, 2, 3, 4, 5, 7, 6, 8, 9, 13, 11, 15, 10, 14, 12, 16,
+			17, 21, 19, 23, 18, 22, 20, 24, 25, 29, 27, 31, 26, 30, 28, 32);
 	private static final int spellListStart = 1, spellListEnd = 32;
-
-	private static final List<String> notesToWrite = new ArrayList<>();
 
 	public static boolean exportCharacterSheet(CharacterSheet c)
 	{
@@ -87,8 +88,7 @@ public class PdfExporter
 			System.err.println("Cannot export character with a blank name.");
 			return false;
 		}
-		// TODO - check if pdf exists, if so, open for editing
-		// Figure out and doc how edit works, what is and is not replaced
+		// TODO 1.5+ - Existing file editing
 		try (PDDocument pdf = Loader.loadPDF(new RandomAccessReadBufferedFile(TEMPLATE)))
 		{
 			PDDocumentCatalog docCatalog = pdf.getDocumentCatalog();
@@ -114,10 +114,7 @@ public class PdfExporter
 
 				fillSpells(acroForm, c);
 
-				if (!notesToWrite.isEmpty())
-				{
-					writeNotes(acroForm);
-				}
+				fillNotes(acroForm, c);
 			}
 
 			pdf.save(c.getName() + ".pdf");
@@ -128,7 +125,6 @@ public class PdfExporter
 		{
 			JOptionPane.showMessageDialog(null, "Failed to export pdf. Most likely it is open in another application.",
 					"Export PDF Error", JOptionPane.ERROR_MESSAGE);
-			e.printStackTrace();
 			return false;
 		}
 		return true;
@@ -211,7 +207,7 @@ public class PdfExporter
 			checkField(acroForm, APSHIELD_F, true);
 		}
 
-		fillField(acroForm, EQUIPMENT_F, c.getCharClass().getEquipmentItems());
+		fillField(acroForm, EQUIPMENT_F, c.getEquipmentItems());
 	}
 
 	private static void fillFeats(PDAcroForm acroForm, CharacterSheet c) throws IOException
@@ -225,12 +221,6 @@ public class PdfExporter
 
 		fillField(acroForm, LANGUAGES_F,
 				String.join(System.lineSeparator(), c.getAllLanguages().stream().map(l -> l.toString()).toList()));
-
-		List<String> sheetNotes = c.getSheetNotes();
-		if (!sheetNotes.isEmpty())
-		{
-			notesToWrite.addAll(sheetNotes);
-		}
 	}
 
 	private static void fillSpellcastingDetails(PDAcroForm acroForm, CharacterSheet c) throws IOException
@@ -262,7 +252,7 @@ public class PdfExporter
 			// No such thing as 0th level spell slots
 			for (int i = 1; i <= 9; i++)
 			{
-				int slotCount = c.getCharClass().getClassSpells().getSpellSlots(c.getLevel(), i);
+				int slotCount = c.getSpellSlots(i);
 
 				if (slotCount > 0)
 				{
@@ -276,22 +266,22 @@ public class PdfExporter
 	{
 		List<Spell> spells = c.getAllSpells();
 		spells.sort(Comparator.comparingInt(Spell::getLevel));
-		for (int i = 0; i < (spellListEnd - spellListStart); i++)
+		for (int i = 0; i <= (spellListEnd - spellListStart); i++)
 		{
 			if (i >= spells.size())
 			{
-				return;
+				break;
 			}
 
 			Spell s = spells.get(i);
-			int listIndex = spellListStart + i; // Offset our 0-indexed value by the start of the field names
-			fillField(acroForm, SPELLLEVEL_PRE_F + listIndex, (s.getLevel() == 0 ? "C" : "" + s.getLevel()));
-			fillField(acroForm, SPELLNAME_PRE_F + listIndex, s.getName());
-			fillField(acroForm, SPELLCAST_PRE_F + listIndex, s.getCastTime());
-			fillField(acroForm, SPELLRANGE_PRE_F + listIndex, s.getRange());
-			fillField(acroForm, SPELLFEATURES_PRE_F + listIndex, getSpellFeatures(s));
-			fillField(acroForm, SPELLSCHOOL_PRE_F + listIndex, s.getSchool());
-			fillField(acroForm, SPELLNOTES_PRE_F + listIndex, s.getNotes());
+			fillField(acroForm, SPELLLEVEL_PRE_F + SPELLROW_INDEXES.get(i),
+					(s.getLevel() == 0 ? "C" : "" + s.getLevel()));
+			fillField(acroForm, SPELLNAME_PRE_F + SPELLROW_INDEXES.get(i), s.getName());
+			fillField(acroForm, SPELLCAST_PRE_F + SPELLROW_INDEXES.get(i), s.getCastTime());
+			fillField(acroForm, SPELLRANGE_PRE_F + SPELLROW_INDEXES.get(i), s.getRange());
+			fillField(acroForm, SPELLFEATURES_PRE_F + SPELLROW_INDEXES.get(i), getSpellFeatures(s));
+			fillField(acroForm, SPELLSCHOOL_PRE_F + SPELLROW_INDEXES.get(i), s.getSchool());
+			fillField(acroForm, SPELLNOTES_PRE_F + SPELLROW_INDEXES.get(i), s.getNotes());
 		}
 	}
 
@@ -312,7 +302,7 @@ public class PdfExporter
 		return String.join(" ", features);
 	}
 
-	private static void writeNotes(PDAcroForm acroForm) throws IOException
+	private static void fillNotes(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
 		// For some reason the notes field in the sheet uses a non-standard font so we
 		// have to override it
@@ -320,7 +310,7 @@ public class PdfExporter
 		if (field instanceof PDTextField)
 		{
 			((PDTextField) field).setDefaultAppearance("/Helv 12 Tf 0 g");
-			fillField(acroForm, SHEETNOTES_F, String.join(", ", notesToWrite));
+			fillField(acroForm, SHEETNOTES_F, String.join(", ", c.getSheetNotes()));
 		}
 	}
 

@@ -26,7 +26,12 @@ import ncb.data.loadables.Spell;
 import ncb.data.loadables.SpellList;
 import ncb.main.PropertyListener;
 
-public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
+// When adding new options make sure you add them to all relevant locations:
+//- One of Config or State variables
+//- Getter/Setter in same location
+//- One of Config or State loader
+//- Duplication constructor at bottom of file
+public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Cloneable
 {
 	// Setup stuff
 	private static int nId = 1;
@@ -52,6 +57,23 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 		this.parent = p;
 	}
 
+	public int getTopLevel()
+	{
+		Customizable parent = getParent();
+		if (parent == null)
+		{
+			return getLevel();
+		}
+		else
+		{
+			if (parent instanceof Feature)
+			{
+				return ((Feature) parent).getTopLevel();
+			}
+		}
+		return 1;
+	}
+
 	public Feature()
 	{
 		super();
@@ -70,11 +92,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 		List<Feature> children = new ArrayList<>();
 		if (selected != null)
 		{
-			children.add(selected);
+			children.add(selected.getHighestFeature(getTopLevel()));
 		}
 		if (feat != null)
 		{
-			children.add(feat);
+			children.add(feat.getHighestFeature(getTopLevel()));
 		}
 		return children;
 	}
@@ -87,7 +109,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 
 	// Configuration
 	private String name = "";
-	private int level = 0;
+	private int level = 1;
 	private String text = "";
 	private String sheetNotes = "";
 	private int speed = 0;
@@ -120,6 +142,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 	private final Map<String, String> resistanceByHomeworldTrait = new HashMap<>();
 	private final Map<Skill, Ability> skillsAddExtraAbility = new HashMap<>();
 	private final Map<Integer, List<SpellChoice>> spellChoices = new HashMap<>();
+	private final List<Feature> upgrades = new ArrayList<>();
 
 	public String getName()
 	{
@@ -564,8 +587,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 
 	public void setResistancesByHomeworld(Map<String, String> resByHome)
 	{
-		resistanceByHomeworldTrait.clear();
-		resistanceByHomeworldTrait.putAll(resByHome);
+		updateMapConfig(resistanceByHomeworldTrait, resByHome, (v) ->
+		{
+			resistanceByHomeworldTrait.clear();
+			resistanceByHomeworldTrait.putAll(v);
+		});
 	}
 
 	public Map<Skill, Ability> getAbilitiesAddToSkills()
@@ -575,8 +601,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 
 	public void setAbilitiesAddToSkills(Map<Skill, Ability> sToA)
 	{
-		skillsAddExtraAbility.clear();
-		skillsAddExtraAbility.putAll(sToA);
+		updateMapConfig(skillsAddExtraAbility, sToA, (v) ->
+		{
+			skillsAddExtraAbility.clear();
+			skillsAddExtraAbility.putAll(v);
+		});
 	}
 
 	public Map<Integer, List<SpellChoice>> getSpellChoices()
@@ -586,8 +615,49 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 
 	public void setSpellChoices(Map<Integer, List<SpellChoice>> spellChoices)
 	{
-		spellChoices.clear();
-		spellChoices.putAll(spellChoices);
+		updateMapConfig(this.spellChoices, spellChoices, (v) ->
+		{
+			spellChoices.clear();
+			spellChoices.putAll(v);
+		});
+	}
+
+	public List<Feature> getUpgrades()
+	{
+		return upgrades;
+	}
+
+	public void addUpgrade()
+	{
+		upgrades.add(new Feature(upgrades.isEmpty() ? this : upgrades.get(upgrades.size() - 1)));
+		setCustom(true);
+	}
+
+	public void removeUpgrade()
+	{
+		if (!upgrades.isEmpty())
+		{
+			upgrades.remove(upgrades.size() - 1);
+			setCustom(true);
+		}
+	}
+
+	public boolean hasUpgradeAt(int lvl)
+	{
+		return upgrades.stream().anyMatch(f -> f.getLevel() == lvl);
+	}
+
+	public Feature getHighestFeature(int lvl)
+	{
+		Feature max = this;
+		for (Feature f : upgrades)
+		{
+			if (f.getLevel() <= lvl && f.getLevel() > max.getLevel())
+			{
+				max = f;
+			}
+		}
+		return max;
 	}
 
 	@Override
@@ -645,6 +715,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 				skillsAddExtraAbility.entrySet().stream()
 						.collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString())),
 				"skill", "ability");
+		json = putObjList(json, "upgrades", upgrades.stream().map(u -> u.saveConfig()).toList());
 
 		return json;
 	}
@@ -656,6 +727,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 		level = data.optInt("level", 1); // Level defaults to 1 instead of the typical 0
 		text = data.optString("text", "");
 		speed = data.optInt("speedMod", 0);
+		// TODO - legacy, decom once species are updated
+		if (speed == 0)
+		{
+			speed = data.optInt("speed", 0);
+		}
 		sheetNotes = data.optString("sheetNotes", "");
 		allLvlHp = data.optInt("extraHPPerLevel", 0);
 		lvl1Hp = data.optInt("extraHPLvl1", 0);
@@ -720,6 +796,24 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 		skillsAddExtraAbility.clear();
 		skillsAddExtraAbility.putAll(getMap(data, "addAbilitiesToSkills", "skill", "ability").entrySet().stream()
 				.collect(Collectors.toMap(e -> Skill.skillByName(e.getKey()), e -> Ability.valueOf(e.getValue()))));
+		upgrades.clear();
+		getObjList(data, "upgrades").forEach(o ->
+		{
+			Feature up = new Feature();
+			up.loadConfig(o);
+			up.isCopy = true;
+			up.original = this;
+			upgrades.add(up);
+		});
+	}
+
+	// Used for upgrades, as we want to keep the same state
+	private boolean isCopy = false;
+	private Feature original = null;
+
+	public boolean isCopy()
+	{
+		return isCopy;
 	}
 
 	// State
@@ -733,115 +827,223 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 
 	public List<String> getResistancesSelected()
 	{
-		return resistancesSelected;
+		if (isCopy)
+		{
+			return original.getResistancesSelected();
+		}
+		else
+		{
+			return resistancesSelected;
+		}
 	}
 
 	public void setResistancesSelected(List<String> res)
 	{
-		updateWithAlert(resistancesSelected, res, (v) ->
+		if (isCopy)
 		{
-			resistancesSelected.clear();
-			resistancesSelected.addAll(v);
-		}, PropertyListener.RESISTANCES);
+			original.setResistancesSelected(res);
+		}
+		else
+		{
+			updateWithAlert(resistancesSelected, res, (v) ->
+			{
+				resistancesSelected.clear();
+				resistancesSelected.addAll(v);
+			}, PropertyListener.RESISTANCES);
+		}
 	}
 
 	public List<Skill> getSkillsSelected()
 	{
-		return skillsSelected;
+		if (isCopy)
+		{
+			return original.getSkillsSelected();
+		}
+		else
+		{
+			return skillsSelected;
+		}
 	}
 
 	public void setSkillsSelected(List<Skill> skills)
 	{
-		updateWithAlert(skillsSelected, skills, (v) ->
+		if (isCopy)
 		{
-			skillsSelected.clear();
-			skillsSelected.addAll(v);
-		}, PropertyListener.SKILLPROFS);
+			original.setSkillsSelected(skills);
+		}
+		else
+		{
+			updateWithAlert(skillsSelected, skills, (v) ->
+			{
+				skillsSelected.clear();
+				skillsSelected.addAll(v);
+			}, PropertyListener.SKILLPROFS);
+		}
 	}
 
 	public List<Skill> getSkillExpertsSelected()
 	{
-		return skillExpertsSelected;
+		if (isCopy)
+		{
+			return original.getSkillExpertsSelected();
+		}
+		else
+		{
+			return skillExpertsSelected;
+		}
 	}
 
 	public void setSkillExpertsSelected(List<Skill> skills)
 	{
-		updateWithAlert(skillExpertsSelected, skills, (v) ->
+		if (isCopy)
 		{
-			skillExpertsSelected.clear();
-			skillExpertsSelected.addAll(v);
-		}, PropertyListener.SKILLEXPS);
+			original.setSkillExpertsSelected(skills);
+		}
+		else
+		{
+			updateWithAlert(skillExpertsSelected, skills, (v) ->
+			{
+				skillExpertsSelected.clear();
+				skillExpertsSelected.addAll(v);
+			}, PropertyListener.SKILLEXPS);
+		}
 	}
 
 	public List<Language> getLanguagesSelected()
 	{
-		return languagesSelected;
+		if (isCopy)
+		{
+			return original.getLanguagesSelected();
+		}
+		else
+		{
+			return languagesSelected;
+		}
 	}
 
 	public void setLanguagesSelected(List<Language> langs)
 	{
-		updateWithAlert(languagesSelected, langs, (v) ->
+		if (isCopy)
 		{
-			languagesSelected.clear();
-			languagesSelected.addAll(v);
-		}, PropertyListener.LANGUAGES);
+			original.setLanguagesSelected(langs);
+		}
+		else
+		{
+			updateWithAlert(languagesSelected, langs, (v) ->
+			{
+				languagesSelected.clear();
+				languagesSelected.addAll(v);
+			}, PropertyListener.LANGUAGES);
+		}
 	}
 
 	public Selectable getSelected()
 	{
-		return selected;
+		if (isCopy)
+		{
+			return original.getSelected();
+		}
+		else
+		{
+			return selected;
+		}
 	}
 
 	public void setSelected(Selectable sel)
 	{
-		updateWithAlert(selected, sel, (v) ->
+		if (isCopy)
 		{
-			this.selected = v;
-		}, PropertyListener.SELECTED);
+			original.setSelected(sel);
+		}
+		else
+		{
+			updateWithAlert(selected, sel, (v) ->
+			{
+				this.selected = v;
+			}, PropertyListener.SELECTED);
+		}
 	}
 
 	public Feat getFeat()
 	{
-		return feat;
+		if (isCopy)
+		{
+			return original.getFeat();
+		}
+		else
+		{
+			return feat;
+		}
 	}
 
 	public void setFeat(Feat ft)
 	{
-		updateWithAlert(feat, ft, (v) ->
+		if (isCopy)
 		{
-			this.feat = (Feat) v;
-		}, PropertyListener.SELECTED);
+			original.setFeat(ft);
+		}
+		else
+		{
+			updateWithAlert(feat, ft, (v) ->
+			{
+				this.feat = (Feat) v;
+			}, PropertyListener.SELECTED);
+		}
 	}
 
 	public Spell getChosenSpell()
 	{
-		return chosenSpell;
+		if (isCopy)
+		{
+			return original.getChosenSpell();
+		}
+		else
+		{
+			return chosenSpell;
+		}
 	}
 
 	public void setChosenSpell(Spell s)
 	{
-		updateWithAlert(chosenSpell, s, (v) ->
+		if (isCopy)
 		{
-			this.chosenSpell = s;
-		}, PropertyListener.SPELLS);
+			original.setChosenSpell(s);
+		}
+		else
+		{
+			updateWithAlert(chosenSpell, s, (v) ->
+			{
+				this.chosenSpell = s;
+			}, PropertyListener.SPELLS);
+		}
 	}
 
-	// TODO - remove this
 	public List<Spell> getSpellsSelected()
 	{
-		List<Spell> s = new ArrayList<>();
-
-		if (chosenSpell != null)
+		if (isCopy)
 		{
-			s.add(chosenSpell);
+			return original.getSpellsSelected();
 		}
+		else
+		{
+			List<Spell> s = new ArrayList<>();
 
-		return s;
+			if (chosenSpell != null)
+			{
+				s.add(chosenSpell);
+			}
+
+			return s;
+		}
 	}
 
 	@Override
 	public JSONObject saveState()
 	{
+		if (isCopy)
+		{
+			return original.saveState();
+		}
 		JSONObject json = new JSONObject();
 
 		json = putList(json, "resistanceSelected", resistancesSelected);
@@ -902,5 +1104,50 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll
 		{
 			chosenSpell = Spell.getFromJSONObject(spellObj);
 		}
+	}
+
+	public Feature(Feature original)
+	{
+		this();
+
+		isCopy = true;
+		this.original = original;
+
+		// Copy all configuration
+		this.name = original.name;
+		this.level = original.level + 1;
+		this.text = original.text;
+		this.sheetNotes = original.sheetNotes;
+		this.speed = original.speed;
+		this.lvl1Hp = original.lvl1Hp;
+		this.allLvlHp = original.allLvlHp;
+		this.halfProfAll = original.halfProfAll;
+		this.initProf = original.initProf;
+		this.saveProfs.addAll(original.saveProfs);
+		this.weaponProfs.addAll(original.weaponProfs);
+		this.tools.addAll(original.tools);
+		this.vehicles.addAll(original.vehicles);
+		this.armorTrains.addAll(original.armorTrains);
+		this.skillProfs.addAll(original.skillProfs);
+		this.freeSpells.addAll(original.freeSpells);
+		this.freeLangs.addAll(original.freeLangs);
+		this.freeRes.addAll(original.freeRes);
+		this.ACAbilities.addAll(original.ACAbilities);
+		this.optResistances.addAll(original.optResistances);
+		this.optResistancesCount = original.optResistancesCount;
+		this.skillOptions.addAll(original.skillOptions);
+		this.skillCount = original.skillCount;
+		this.optSkillExps.addAll(original.optSkillExps);
+		this.optSkillExpsCount = original.optSkillExpsCount;
+		this.langOptionNames.addAll(original.langOptionNames);
+		this.langSelectCount = original.langSelectCount;
+		this.optSpellChoices.addAll(original.optSpellChoices);
+		this.optSelectableType = original.optSelectableType;
+		this.featTrait = original.featTrait;
+		this.optFeatIgnoreReqs = original.optFeatIgnoreReqs;
+		this.resistanceByHomeworldTrait.putAll(original.resistanceByHomeworldTrait);
+		this.skillsAddExtraAbility.putAll(original.skillsAddExtraAbility);
+		this.spellChoices.putAll(original.spellChoices);
+		// We, obviously, do not copy upgrades
 	}
 }

@@ -2,6 +2,7 @@ package ncb.data.loadables;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.json.JSONObject;
 
@@ -83,6 +84,16 @@ public class Subclass extends Feature
 		cf.setParent(this);
 		subclassFeatures.add(cf);
 		setCustom(true);
+	}
+
+	public void removeSubclassFeature(int id)
+	{
+		Optional<Feature> fOpt = subclassFeatures.stream().filter(f -> f.getId() == id).findAny();
+		if (fOpt.isPresent())
+		{
+			subclassFeatures.remove(fOpt.get());
+			setCustom(true);
+		}
 	}
 
 	public void removeLastSubclassFeature()
@@ -206,10 +217,11 @@ public class Subclass extends Feature
 	{
 		// Only return features of our class level or lower and drop any features of a
 		// lower level that have the same name as a higher level feature
+		final int level = getClassLvl();
 		List<Feature> features = new ArrayList<>();
 		for (Feature f : subclassFeatures)
 		{
-			if (f.getLevel() > getClassLvl())
+			if (f.getLevel() > level)
 			{
 				continue;
 			}
@@ -225,7 +237,8 @@ public class Subclass extends Feature
 					continue;
 				}
 			}
-			features.add(f);
+			// Handle upgrades
+			features.add(f.getHighestFeature(level));
 		}
 		return features;
 	}

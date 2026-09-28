@@ -1,5 +1,6 @@
 package ncb.data.interfaces;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -21,8 +22,9 @@ public interface HasState extends AlertsChanges, SavesLoadsJson
 	{
 		if (!o.equals(n))
 		{
+			List<T> old = new ArrayList<>(o);
 			setter.accept(n);
-			getPCS().firePropertyChange(eventType, o, n);
+			getPCS().firePropertyChange(eventType, old, n);
 		}
 	}
 

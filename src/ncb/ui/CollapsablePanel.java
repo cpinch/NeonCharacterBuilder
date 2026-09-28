@@ -1,7 +1,6 @@
 package ncb.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -14,14 +13,13 @@ import java.awt.event.MouseListener;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
-import javax.swing.border.BevelBorder;
 
-public class CollapsablePanel extends JPanel
+public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 {
 	private static final long serialVersionUID = 2652970109248517759L;
 
-	protected final JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-	protected final JPanel bodyPanel = new JPanel();
+	public final JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+	public final JPanel bodyPanel = new NoHorizontalScrollPanel();
 
 	private final JButton toggleBtn = new JButton();
 	private boolean collapsed = false;
@@ -29,16 +27,13 @@ public class CollapsablePanel extends JPanel
 	public CollapsablePanel(boolean startCollapsed)
 	{
 		setLayout(new BorderLayout());
-		setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED, VaporwaveColors.NEON_BLUE,
-				VaporwaveColors.NEON_BLUE));
-		setBackground(VaporwaveColors.DARK_PURPLE);
-		setAlignmentX(Component.LEFT_ALIGNMENT);
+		setBorder(BorderFactory.createEtchedBorder());
+		setOpaque(false);
 
 		JPanel headerArea = new JPanel();
 		headerArea.setOpaque(false);
 		headerArea.setLayout(new GridBagLayout());
 		GridBagConstraints c = UILib.getStandardGBC();
-		c.anchor = GridBagConstraints.WEST;
 
 		headerPanel.setOpaque(false);
 		headerArea.add(headerPanel, c);

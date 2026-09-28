@@ -328,6 +328,7 @@ public class Spell implements Cloneable, HasConfig
 		json = putStr(json, "trigger", trigger);
 		json = putStr(json, "materials", materials);
 		json = putBool(json, "ritual", ritual);
+		json = putStr(json, "text", text);
 
 		return json;
 	}
@@ -345,6 +346,7 @@ public class Spell implements Cloneable, HasConfig
 		trigger = data.optString("trigger", "");
 		materials = data.optString("materials", "");
 		ritual = data.optBoolean("trigger", false);
+		text = data.optString("text", "");
 	}
 
 	// These are kind of half-state half-config variables so are specially handled
@@ -365,7 +367,7 @@ public class Spell implements Cloneable, HasConfig
 	{
 		JSONObject obj = new JSONObject();
 
-		obj.put("name", s.getName());
+		obj.put("spell", s.getName());
 		if (!s.getBaseName().isBlank())
 		{
 			obj.put("baseName", s.getBaseName());
@@ -380,6 +382,7 @@ public class Spell implements Cloneable, HasConfig
 
 	public static Spell getFromJSONObject(JSONObject sp)
 	{
+		System.out.println("Getting spell from " + sp);
 		if (sp.has("baseName") && sp.has("note"))
 		{
 			return Spell.getCopyByAltName(sp.getString("spell"), sp.getString("baseName"), sp.getString("note"));

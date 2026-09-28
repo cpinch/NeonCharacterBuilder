@@ -1,6 +1,7 @@
 package ncb.data.interfaces;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import org.json.JSONObject;
@@ -18,6 +19,15 @@ public interface HasConfig extends Customizable, SavesLoadsJson
 	public abstract void loadConfig(JSONObject data);
 
 	default <T> void updateConfig(List<T> o, List<T> n, Consumer<List<T>> setter)
+	{
+		if (!o.equals(n))
+		{
+			setter.accept(n);
+			setCustom(true);
+		}
+	}
+
+	default <T, R> void updateMapConfig(Map<T, R> o, Map<T, R> n, Consumer<Map<T, R>> setter)
 	{
 		if (!o.equals(n))
 		{
