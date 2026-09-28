@@ -1,5 +1,7 @@
 .classpath
 .project
 .settings
+.m2
 bin
 target
+resources
