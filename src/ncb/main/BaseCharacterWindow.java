@@ -1,6 +1,7 @@
 package ncb.main;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -10,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -17,33 +19,33 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import ncb.io.JsonDataLoader;
-import ncb.ui.AbilityPanel;
-import ncb.ui.BackgroundPanel;
-import ncb.ui.ClassPanel;
-import ncb.ui.LevelUpPanel;
-import ncb.ui.SpeciesPanel;
-import ncb.ui.SpellsPanel;
-import ncb.ui.SubclassPanel;
-import ncb.ui.SummaryPanel;
+import ncb.ui.ListensForChanges;
 import ncb.ui.Toast;
 import ncb.ui.UILib;
 import ncb.ui.VaporwaveColors;
 import ncb.ui.DataEditor.DataEditor;
+import ncb.ui.tabs.AbilityPanel;
+import ncb.ui.tabs.BackgroundPanel;
+import ncb.ui.tabs.ClassPanel;
+import ncb.ui.tabs.LevelUpPanel;
+import ncb.ui.tabs.SpeciesPanel;
+import ncb.ui.tabs.SpellsPanel;
+import ncb.ui.tabs.SubclassPanel;
+import ncb.ui.tabs.SummaryPanel;
 
-public class BaseCharacterWindow extends JFrame implements ActionListener, ChangeListener
+public class BaseCharacterWindow extends JFrame implements ActionListener, ChangeListener, ListensForChanges
 {
 	private static final long serialVersionUID = -2792167287995448499L;
 
 	private CharacterSheet sheet = new CharacterSheet();
 
 	private final JTabbedPane tabbedPane = new JTabbedPane();
-	private final JTextField nameF = new JTextField(45);
+	private JTextField nameF;
 	private final ClassPanel classP = new ClassPanel(sheet);
 	private final SubclassPanel subclassP = new SubclassPanel(sheet);
 	private final SpeciesPanel speciesP = new SpeciesPanel(sheet);
@@ -51,7 +53,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 	private final BackgroundPanel backP = new BackgroundPanel(sheet);
 	private final SpellsPanel spellP = new SpellsPanel(sheet);
 	private final SummaryPanel summaryP = new SummaryPanel(sheet);
-	private final LevelUpPanel levelP = new LevelUpPanel(sheet, () -> showSubclassTab());
+	private final LevelUpPanel levelP = new LevelUpPanel(sheet);
 
 	private final String backS = "<- Back", dataES = "Data Editor";
 	private final JButton back = new JButton();
@@ -112,31 +114,35 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		setExtendedState(JFrame.MAXIMIZED_BOTH);
 		setLocationRelativeTo(null);
 		setVisible(true);
+
+		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 	}
 
 	private JPanel createCharacterDetailsTab()
 	{
 		JPanel panel = new JPanel();
+		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		panel.setBackground(VaporwaveColors.DARK_PURPLE);
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints c = UILib.getStandardGBC();
 
-		JTextPane instructions = UILib.getTextDisplay();
-		instructions.setText("<html><h1>Welcome to the Neon Character Builder.</h1><br>"
+		UILib.addTextDisplay(panel, "<html><h1>Welcome to the Neon Character Builder.</h1><br>"
 				+ "This tool is designed to guide you through the character creation process"
 				+ " for the Neon Odyssey rpg using the standard 5.5E process.<br>"
 				+ "Please navigate through each tab, in order, and follow the instructions on that tab.<br>"
 				+ "At the end you will be able to export a form-fillable pdf which will be pre-filled with your character's details.<br><br>"
-				+ "<b><i>To begin, please choose a name for your character (this will also be the name of the exported pdf).</b><i/>");
-		panel.add(instructions, c);
+				+ "<b><i>To begin, please choose a name for your character (this will also be the name of the exported pdf).</b><i/>",
+				c, VaporwaveColors.HOT_PINK);
 		c.gridy++;
 
+		nameF = UILib.getTextField(Color.black);
+		nameF.setOpaque(true);
 		nameF.getDocument().addDocumentListener(UILib.createDocumentListener(() ->
 		{
 			sheet.setName(nameF.getText());
 			save.setEnabled(!sheet.getName().isBlank());
 		}));
-		UILib.addLabeledComponent(panel, "Character Name: ", nameF, c);
+		UILib.addLabeledComponent(panel, "Character Name: ", nameF, c, VaporwaveColors.HOT_PINK);
 		c.gridy++;
 
 		JPanel filler = new JPanel();
@@ -156,38 +162,8 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 	@Override
 	public void stateChanged(ChangeEvent e)
 	{
-		// Reload each tab on load to ensure it's consistent with the sheet data
-		// We could try to be more specific, but this is safer
 		if (e.getSource().equals(tabbedPane))
 		{
-			if (tabbedPane.getSelectedComponent().equals(subclassP))
-			{
-				// subclassP.updateDetails();
-			}
-			else if (tabbedPane.getSelectedComponent().equals(speciesP))
-			{
-				speciesP.updateDetails();
-			}
-			else if (tabbedPane.getSelectedComponent().equals(backP))
-			{
-				backP.updateDetails();
-			}
-			else if (tabbedPane.getSelectedComponent().equals(abilityP))
-			{
-				abilityP.updateDetails();
-			}
-			else if (tabbedPane.getSelectedComponent().equals(spellP))
-			{
-				spellP.updateDetails();
-			}
-			else if (tabbedPane.getSelectedComponent().equals(summaryP))
-			{
-				summaryP.updateDetails();
-			}
-			else if (tabbedPane.getSelectedComponent().equals(levelP))
-			{
-				levelP.updateDetails();
-			}
 			back.setText(tabbedPane.getSelectedIndex() > 0 ? backS : dataES);
 			next.setEnabled(tabbedPane.getSelectedIndex() < tabbedPane.getTabCount() - 1);
 		}
@@ -248,15 +224,6 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		next.setEnabled(tabbedPane.getSelectedIndex() < tabbedPane.getTabCount() - 1);
 	}
 
-	public void showSubclassTab()
-	{
-		if (tabbedPane.indexOfComponent(subclassP) < 0)
-		{
-			// Insert before Species
-			tabbedPane.insertTab("Subclass", null, subclassP, null, tabbedPane.indexOfTab("Species"));
-		}
-	}
-
 	public static void main(String[] args)
 	{
 		// TODO post1.0 - figure out a way to only do this on larger screens, checking
@@ -266,5 +233,19 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		JsonDataLoader.loadAllFiles();
 
 		new BaseCharacterWindow();
+	}
+
+	@Override
+	public void updateProperty(String prop)
+	{
+		if (sheet.getLevel() == 3)
+		{
+			// Show the subclass tab if we just leveled up to 3
+			if (tabbedPane.indexOfComponent(subclassP) < 0)
+			{
+				// Insert before Species
+				tabbedPane.insertTab("Subclass", null, subclassP, null, tabbedPane.indexOfTab("Species"));
+			}
+		}
 	}
 }

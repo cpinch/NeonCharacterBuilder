@@ -3,6 +3,7 @@ package ncb.data.loadables;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.json.JSONObject;
 
@@ -42,6 +43,12 @@ public class CharacterClass extends Feature
 	{
 	}
 
+	public CharacterClass()
+	{
+		super();
+		classSpells.setParent(this);
+	}
+
 	@Override
 	public List<? extends GetAll> getChildren()
 	{
@@ -73,6 +80,16 @@ public class CharacterClass extends Feature
 		f.setParent(this);
 		classFeatures.add(f);
 		setCustom(true);
+	}
+
+	public void removeClassFeature(int id)
+	{
+		Optional<Feature> fOpt = classFeatures.stream().filter(f -> f.getId() == id).findAny();
+		if (fOpt.isPresent())
+		{
+			classFeatures.remove(fOpt.get());
+			setCustom(true);
+		}
 	}
 
 	public void removeLastClassFeature()
@@ -297,10 +314,18 @@ public class CharacterClass extends Feature
 		return classFeatures;
 	}
 
+	public List<Feature> getClassFeatures()
+	{
+		List<Feature> features = getClassOnlyFeatures();
+		if (subclass != null)
+		{
+			features.addAll(subclass.getSubclassFeatures());
+		}
+		return features;
+	}
+
 	public List<Feature> getClassOnlyFeatures()
 	{
-		// Only return features of our class level or lower and drop any features of a
-		// lower level that have the same name as a higher level feature
 		List<Feature> features = new ArrayList<>();
 		for (Feature f : classFeatures)
 		{
@@ -308,29 +333,8 @@ public class CharacterClass extends Feature
 			{
 				continue;
 			}
-			List<Feature> existingFeatures = features.stream().filter(ef -> ef.getName().equals(f.getName())).toList();
-			if (!existingFeatures.isEmpty())
-			{
-				if (f.getLevel() > existingFeatures.get(0).getLevel())
-				{
-					features.remove(existingFeatures.get(0));
-				}
-				else
-				{
-					continue;
-				}
-			}
-			features.add(f);
-		}
-		return features;
-	}
-
-	public List<Feature> getClassFeatures()
-	{
-		List<Feature> features = getClassOnlyFeatures();
-		if (subclass != null)
-		{
-			features.addAll(subclass.getSubclassFeatures());
+			// Handle upgrades
+			features.add(f.getHighestFeature(level));
 		}
 		return features;
 	}
@@ -351,7 +355,7 @@ public class CharacterClass extends Feature
 
 		json = putStr(json, "desc", desc);
 		json = putInt(json, "hd", hd);
-		json = putStr(json, "spellcastingAbility", spellcastingAbility.toString());
+		json = putStr(json, "spellcastingAbility", (spellcastingAbility == null ? "" : spellcastingAbility.toString()));
 		JSONObject primary = new JSONObject();
 		primary = putList(primary, "primaryAbilities", primaryAbilities.stream().map(a -> a.toString()).toList());
 		primary = putList(primary, "primaryAbilityOptions",

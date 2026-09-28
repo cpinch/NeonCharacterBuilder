@@ -2,6 +2,7 @@ package ncb.data.loadables;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -37,6 +38,19 @@ public class Species extends Feature
 	@Override
 	public void setParent(Customizable p)
 	{
+	}
+
+	@Override
+	public int getTopLevel()
+	{
+		try
+		{
+			return getCharLevel.call();
+		}
+		catch (Exception e)
+		{
+			return 1;
+		}
 	}
 
 	@Override
@@ -106,9 +120,7 @@ public class Species extends Feature
 
 	public List<Feature> getTraits()
 	{
-		int lvl = getCharLevel();
-		// Only return traits of our character level or lower and drop any traits of a
-		// lower level that have the same name as a higher level trait
+		final int lvl = getCharLevel();
 		List<Feature> features = new ArrayList<>();
 		for (Feature f : traits)
 		{
@@ -116,19 +128,8 @@ public class Species extends Feature
 			{
 				continue;
 			}
-			List<Feature> existingFeatures = features.stream().filter(ef -> ef.getName().equals(f.getName())).toList();
-			if (!existingFeatures.isEmpty())
-			{
-				if (f.getLevel() > existingFeatures.get(0).getLevel())
-				{
-					features.remove(existingFeatures.get(0));
-				}
-				else
-				{
-					continue;
-				}
-			}
-			features.add(f);
+			// Handle upgrades
+			features.add(f.getHighestFeature(lvl));
 		}
 		return traits;
 	}
@@ -140,6 +141,16 @@ public class Species extends Feature
 		st.setParent(this);
 		traits.add(st);
 		setCustom(true);
+	}
+
+	public void removeSpeciesTrait(int id)
+	{
+		Optional<Feature> fOpt = traits.stream().filter(f -> f.getId() == id).findAny();
+		if (fOpt.isPresent())
+		{
+			traits.remove(fOpt.get());
+			setCustom(true);
+		}
 	}
 
 	public void removeLastTrait()

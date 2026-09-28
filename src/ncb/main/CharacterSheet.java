@@ -2,6 +2,7 @@ package ncb.main;
 
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ import ncb.data.Feature;
 import ncb.data.enums.Ability;
 import ncb.data.enums.ArmorTraining;
 import ncb.data.enums.Skill;
+import ncb.data.hardcoded.Proficiency;
 import ncb.data.interfaces.AlertsChanges;
 import ncb.data.interfaces.GetAll;
 import ncb.data.interfaces.HasState;
@@ -21,7 +23,6 @@ import ncb.data.loadables.Feat;
 import ncb.data.loadables.Language;
 import ncb.data.loadables.Species;
 import ncb.data.loadables.Spell;
-import ncb.data.simple.Proficiency;
 
 public class CharacterSheet implements AlertsChanges, GetAll, HasState
 {
@@ -39,18 +40,6 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		addPropertyChangeListener(PropertyListener.getListener());
 	}
 
-	private String name = "";
-
-	public String getName()
-	{
-		return name;
-	}
-
-	public void setName(String name)
-	{
-		this.name = name;
-	}
-
 	@Override
 	public List<GetAll> getChildren()
 	{
@@ -66,10 +55,24 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 	}
 
 	// Sub-fields
+	private String name = "";
 	private CharacterClass charClass;
 	private Species species;
 	private Background background;
 	private final AbilityScores abilityScores = new AbilityScores();
+
+	public String getName()
+	{
+		return name;
+	}
+
+	public void setName(String name)
+	{
+		updateWithAlert(this.name, name, (v) ->
+		{
+			this.name = v;
+		}, PropertyListener.NAME);
+	}
 
 	public CharacterClass getCharClass()
 	{
@@ -326,7 +329,14 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 	{
 		if (charClass.getSpellcastingAbility() != null)
 		{
-			return charClass.getSpellcastingAbility();
+			if (charClass.getSpellcastingAbility() == Ability.Primary)
+			{
+				return charClass.getSelectedPrimary();
+			}
+			else
+			{
+				return charClass.getSpellcastingAbility();
+			}
 		}
 		else
 		{
@@ -336,6 +346,12 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 			// tab.
 			return abilityScores.getSpellcastingAbility();
 		}
+	}
+
+	public int getSpellSlots(int spellLevel)
+	{
+		// TODO multiclassing?
+		return charClass.getClassSpells().getSpellSlots(charClass.getLevel(), spellLevel);
 	}
 
 	public int getAC()
@@ -438,32 +454,47 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 	public List<String> getFeatureStrings()
 	{
 		List<String> fs = new ArrayList<>();
-		List<? extends GetAll> features = getAll(Feature::getChildren);
 
-		for (Object feature : features)
+		// Iterate through every child feature, stopping when we hit a feat
+		getChildren().forEach(c -> fs.addAll(getFeatureStrings(c)));
+
+		return fs;
+	}
+
+	private List<String> getFeatureStrings(GetAll feature)
+	{
+		if (feature instanceof Feature && !(feature instanceof Feat))
 		{
-			if (feature instanceof Feature && !(feature instanceof Feat))
+			List<String> fs = new ArrayList<>();
+			Feature f = (Feature) feature;
+			if (!f.getText().isBlank())
 			{
-				Feature f = (Feature) feature;
 				fs.add(f.getName() + " - " + f.getText());
 			}
+			f.getChildren().forEach(c -> fs.addAll(getFeatureStrings(c)));
+			return fs;
 		}
-		return fs;
+		return Collections.emptyList();
+
 	}
 
 	public List<String> getFeatStrings()
 	{
 		List<String> fs = new ArrayList<>();
-		List<? extends GetAll> features = getAll(Feature::getChildren);
 
-		for (Object feature : features)
+		List<Feat> feats = getAllOf(Feature::getFeat);
+		for (Feat f : feats)
 		{
-			if (feature instanceof Feat)
-			{
-				Feat f = (Feat) feature;
-				fs.add(f.getName() + " - " + f.getText());
-			}
+			List<String> allText = f.getAllOf(Feature::getText);
+			fs.add(f.getName() + " - " + String.join(", ", allText));
 		}
+
 		return fs;
+	}
+
+	public String getEquipmentItems()
+	{
+		// TODO - background equipment?
+		return charClass.getEquipmentItems();
 	}
 }

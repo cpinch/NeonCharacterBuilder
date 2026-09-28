@@ -44,7 +44,7 @@ public class AbilityScores implements HasState
 	// State
 	private final Map<Ability, Integer> scores = new HashMap<>();
 	private final Map<Ability, Integer> bgIncreases = new HashMap<>();
-	private Ability spellcastingAbility; // Only used if the character's class doesn't set it
+	private Ability spellcastingAbility = Ability.Int; // Only used if the character's class doesn't set it
 
 	public int getBaseScoreFor(Ability a)
 	{

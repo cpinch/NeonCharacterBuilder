@@ -5,17 +5,18 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
+import ncb.data.interfaces.Customizable;
 import ncb.ui.NoHorizontalScrollPanel;
 import ncb.ui.UILib;
 
@@ -33,18 +34,14 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 	public SelectorPanel(String typeName)
 	{
 		this.typeName = typeName;
-
-		display.setLayout(new BorderLayout());
 		setLayout(new BorderLayout());
+		display.setLayout(new BorderLayout());
+
 		selector.addListSelectionListener(this);
-		JScrollPane selScroll = new JScrollPane(selector);
-		selScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		JScrollPane disScroll = new JScrollPane(display);
-		disScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		JPanel selectorPanel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.weighty = 1;
-		selectorPanel.add(selScroll, c);
+		UILib.addScrollPaneFor(selectorPanel, selector, c);
 		c.weighty = 0;
 		c.gridy++;
 		newBtn.addActionListener(this);
@@ -52,14 +49,18 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 		c.gridy++;
 		clrBtn.addActionListener(this);
 		selectorPanel.add(clrBtn, c);
-		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, selectorPanel, disScroll);
+
+		JSplitPane split = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, selectorPanel, UILib.getScrollPaneFor(display));
 		split.setContinuousLayout(true);
+
 		add(split, BorderLayout.CENTER);
+
+		updateItems();
 	}
 
-	protected abstract void updateSelection();
+	protected abstract EditPanel getEditPanel();
 
-	protected abstract void clearSelectionCustom();
+	protected abstract List<? extends Customizable> getItemsList();
 
 	protected abstract void createNew(String name);
 
@@ -68,7 +69,10 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 	{
 		if (!e.getValueIsAdjusting())
 		{
-			updateSelection();
+			if (selector.getSelectedValue() != null)
+			{
+				getEditPanel().setSelected(selector.getSelectedValue().getElement());
+			}
 		}
 	}
 
@@ -83,11 +87,29 @@ public abstract class SelectorPanel extends JPanel implements ActionListener, Li
 			if (name != null && !name.isBlank())
 			{
 				createNew(name);
+				updateItems();
 			}
 		}
 		else if (e.getSource().equals(clrBtn))
 		{
-			clearSelectionCustom();
+			Customizable c = selector.getSelectedValue().getElement();
+			if (c != null)
+			{
+				c.setCustom(false);
+			}
 		}
+	}
+
+	public void updateItems()
+	{
+		selector.removeListSelectionListener(this);
+
+		SelectorItem selected = selector.getSelectedValue();
+		DefaultListModel<SelectorItem> model = ((DefaultListModel<SelectorItem>) selector.getModel());
+		model.removeAllElements();
+		model.addAll(getItemsList().stream().map(e -> new SelectorItem(e)).toList());
+		selector.setSelectedValue(selected, true);
+
+		selector.addListSelectionListener(this);
 	}
 }

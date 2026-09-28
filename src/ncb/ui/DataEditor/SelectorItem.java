@@ -1,30 +1,25 @@
 package ncb.ui.DataEditor;
 
-public class SelectorItem implements Comparable<SelectorItem>
-{
-	private int id;
-	private String text;
+import ncb.data.interfaces.Customizable;
 
-	public SelectorItem(int id, String text)
+// This class exists basically purely to show a "*" for customized elements
+public class SelectorItem
+{
+	private final Customizable element;
+
+	public SelectorItem(Customizable element)
 	{
-		this.id = id;
-		this.text = text;
+		this.element = element;
 	}
 
-	public int getId()
+	public Customizable getElement()
 	{
-		return id;
+		return element;
 	}
 
 	@Override
 	public String toString()
 	{
-		return text;
-	}
-
-	@Override
-	public int compareTo(SelectorItem o)
-	{
-		return this.text.compareTo(o.text);
+		return element.toString() + (element.isCustom() ? "*" : "");
 	}
 }

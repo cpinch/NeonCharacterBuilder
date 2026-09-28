@@ -16,7 +16,7 @@ public class PropertyListener implements PropertyChangeListener
 			CLASSLEVEL = "Class Level", RESISTANCES = "Resistances", LANGUAGES = "Languages", SPELLS = "Spells",
 			BGABILITYOPTIONS = "Background Ability Options", PRIMARYABILITY = "Primary Ability",
 			EQUIPMENT = "Equipment", SIZE = "Size", ABILITYSCORES = "Ability Scores",
-			SPELLCASTINGABILITY = "Spellcasting Ability", BACKGROUND = "Background";
+			SPELLCASTINGABILITY = "Spellcasting Ability", BACKGROUND = "Background", NAME = "Name";
 
 	private static final Map<String, List<ListensForChanges>> listeners = new HashMap<>();
 	private static PropertyListener listener = new PropertyListener();

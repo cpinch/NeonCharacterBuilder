@@ -87,9 +87,10 @@ public class Background extends Feature
 		bg.setLanguageSelectionCount(3);
 		bg.setLanguagesSelected(List.of(allLangs.get(0), allLangs.size() > 1 ? allLangs.get(1) : allLangs.get(0),
 				allLangs.size() > 2 ? allLangs.get(2) : allLangs.get(0)));
-		bg.abilityOptions.addAll(List.of(Ability.Str, Ability.Dex, Ability.Con));
+		bg.setAbilityOptions(List.of(Ability.Str, Ability.Dex, Ability.Con));
 		bg.homeworld = Homeworld.getByName("Adonia");
 		bg.setFeatTraitName("Origin"); // TODO - Put in the other 5.5e origin feats in private 5e
+		bg.setCustom(false);
 		return bg;
 	}
 

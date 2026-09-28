@@ -7,12 +7,22 @@ import javax.swing.JPanel;
 import javax.swing.JTextPane;
 
 import ncb.ui.UILib;
+import ncb.ui.DataEditor.Selectors.DataBgSelector;
+import ncb.ui.DataEditor.Selectors.DataClsSelector;
+import ncb.ui.DataEditor.Selectors.DataFtSelector;
+import ncb.ui.DataEditor.Selectors.DataHwSelector;
+import ncb.ui.DataEditor.Selectors.DataLgSelector;
+import ncb.ui.DataEditor.Selectors.DataSelSelector;
+import ncb.ui.DataEditor.Selectors.DataSlSelector;
+import ncb.ui.DataEditor.Selectors.DataSpSelector;
+import ncb.ui.DataEditor.Selectors.DataSpeSelector;
+import ncb.ui.DataEditor.Selectors.DataSubClsSelector;
 
 public class DataObjectSelector extends JPanel
 {
 	private static final long serialVersionUID = 4159386163855374790L;
 
-	private final JTextPane instructions = UILib.getTextDisplay();
+	private final JTextPane instructions;
 	private final DataBgSelector bgSel = new DataBgSelector();
 	private final DataClsSelector clsSel = new DataClsSelector();
 	private final DataFtSelector ftSel = new DataFtSelector();
@@ -30,9 +40,9 @@ public class DataObjectSelector extends JPanel
 	{
 		setLayout(layout);
 
-		instructions.setText(
-				"<html>Welcome to the Data Editor. This tool is designed to facility entering the data from the Neon Odyssey books in order to get the most value out of the character builder.<br><br>To the left you will find the various types of objects that can be created/updated. Once you select one you will see a list of all objects of that type that exist if you wish to update them and a New button to add more.<br><br>See the DATA EDITOR README doc for specifics on how each object's data is configured.<br><br>Don't forget to Save your changes with the button at the bottom. Any changes you make will persist for the current session but they will only be retained for the future if you save them to a custom nlib file.");
-		instructions.setForeground(Color.black);
+		instructions = UILib.getTextDisplay(
+				"<html>Welcome to the Data Editor. This tool is designed to facility entering the data from the Neon Odyssey books in order to get the most value out of the character builder.<br><br>To the left you will find the various types of objects that can be created/updated. Once you select one you will see a list of all objects of that type that exist if you wish to update them and a New button to add more.<br><br>See the DATA EDITOR README doc for specifics on how each object's data is configured.<br><br>Don't forget to Save your changes with the button at the bottom. Any changes you make will persist for the current session but they will only be retained for the future if you save them to a custom nlib file.",
+				Color.black);
 
 		add(instructions, "Instruction");
 		add(bgSel, DataTypeSelector.bgStr);
