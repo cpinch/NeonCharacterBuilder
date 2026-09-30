@@ -3,11 +3,10 @@ package ncb.ui.DataEditor;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import javax.swing.JTextArea;
-
 import ncb.ui.UILib;
+import ncb.ui.UndoTextArea;
 
-public class PropertyLinkedTextArea extends JTextArea implements HasLinkedProperty
+public class PropertyLinkedTextArea extends UndoTextArea implements HasLinkedProperty
 {
 	private static final long serialVersionUID = 1745018999383177794L;
 

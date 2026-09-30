@@ -23,9 +23,9 @@ public class DataSpeSelector extends SelectorPanel
 	}
 
 	@Override
-	protected void createNew(String name)
+	protected Customizable createNew(String name)
 	{
-		Species.addNewSpecies(name);
+		return Species.addNewSpecies(name);
 	}
 
 	@Override

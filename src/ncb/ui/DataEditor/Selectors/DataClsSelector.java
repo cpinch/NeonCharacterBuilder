@@ -25,9 +25,9 @@ public class DataClsSelector extends SelectorPanel
 	}
 
 	@Override
-	protected void createNew(String name)
+	protected Customizable createNew(String name)
 	{
-		CharacterClass.addNewClass(name);
+		return CharacterClass.addNewClass(name);
 	}
 
 	@Override

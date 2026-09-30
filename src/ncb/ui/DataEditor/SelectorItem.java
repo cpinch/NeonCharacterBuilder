@@ -17,6 +17,11 @@ public class SelectorItem
 		return element;
 	}
 
+	public int getId()
+	{
+		return element.getId();
+	}
+
 	@Override
 	public String toString()
 	{

@@ -34,6 +34,7 @@ public class AbilityPanel extends UIPanel implements ListensForChanges
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this); // Primary and/or spellcasting ability update
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this); // Obvious
 		PropertyListener.listenForChanges(PropertyListener.BGABILITYOPTIONS, this); // Obvious
+		PropertyListener.listenForChanges(PropertyListener.ABILITYSCORES, this); // Obvious
 		PropertyListener.listenForChanges(PropertyListener.SPECIES, this); // Possible spellcasting ability update
 		PropertyListener.listenForChanges(PropertyListener.PRIMARYABILITY, this); // Possible spellcasting ability
 																					// update
@@ -124,7 +125,9 @@ public class AbilityPanel extends UIPanel implements ListensForChanges
 			case PropertyListener.SPECIES:
 				updateSpellcastingAbilities();
 			break;
-			case PropertyListener.BACKGROUND:
+			case PropertyListener.ABILITYSCORES:
+				updateAbilityScores();
+			case PropertyListener.BACKGROUND: // Also a deliberate "fall-through"
 			case PropertyListener.BGABILITYOPTIONS:
 				updateBGAbilities();
 			break;
@@ -189,6 +192,18 @@ public class AbilityPanel extends UIPanel implements ListensForChanges
 					ap.clearCheckboxes();
 					sheet.getAbilityScores().setBGIncreaseFor(a, 0);
 				}
+			}
+		}
+	}
+
+	private void updateAbilityScores()
+	{
+		if (sheet.getCharClass() != null)
+		{
+			for (Ability a : Ability.realValues())
+			{
+				AbilityScorePanel ap = abilityPanels.get(a);
+				ap.setScore(sheet.getAbilityScores().getBaseScoreFor(a));
 			}
 		}
 	}

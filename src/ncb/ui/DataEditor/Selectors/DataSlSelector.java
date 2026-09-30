@@ -23,9 +23,9 @@ public class DataSlSelector extends SelectorPanel
 	}
 
 	@Override
-	protected void createNew(String name)
+	protected Customizable createNew(String name)
 	{
-		SpellList.addNewSpellList(name);
+		return SpellList.addNewSpellList(name);
 	}
 
 	@Override

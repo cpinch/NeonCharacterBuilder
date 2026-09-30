@@ -23,9 +23,9 @@ public class DataLgSelector extends SelectorPanel
 	}
 
 	@Override
-	protected void createNew(String name)
+	protected Customizable createNew(String name)
 	{
-		Language.addNewLanguage(name);
+		return Language.addNewLanguage(name);
 	}
 
 	@Override

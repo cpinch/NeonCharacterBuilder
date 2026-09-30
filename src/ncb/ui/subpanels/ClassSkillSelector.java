@@ -32,6 +32,7 @@ public class ClassSkillSelector extends JPanel implements ActionListener, Listen
 	{
 		this.sheet = sheet;
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
+		PropertyListener.listenForChanges(PropertyListener.SKILLPROFS, this);
 
 		setLayout(new GridBagLayout());
 		setOpaque(false);
@@ -69,6 +70,7 @@ public class ClassSkillSelector extends JPanel implements ActionListener, Listen
 				else
 				{
 					selector.setVisible(true);
+					selector.removeActionListener(this);
 					selector.removeAllItems();
 					if (options.contains(Skill.Any))
 					{
@@ -81,6 +83,7 @@ public class ClassSkillSelector extends JPanel implements ActionListener, Listen
 					{
 						options.forEach(s -> selector.addItem(s));
 					}
+					selector.addActionListener(this);
 					if (charSkills.size() > i)
 					{
 						selector.setSelectedItem(charSkills.get(i));

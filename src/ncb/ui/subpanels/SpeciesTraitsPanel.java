@@ -39,6 +39,7 @@ public class SpeciesTraitsPanel extends JPanel implements ActionListener, Listen
 		setOpaque(false);
 		GridBagConstraints c = UILib.getStandardGBC();
 		PropertyListener.listenForChanges(PropertyListener.SPECIES, this);
+		PropertyListener.listenForChanges(PropertyListener.SIZE, this);
 
 		c.gridwidth = 2;
 		type = UILib.getLabel("", VaporwaveColors.HOT_PINK);
@@ -81,16 +82,21 @@ public class SpeciesTraitsPanel extends JPanel implements ActionListener, Listen
 	public void updateProperty(String prop)
 	{
 		Species species = sheet.getSpecies();
-		desc.setText("<i>" + species.getDesc() + "</i>");
-		type.setText(species.getType());
-		speed.setText(species.getSpeedMod() + "ft");
+		if (prop.equals(PropertyListener.SPECIES))
+		{
+			desc.setText("<i>" + species.getDesc() + "</i>");
+			type.setText(species.getType());
+			speed.setText(species.getSpeedMod() + "ft");
+		}
 
 		if (species.getSpeciesSize().length() > 1)
 		{
 			sizeSelector.setVisible(true);
 			sizeLabel.setText("Size: ");
+			sizeSelector.removeActionListener(this);
 			sizeSelector.removeAllItems();
 			species.getSpeciesSize().chars().forEach(s -> sizeSelector.addItem("" + ((char) s)));
+			sizeSelector.addActionListener(this);
 			sizeSelector.setSelectedItem(species.getSize());
 		}
 		else

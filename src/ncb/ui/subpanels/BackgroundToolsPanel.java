@@ -36,7 +36,7 @@ public class BackgroundToolsPanel extends JPanel implements ListensForChanges
 
 		text = UILib.getTextField(VaporwaveColors.HOT_PINK);
 		add(text);
-		// TODO - Someday I want to make tool proficiencies editable
+		// TODO Future - Tool Proficiency Selection
 		text.setEditable(false);
 
 		updateProperty(PropertyListener.BACKGROUND);

@@ -81,6 +81,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		addPropertyChangeListener(PropertyListener.getListener());
 	}
 
+	@Override
 	public int getId()
 	{
 		return id;
@@ -92,13 +93,32 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		List<Feature> children = new ArrayList<>();
 		if (selected != null)
 		{
-			children.add(selected.getHighestFeature(getTopLevel()));
+			children.add(getSelected());
 		}
 		if (feat != null)
 		{
-			children.add(feat.getHighestFeature(getTopLevel()));
+			children.add(getFeat());
 		}
 		return children;
+	}
+
+	public List<String> getFeatureNamesAtLevel(int lvl)
+	{
+		List<String> names = new ArrayList<>();
+		if (this.getHighestFeature(lvl).getLevel() == lvl)
+		{
+			names.add(getName());
+		}
+		if (selected != null)
+		{
+			names.addAll(selected.getFeatureNamesAtLevel(lvl));
+		}
+		if (feat != null)
+		{
+			names.addAll(feat.getFeatureNamesAtLevel(lvl));
+		}
+
+		return names;
 	}
 
 	@Override
@@ -143,6 +163,10 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private final Map<Skill, Ability> skillsAddExtraAbility = new HashMap<>();
 	private final Map<Integer, List<SpellChoice>> spellChoices = new HashMap<>();
 	private final List<Feature> upgrades = new ArrayList<>();
+	private final List<Ability> initAbilities = new ArrayList<>();
+	private final List<Skill> skillsOptsToAddExtraAbl = new ArrayList<>();
+	private Ability extraAblForSkillOpt = null;
+	private final List<Skill> profOrExp = new ArrayList<>();
 
 	public String getName()
 	{
@@ -574,8 +598,6 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			for (String trait : h.getTraits())
 			{
-				// TODO - I think this doesn't work for Polygania with it's "Any" trait, then we
-				// need to select right?
 				if (resistanceByHomeworldTrait.containsKey(trait))
 				{
 					return resistanceByHomeworldTrait.get(trait);
@@ -660,6 +682,56 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		return max;
 	}
 
+	public List<Ability> getInitAbilities()
+	{
+		return initAbilities;
+	}
+
+	public void setInitAbilities(List<Ability> abls)
+	{
+		updateConfig(this.initAbilities, abls, (v) ->
+		{
+			initAbilities.clear();
+			initAbilities.addAll(v);
+		});
+	}
+
+	public List<Skill> getSkillsWAblSkills()
+	{
+		return skillsOptsToAddExtraAbl;
+	}
+
+	public Ability getSkillsWAblAbility()
+	{
+		return extraAblForSkillOpt;
+	}
+
+	public void setSkillsWAbl(List<Skill> skills, Ability abl)
+	{
+		if (!skillsOptsToAddExtraAbl.equals(skills) || ((extraAblForSkillOpt == null)
+				|| (extraAblForSkillOpt != abl && extraAblForSkillOpt.name().equals(abl.name()))))
+		{
+			skillsOptsToAddExtraAbl.clear();
+			skillsOptsToAddExtraAbl.addAll(skills);
+			extraAblForSkillOpt = abl;
+			setCustom(true);
+		}
+	}
+
+	public List<Skill> getSkillProfOrExpertise()
+	{
+		return profOrExp;
+	}
+
+	public void setSkillProfOrExpertise(List<Skill> skills)
+	{
+		updateConfig(this.profOrExp, skills, (v) ->
+		{
+			profOrExp.clear();
+			profOrExp.addAll(v);
+		});
+	}
+
 	@Override
 	public JSONObject saveConfig()
 	{
@@ -696,7 +768,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		json = putBool(json, "featIgnores", optFeatIgnoreReqs);
 		json = putObjList(json, "specificSpells",
 				optSpellChoices.stream().map(s -> Spell.saveToJSONObject(s)).toList());
-		json = putMap(json, "resHome", resistanceByHomeworldTrait, "res", "trait");
+		json = putMap(json, "resHome", resistanceByHomeworldTrait, "trait", "res");
 		// Custom object shape
 		if (!spellChoices.isEmpty())
 		{
@@ -716,6 +788,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 						.collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString())),
 				"skill", "ability");
 		json = putObjList(json, "upgrades", upgrades.stream().map(u -> u.saveConfig()).toList());
+		json = putList(json, "initAbilities", initAbilities.stream().map(a -> a.toString()).toList());
+		json = putList(json, "skillsWExtraAbl", skillsOptsToAddExtraAbl.stream().map(s -> s.toString()).toList());
+		json = putStr(json, "extraAblForSkillChoices",
+				extraAblForSkillOpt == null ? "" : extraAblForSkillOpt.toString());
+		json = putList(json, "profOrExp", profOrExp.stream().map(s -> s.toString()).toList());
 
 		return json;
 	}
@@ -727,11 +804,6 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		level = data.optInt("level", 1); // Level defaults to 1 instead of the typical 0
 		text = data.optString("text", "");
 		speed = data.optInt("speedMod", 0);
-		// TODO - legacy, decom once species are updated
-		if (speed == 0)
-		{
-			speed = data.optInt("speed", 0);
-		}
 		sheetNotes = data.optString("sheetNotes", "");
 		allLvlHp = data.optInt("extraHPPerLevel", 0);
 		lvl1Hp = data.optInt("extraHPLvl1", 0);
@@ -775,7 +847,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		optSpellChoices
 				.addAll(getObjList(data, "specificSpells").stream().map(o -> Spell.getFromJSONObject(o)).toList());
 		resistanceByHomeworldTrait.clear();
-		resistanceByHomeworldTrait.putAll(getMap(data, "resHome", "res", "trait"));
+		resistanceByHomeworldTrait.putAll(getMap(data, "resHome", "trait", "res"));
 		JSONArray scArr = data.optJSONArray("spellChoices");
 		if (scArr != null)
 		{
@@ -805,6 +877,18 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 			up.original = this;
 			upgrades.add(up);
 		});
+		initAbilities.clear();
+		initAbilities.addAll(getList(data, "initAbilities").stream().map(s -> Ability.valueOf(s)).toList());
+		skillsOptsToAddExtraAbl.clear();
+		skillsOptsToAddExtraAbl
+				.addAll(getList(data, "skillsWExtraAbl").stream().map(s -> Skill.skillByName(s)).toList());
+		String extraAblForSkillOptName = data.optString("extraAblForSkillChoices", "");
+		if (!extraAblForSkillOptName.isBlank())
+		{
+			extraAblForSkillOpt = Ability.valueOf(extraAblForSkillOptName);
+		}
+		profOrExp.clear();
+		profOrExp.addAll(getList(data, "profOrExp").stream().map(s -> Skill.skillByName(s)).toList());
 	}
 
 	// Used for upgrades, as we want to keep the same state
@@ -824,6 +908,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private Selectable selected;
 	private Feat feat;
 	private Spell chosenSpell;
+	private Skill skillWAblSelected = null;
 
 	public List<String> getResistancesSelected()
 	{
@@ -943,10 +1028,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			return original.getSelected();
 		}
-		else
+		else if (selected != null)
 		{
-			return selected;
+			// Handle Upgrades
+			return (Selectable) selected.getHighestFeature(getTopLevel());
 		}
+		return null;
 	}
 
 	public void setSelected(Selectable sel)
@@ -960,6 +1047,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 			updateWithAlert(selected, sel, (v) ->
 			{
 				this.selected = v;
+				this.selected.setParent(this);
 			}, PropertyListener.SELECTED);
 		}
 	}
@@ -970,10 +1058,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			return original.getFeat();
 		}
-		else
+		else if (feat != null)
 		{
-			return feat;
+			// Handle Upgrades
+			return (Feat) feat.getHighestFeature(getTopLevel());
 		}
+		return null;
 	}
 
 	public void setFeat(Feat ft)
@@ -987,6 +1077,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 			updateWithAlert(feat, ft, (v) ->
 			{
 				this.feat = (Feat) v;
+				this.feat.setParent(this);
 			}, PropertyListener.SELECTED);
 		}
 	}
@@ -1013,7 +1104,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			updateWithAlert(chosenSpell, s, (v) ->
 			{
-				this.chosenSpell = s;
+				this.chosenSpell = v;
 			}, PropertyListener.SPELLS);
 		}
 	}
@@ -1035,6 +1126,36 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 			return s;
 		}
+	}
+
+	public Skill getSkillWAbilitySelected()
+	{
+		return skillWAblSelected;
+	}
+
+	public void setSkillWAbilitySelected(Skill s)
+	{
+		if (isCopy)
+		{
+			original.setSkillWAbilitySelected(s);
+		}
+		else
+		{
+			updateWithAlert(skillWAblSelected, s, (v) ->
+			{
+				this.skillWAblSelected = v;
+			}, PropertyListener.SKILLPROFS);
+		}
+	}
+
+	public Map<Skill, Ability> getSkillsWAblMap()
+	{
+		Map<Skill, Ability> map = new HashMap<>();
+		if (getSkillWAbilitySelected() != null)
+		{
+			map.put(getSkillWAbilitySelected(), extraAblForSkillOpt);
+		}
+		return map;
 	}
 
 	@Override
@@ -1070,6 +1191,10 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			json = putObj(json, "chosenSpell", Spell.saveToJSONObject(chosenSpell));
 		}
+		if (skillWAblSelected != null)
+		{
+			json = putStr(json, "skillWAbl", skillWAblSelected.toString());
+		}
 
 		return json;
 	}
@@ -1077,32 +1202,34 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	@Override
 	public void loadState(JSONObject data)
 	{
-		resistancesSelected.clear();
-		resistancesSelected.addAll(getList(data, "resistanceSelected"));
-		skillsSelected.clear();
-		skillsSelected.addAll(getList(data, "skillsSelected").stream().map(s -> Skill.skillByName(s)).toList());
-		skillExpertsSelected.clear();
-		skillExpertsSelected
-				.addAll(getList(data, "skillExpertSelected").stream().map(s -> Skill.skillByName(s)).toList());
-		languagesSelected.clear();
-		languagesSelected.addAll(getList(data, "languagesSelected").stream().map(l -> Language.getByName(l)).toList());
+		setResistancesSelected(getList(data, "resistanceSelected"));
+		setSkillsSelected(getList(data, "skillsSelected").stream().map(s -> Skill.skillByName(s)).toList());
+		setSkillExpertsSelected(getList(data, "skillExpertSelected").stream().map(s -> Skill.skillByName(s)).toList());
+		setLanguagesSelected(getList(data, "languagesSelected").stream().map(l -> Language.getByName(l)).toList());
 		JSONObject selectedObj = data.optJSONObject("selected");
 		if (selectedObj != null)
 		{
-			selected = Selectable.getSelectableByTypeAndName(selectedObj.getString("type"),
+			Selectable sel = Selectable.getSelectableByTypeAndName(selectedObj.getString("type"),
 					selectedObj.getString("name"));
-			selected.loadState(selectedObj.getJSONObject("state"));
+			sel.loadState(selectedObj.getJSONObject("state"));
+			setSelected(sel);
 		}
 		JSONObject featObj = data.optJSONObject("feat");
 		if (featObj != null)
 		{
-			feat = Feat.getByName(featObj.getString("name"));
-			feat.loadState(featObj.getJSONObject("state"));
+			Feat ft = Feat.getByName(featObj.getString("name"));
+			ft.loadState(featObj.getJSONObject("state"));
+			setFeat(ft);
 		}
 		JSONObject spellObj = data.optJSONObject("chosenSpell");
 		if (spellObj != null)
 		{
-			chosenSpell = Spell.getFromJSONObject(spellObj);
+			setChosenSpell(Spell.getFromJSONObject(spellObj));
+		}
+		String skillWAblSelectedName = data.optString("skillWAbl");
+		if (!skillWAblSelectedName.isBlank())
+		{
+			setSkillWAbilitySelected(Skill.skillByName(skillWAblSelectedName));
 		}
 	}
 

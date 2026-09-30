@@ -3,6 +3,7 @@ package ncb.ui.DataEditor.Editors;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -100,11 +101,11 @@ public class SubclassEditPanel extends EditPanel implements ActionListener
 	{
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.weighty = 1;
-		c.ipady = 20;
+		c.insets = new Insets(5, 5, 5, 5);
 		featuresPanel.removeAll();
 		for (Feature cf : sc.getAllSubclassFeatures())
 		{
-			FeatureEditPanel cfep = new FeatureEditPanel(cf, false, this);
+			FeatureEditPanel cfep = new FeatureEditPanel(cf, true, this);
 			featuresPanel.add(cfep, c);
 			c.gridy++;
 		}

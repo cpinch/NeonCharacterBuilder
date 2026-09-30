@@ -34,7 +34,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 {
 	private static final long serialVersionUID = -2739120980015488390L;
 
-	private static final String skillExpertAC = "Skill Expert"; // TODO - ???
+	private static final String skillExpertAC = "Skill Expert";
 
 	private final CharacterSheet sheet;
 	private final Feature feature;
@@ -47,6 +47,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 	private SelectablePanel selectablePanel;
 	private JComboBox<Spell> specificSpellOptions;
 	private JLabel resLabel;
+	private JComboBox<Skill> skillWAbilityOptions;
 
 	public FeaturePanel(CharacterSheet sheet, Feature feature, boolean startCollapsed)
 	{
@@ -65,7 +66,8 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		if (!feature.getText().isBlank())
 		{
 			c.weighty = 1;
-			UILib.addTextDisplay(bodyPanel, feature.getText(), c, VaporwaveColors.HOT_PINK);
+			// We don't want this to scroll
+			bodyPanel.add(UILib.getTextDisplay(feature.getText(), VaporwaveColors.HOT_PINK), c);
 			c.gridy++;
 			c.weighty = 0;
 		}
@@ -203,6 +205,25 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 			UILib.addLabel(bodyPanel, String.join(", ", adds), c, VaporwaveColors.HOT_PINK);
 			c.gridy++;
 		}
+		if (!feature.getInitAbilities().isEmpty())
+		{
+			UILib.addLabel(bodyPanel,
+					"<html><i>May use "
+							+ String.join(", ", feature.getInitAbilities().stream().map(a -> a.toString()).toList())
+							+ " for initiative.</i></html>",
+					c, VaporwaveColors.HOT_PINK);
+			c.gridy++;
+		}
+		if (!feature.getSkillProfOrExpertise().isEmpty())
+		{
+			UILib.addLabel(bodyPanel,
+					"<html><i>Gives proficiency in "
+							+ String.join(", ",
+									feature.getSkillProfOrExpertise().stream().map(s -> s.toString()).toList())
+							+ " or expertise if you already have proficiency.",
+					c, VaporwaveColors.HOT_PINK);
+			c.gridy++;
+		}
 		// abilitiesToAC always has accompanying text, so we don't show it
 
 		// Selections
@@ -227,19 +248,18 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 				resistanceOptions.setSelectedItem(feature.getResistancesSelected().get(0));
 			}
 		}
-		if (feature.getSkillSelectionCount() > 0) // TODO handle multiple
+		if (feature.getSkillSelectionCount() > 0) // TODO future - handle multiple or remove option to set multiple if
+													// no feature uses it
 		{
-			skillOptions = UILib.getComboBox(new Skill[0], this, VaporwaveColors.DEEP_VIOLET,
-					VaporwaveColors.LASER_YELLOW);
+			PropertyListener.listenForChanges(PropertyListener.SKILLPROFS, this);
 			List<Skill> skillOpts = feature.getSkillSelectionOptions();
 			if (skillOpts.contains(Skill.Any))
 			{
-				Arrays.asList(Skill.realValues()).forEach(s -> skillOptions.addItem(s));
+				skillOpts.clear();
+				skillOpts.addAll(Arrays.asList(Skill.realValues()));
 			}
-			else
-			{
-				skillOpts.forEach(s -> skillOptions.addItem(s));
-			}
+			skillOptions = UILib.getComboBox(skillOpts.toArray(new Skill[0]), this, VaporwaveColors.DEEP_VIOLET,
+					VaporwaveColors.LASER_YELLOW);
 			UILib.addLabeledComponent(bodyPanel, "Skill Proficiency: ", skillOptions, c, VaporwaveColors.HOT_PINK);
 			c.gridy++;
 			if (feature.getSkillsSelected().isEmpty())
@@ -254,6 +274,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		if (feature.getSkillExpertCount() > 0)
 		{
 			PropertyListener.listenForChanges(PropertyListener.SKILLPROFS, this);
+			PropertyListener.listenForChanges(PropertyListener.SKILLEXPS, this);
 			JPanel skillEPanel = new JPanel();
 			skillEPanel.setOpaque(false);
 			for (int i = 0; i < feature.getSkillExpertCount(); i++)
@@ -269,7 +290,8 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 			UILib.addLabeledComponent(bodyPanel, "Select Expertise:", skillEPanel, c, VaporwaveColors.HOT_PINK);
 			c.gridy++;
 		}
-		if (feature.getLanguageSelectionCount() > 0) // TODO handle multiple
+		if (feature.getLanguageSelectionCount() > 0) // TODO future - handle multiple or remove option to set multiple
+														// if no feature uses it
 		{
 			langOptions = UILib.getComboBox(feature.getLanguageSelectionOptions().toArray(new Language[0]), this,
 					VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
@@ -313,6 +335,29 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 			else
 			{
 				specificSpellOptions.setSelectedItem(feature.getSpecificSpellChoices().get(0));
+			}
+		}
+		if (!feature.getSkillsWAblSkills().isEmpty())
+		{
+			List<Skill> skillOpts = feature.getSkillsWAblSkills();
+			Ability abl = feature.getSkillsWAblAbility();
+			if (skillOpts.contains(Skill.Any))
+			{
+				skillOpts.clear();
+				skillOpts.addAll(Arrays.asList(Skill.realValues()));
+			}
+			skillWAbilityOptions = UILib.getComboBox(skillOpts.toArray(new Skill[0]), this, VaporwaveColors.DEEP_VIOLET,
+					VaporwaveColors.LASER_YELLOW);
+			UILib.addLabeledComponent(bodyPanel, "Skill Prof + Add " + abl.toString() + " mod: ", skillWAbilityOptions,
+					c, VaporwaveColors.HOT_PINK);
+			c.gridy++;
+			if (feature.getSkillWAbilitySelected() == null)
+			{
+				skillWAbilityOptions.setSelectedIndex(0);
+			}
+			else
+			{
+				skillWAbilityOptions.setSelectedItem(feature.getSkillWAbilitySelected());
 			}
 		}
 	}
@@ -370,6 +415,14 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		{
 			feature.setChosenSpell((Spell) specificSpellOptions.getSelectedItem());
 		}
+		else if (e.getSource().equals(skillWAbilityOptions))
+		{
+			Skill skil = (Skill) skillWAbilityOptions.getSelectedItem();
+			if (skil != null)
+			{
+				feature.setSkillWAbilitySelected(skil);
+			}
+		}
 	}
 
 	private void updateSelectables()
@@ -400,6 +453,16 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		else if (selectableOptions.getItemCount() > 0)
 		{
 			selectableOptions.setSelectedIndex(0);
+		}
+	}
+
+	private void updateSkillProfSelect()
+	{
+		List<Skill> sp = feature.getSkillsSelected();
+
+		if (!sp.isEmpty())
+		{
+			skillOptions.setSelectedItem(sp.get(0));
 		}
 	}
 
@@ -434,7 +497,6 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 
 	private void updateHomeworldResists()
 	{
-		// TODO - update resOpts if trait Any
 		if (resLabel != null)
 		{
 			List<String> res = feature.getResistancesGranted();
@@ -462,6 +524,9 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 				updateHomeworldResists();
 			break;
 			case PropertyListener.SKILLPROFS:
+				updateSkillProfSelect();
+				// Deliberate "fall-through"
+			case PropertyListener.SKILLEXPS:
 				updateSkillExpertiseLists();
 			break;
 			case PropertyListener.SELECTED:

@@ -36,8 +36,6 @@ public interface HasConfig extends Customizable, SavesLoadsJson
 		}
 	}
 
-	// TODO - These could be combined if a shared "hasGetName" interface existed or
-	// they implemented comparable or something
 	default void updateConfig(Selectable o, Selectable n, Consumer<Selectable> setter)
 	{
 		if ((o == null && n != null) || (o != null && n == null) || (o != n && !o.getName().equals(n.getName())))

@@ -7,7 +7,6 @@ import org.json.JSONObject;
 
 import ncb.data.Feature;
 import ncb.data.Prereq;
-import ncb.data.interfaces.Customizable;
 import ncb.data.interfaces.GetAll;
 import ncb.main.CharacterSheet;
 
@@ -27,17 +26,6 @@ public class Selectable extends Feature
 		this.custom = b;
 	}
 
-	@Override
-	public Customizable getParent()
-	{
-		return null;
-	}
-
-	@Override
-	public void setParent(Customizable p)
-	{
-	}
-
 	public static void loadFromFile(JSONObject data, boolean custom)
 	{
 		if (data == null)
@@ -45,7 +33,9 @@ public class Selectable extends Feature
 			return;
 		}
 		String name = data.getString("name");
-		if (allSelectables.stream().anyMatch(sel -> sel.getName().equals(name)))
+		String type = data.optString("type", "");
+		// Selectables are only dupes on both type and name match
+		if (allSelectables.stream().anyMatch(sel -> sel.getName().equals(name) && sel.getType().equals(type)))
 		{
 			// Dupe, ignore
 			return;
@@ -59,7 +49,8 @@ public class Selectable extends Feature
 	@Override
 	public List<? extends GetAll> getChildren()
 	{
-		return features;
+		// Handle upgrades
+		return getFeatures();
 	}
 
 	public boolean prereqsMet(CharacterSheet sheet)
@@ -180,12 +171,17 @@ public class Selectable extends Feature
 		return null;
 	}
 
-	public static void addNewSelectable(String name)
+	public static Selectable addNewSelectable(String name)
 	{
-		Selectable newSel = new Selectable();
-		newSel.setName(name);
-		newSel.type = "New Selectable";
-		allSelectables.add(newSel);
+		if (!name.isBlank())
+		{
+			Selectable newSel = new Selectable();
+			newSel.setName(name);
+			newSel.type = "New Selectable";
+			allSelectables.add(newSel);
+			return newSel;
+		}
+		return null;
 	}
 
 	public static void sortAll()
@@ -227,7 +223,26 @@ public class Selectable extends Feature
 
 	public List<Feature> getFeatures()
 	{
+		// Handle upgrades
+		return features.stream().map(f -> f.getHighestFeature(getTopLevel())).toList();
+	}
+
+	public List<Feature> getOriginalFeatures()
+	{
 		return features;
+	}
+
+	@Override
+	public List<String> getFeatureNamesAtLevel(int lvl)
+	{
+		List<String> names = new ArrayList<>();
+		if (this.getHighestFeature(lvl).getLevel() == lvl)
+		{
+			names.add(getName());
+		}
+		features.forEach(f -> names.addAll(f.getFeatureNamesAtLevel(lvl)));
+
+		return names;
 	}
 
 	public void setFeatures(List<Feature> features)

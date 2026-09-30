@@ -35,7 +35,7 @@ public class BackgroundVehiclesPanel extends JPanel implements ListensForChanges
 
 		text = UILib.getTextField(VaporwaveColors.HOT_PINK);
 		add(text);
-		// TODO - Someday I want to make vehicle proficiencies editable
+		// TODO Future - Vehicle Proficiency Selection
 		text.setEditable(false);
 
 		updateProperty(PropertyListener.BACKGROUND);

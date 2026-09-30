@@ -99,14 +99,16 @@ public class Homeworld implements HasConfig
 		return null;
 	}
 
-	public static void addNewHomeworld(String newName)
+	public static Homeworld addNewHomeworld(String newName)
 	{
 		if (!newName.isBlank())
 		{
 			Homeworld hw = new Homeworld();
 			hw.setName(newName);
 			allHomeworlds.add(hw);
+			return hw;
 		}
+		return null;
 	}
 
 	public static void sortAll()

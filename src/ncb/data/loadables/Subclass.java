@@ -29,7 +29,7 @@ public class Subclass extends Feature
 	@Override
 	public Customizable getParent()
 	{
-		return null;
+		return getCls();
 	}
 
 	@Override
@@ -62,6 +62,11 @@ public class Subclass extends Feature
 	}
 
 	private CharacterClass cls;
+
+	private CharacterClass getCls()
+	{
+		return cls;
+	}
 
 	public void setCls(CharacterClass cls)
 	{
@@ -154,14 +159,16 @@ public class Subclass extends Feature
 		allSubclasses.sort((a, b) -> a.getName().compareTo(b.getName()));
 	}
 
-	public static void addNewSubclass(String newName)
+	public static Customizable addNewSubclass(String newName)
 	{
 		if (!newName.isBlank())
 		{
 			Subclass sc = new Subclass();
 			sc.setName(newName);
 			allSubclasses.add(sc);
+			return sc;
 		}
+		return null;
 	}
 
 	// Configuration
@@ -194,17 +201,12 @@ public class Subclass extends Feature
 		});
 	}
 
-	public List<Feature> getFeaturesAtLevel(int lvl)
+	@Override
+	public List<String> getFeatureNamesAtLevel(int lvl)
 	{
-		List<Feature> features = new ArrayList<>();
-		for (Feature f : subclassFeatures)
-		{
-			if (f.getLevel() == lvl)
-			{
-				features.add(f);
-			}
-		}
-		return features;
+		List<String> names = new ArrayList<>();
+		subclassFeatures.forEach(f -> names.addAll(f.getFeatureNamesAtLevel(lvl)));
+		return names;
 	}
 
 	public List<Feature> getAllSubclassFeatures()
@@ -266,7 +268,45 @@ public class Subclass extends Feature
 		{
 			Feature f = new Feature();
 			f.loadConfig(fs);
+			f.setParent(this);
 			subclassFeatures.add(f);
+		});
+	}
+
+	@Override
+	public JSONObject saveState()
+	{
+		JSONObject json = super.saveState();
+
+		json = putObjList(json, "features", subclassFeatures.stream().map(f ->
+		{
+			JSONObject d = new JSONObject();
+			d.put("fname", f.getName());
+			d.put("flvl", f.getLevel());
+			d.put("fstate", f.saveState());
+			return d;
+		}).toList());
+
+		return json;
+	}
+
+	@Override
+	public void loadState(JSONObject data)
+	{
+		super.loadState(data);
+
+		getObjList(data, "features").forEach(f ->
+		{
+			String fname = f.getString("fname");
+			int flvl = f.getInt("flvl");
+			for (Feature f2 : subclassFeatures)
+			{
+				if (f2.getName().equals(fname) && f2.getLevel() == flvl)
+				{
+					f2.loadState(f.getJSONObject("fstate"));
+					break;
+				}
+			}
 		});
 	}
 }

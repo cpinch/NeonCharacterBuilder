@@ -69,7 +69,7 @@ public class SpellChoice implements HasState
 	public void loadState(JSONObject data)
 	{
 		spellList = SpellList.getForClass(data.getString("spellList"));
-		selected = Spell.getFromJSONObject(data.getJSONObject("selected"));
+		setSpell(Spell.getFromJSONObject(data.getJSONObject("selected")));
 	}
 
 	@Override

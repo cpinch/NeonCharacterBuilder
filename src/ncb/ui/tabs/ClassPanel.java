@@ -1,5 +1,6 @@
 package ncb.ui.tabs;
 
+import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -34,6 +35,7 @@ public class ClassPanel extends UIPanel implements ActionListener, ListensForCha
 	public ClassPanel(CharacterSheet sheet)
 	{
 		this.sheet = sheet;
+		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 
 		GridBagConstraints c = UILib.getStandardGBC();
@@ -57,7 +59,14 @@ public class ClassPanel extends UIPanel implements ActionListener, ListensForCha
 		featuresPanel = new ClassFeaturesPanel(sheet);
 		JScrollPane scroll = UILib.getScrollPaneFor(featuresPanel);
 
+		// Allow the splitpane to shrink these however the user wants
+		traitsPanel.setMinimumSize(new Dimension(0, 0));
+		featuresPanel.setMinimumSize(new Dimension(0, 0));
+		scroll.setMinimumSize(new Dimension(0, 0));
+
 		JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, traitsPanel, scroll);
+		splitPane.setDividerLocation(0.35);
+		splitPane.setResizeWeight(0.35);
 		splitPane.setOpaque(false);
 		add(splitPane, c);
 
@@ -77,7 +86,11 @@ public class ClassPanel extends UIPanel implements ActionListener, ListensForCha
 	@Override
 	public void updateProperty(String prop)
 	{
-		if (prop.equals(PropertyListener.CLASSLEVEL))
+		if (prop.equals(PropertyListener.CLASS))
+		{
+			classNameSelector.setSelectedItem(sheet.getCharClass().getName());
+		}
+		else if (prop.equals(PropertyListener.CLASSLEVEL))
 		{
 			classLevelLabel.setText("Level " + sheet.getCharClass().getLevel());
 		}

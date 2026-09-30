@@ -67,10 +67,10 @@ public class SpellEditPanel extends EditPanel
 				(b) -> spell.setRitual(b)));
 		c.gridy++;
 
-		UILib.addLabel(this, "Text:", c, Color.black);
+		UILib.addLabel(this, "Text:", c, Color.black).setFont(UILib.boldFont);
 		c.gridy++;
 		c.weighty = 1;
-		linkedProperties.add(UILib.addLabeledLinkedTextArea(this, 5, "", c, Color.white, Color.black,
+		linkedProperties.add(UILib.addLabeledLinkedTextArea(this, 10, "", c, Color.white, Color.black,
 				() -> spell.getText(), (s) -> spell.setText(s)));
 		c.gridy++;
 

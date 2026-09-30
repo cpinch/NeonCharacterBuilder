@@ -72,8 +72,7 @@ public class Background extends Feature
 
 	public static Background getCustom()
 	{
-		// TODO - This should be a "Custom" background in the data library, need to work
-		// out what precisely to use
+		// TODO Background loading
 		Background bg = new Background();
 		bg.setName("Custom");
 		bg.notes = 2500;
@@ -89,7 +88,7 @@ public class Background extends Feature
 				allLangs.size() > 2 ? allLangs.get(2) : allLangs.get(0)));
 		bg.setAbilityOptions(List.of(Ability.Str, Ability.Dex, Ability.Con));
 		bg.homeworld = Homeworld.getByName("Adonia");
-		bg.setFeatTraitName("Origin"); // TODO - Put in the other 5.5e origin feats in private 5e
+		bg.setFeatTraitName("Origin");
 		bg.setCustom(false);
 		return bg;
 	}
@@ -175,7 +174,7 @@ public class Background extends Feature
 	{
 		super.loadState(data);
 
-		getList(data, "abilityOptions").forEach(a -> abilityOptions.add(Ability.valueOf(a)));
-		homeworld = Homeworld.getByName(data.getString("homeworld"));
+		setAbilityOptions(getList(data, "abilityOptions").stream().map(a -> Ability.valueOf(a)).toList());
+		setHomeworld(Homeworld.getByName(data.getString("homeworld")));
 	}
 }

@@ -36,12 +36,13 @@ public class BackgroundSkillsPanel extends JPanel implements ActionListener, Lis
 		setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
 		setOpaque(false);
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
+		PropertyListener.listenForChanges(PropertyListener.SKILLPROFS, this);
 
 		label = UILib.addLabel(this, "Skill Proficiencies: ", VaporwaveColors.HOT_PINK);
 		label.setFont(UILib.boldFont);
 
 		// Custom backgrounds have 2 of any skill + 1 of Computers/Technology
-		// TODO - this should be pulled at some point
+		// TODO Background loading
 		skill1 = UILib.getComboBox(Skill.realValues(), this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
 		add(skill1);
 		skill2 = UILib.getComboBox(Skill.realValues(), this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);

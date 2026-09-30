@@ -40,7 +40,8 @@ public class SubclassFeaturesPanel extends NoHorizontalScrollPanel implements Li
 			featurePanels.clear();
 			for (Feature feature : sheet.getCharClass().getSubclass().getSubclassFeatures())
 			{
-				FeaturePanel fp = new FeaturePanel(sheet, feature, false);
+				FeaturePanel fp = new FeaturePanel(sheet, feature,
+						feature.getLevel() < sheet.getCharClass().getLevel());
 				featurePanels.add(fp);
 				add(fp);
 				add(Box.createVerticalStrut(5));

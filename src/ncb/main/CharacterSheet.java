@@ -48,8 +48,6 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		children.add(charClass);
 		children.add(species);
 		children.add(background);
-		// TODO - uncomment this when it's GetAll capable
-		// children.add(abilityScores);
 
 		return children;
 	}
@@ -155,8 +153,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 		setCharClass(CharacterClass.getByName(data.getString("charClassName")));
 		setSpecies(Species.getByName(data.getString("speciesName")));
-		// TODO backgrounds - currently backgrounds are just custom, this will be needed
-		// once they exist
+		// TODO Background Loading
 		// setBackground(Background.getByName(data.getString("backgroundName")));
 		setBackground(Background.getCustom());
 
@@ -184,7 +181,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public int getLevel()
 	{
-		// TODO multiclass - sum levels of all classes
+		// TODO Multiclass
 		return charClass.getLevel();
 	}
 
@@ -223,6 +220,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 			total += Math.floorDiv(getProficiency(), 2);
 		}
 		Map<Skill, Ability> abilityAdds = getAllMap(Feature::getAbilitiesAddToSkills);
+		abilityAdds.putAll(getAllMap(Feature::getSkillsWAblMap));
 		if (abilityAdds.containsKey(s))
 		{
 			total += getTotalAbilityMod(abilityAdds.get(s)) > 0 ? getTotalAbilityMod(abilityAdds.get(s)) : 1;
@@ -239,6 +237,17 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 	{
 		List<Skill> profSkills = getAll(Feature::getSkillsGranted);
 		profSkills.addAll(getAll(Feature::getSkillsSelected));
+		profSkills.addAll(getAll(Feature::getSkillsWAblSkills));
+
+		List<Skill> profOrExpSkills = getAll(Feature::getSkillProfOrExpertise);
+		for (Skill s : profOrExpSkills)
+		{
+			if (!profSkills.contains(s))
+			{
+				profSkills.add(s);
+			}
+		}
+
 		return profSkills;
 	}
 
@@ -250,6 +259,19 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 	public List<Skill> getAllSkillExperts()
 	{
 		List<Skill> expSkills = getAll(Feature::getSkillExpertsSelected);
+
+		List<Skill> profSkills = getAll(Feature::getSkillsGranted);
+		profSkills.addAll(getAll(Feature::getSkillsSelected));
+		profSkills.addAll(getAll(Feature::getSkillsWAblSkills));
+		List<Skill> profOrExpSkills = getAll(Feature::getSkillProfOrExpertise);
+		for (Skill s : profOrExpSkills)
+		{
+			if (profSkills.contains(s))
+			{
+				expSkills.add(s);
+			}
+		}
+
 		return expSkills;
 	}
 
@@ -350,7 +372,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public int getSpellSlots(int spellLevel)
 	{
-		// TODO multiclassing?
+		// TODO Multiclass
 		return charClass.getClassSpells().getSpellSlots(charClass.getLevel(), spellLevel);
 	}
 
@@ -412,7 +434,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 		int maxHP = hd + conMod + extraHPPerLevel + extraHPLevel1;
 
-		// TODO Multiclass changes needed
+		// TODO Multiclass
 		if (getLevel() > 1)
 		{
 			int normalHPPerLevel = (int) Math.ceil(charClass.getHd() / 2 + 0.5);
@@ -430,13 +452,33 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		int level = getLevel();
 		int hd = getCharClass().getHd();
 
-		// TODO Multiclass changes needed
+		// TODO Multiclass
 		return level + "D" + hd;
 	}
 
 	public int getInitiative()
 	{
 		int init = getTotalAbilityMod(Ability.Dex);
+
+		// If we have the other of having one or more other abilities to init, get the
+		// largest combination
+		List<List<Ability>> initAbls = getEach(Feature::getInitAbilities);
+		if (!initAbls.isEmpty())
+		{
+			for (List<Ability> abls : initAbls)
+			{
+				int val = 0;
+				for (Ability a : abls)
+				{
+					val += a == Ability.Primary ? getTotalAbilityMod(charClass.getSelectedPrimary())
+							: getTotalAbilityMod(a);
+				}
+				if (val > init)
+				{
+					init = val;
+				}
+			}
+		}
 
 		if (getAny(Feature::givesProfToInit))
 		{
@@ -494,7 +536,8 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public String getEquipmentItems()
 	{
-		// TODO - background equipment?
+		// TODO Background Loading - If backgrounds can give equipment, need to update
+		// this
 		return charClass.getEquipmentItems();
 	}
 }

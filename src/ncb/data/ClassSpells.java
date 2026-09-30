@@ -55,6 +55,12 @@ public class ClassSpells implements HasConfig, HasState
 		return SpellList.getForClass(((CharacterClass) getParent()).getName());
 	}
 
+	@Override
+	public int getId()
+	{
+		return 0;
+	}
+
 	public List<Spell> getAllSelectedSpells(int charLvl)
 	{
 		List<Spell> spells = new ArrayList<>();
@@ -397,9 +403,9 @@ public class ClassSpells implements HasConfig, HasState
 	}
 
 	// State
-	private final List<SpellChoice> cantripBucket = new ArrayList<>();
-	private final List<SpellChoice> spellBucket = new ArrayList<>();
-	private final Map<Integer, List<SpellChoice>> spellChoicesByLvl = new HashMap<>();
+	private List<SpellChoice> cantripBucket = new ArrayList<>();
+	private List<SpellChoice> spellBucket = new ArrayList<>();
+	private Map<Integer, List<SpellChoice>> spellChoicesByLvl = new HashMap<>();
 
 	@Override
 	public JSONObject saveState()
@@ -415,12 +421,15 @@ public class ClassSpells implements HasConfig, HasState
 			JSONArray scbl = new JSONArray();
 			for (Map.Entry<Integer, List<SpellChoice>> scl : spellChoicesByLvl.entrySet())
 			{
+				JSONObject spl = new JSONObject();
+				spl.put("spellLevel", scl.getKey());
 				JSONArray sels = new JSONArray();
 				for (SpellChoice sc : scl.getValue())
 				{
 					sels.put(sc.saveState());
 				}
-				scbl.put(sels);
+				spl.put("selections", sels);
+				scbl.put(spl);
 			}
 			json.put("spellChoicesByLvl", scbl);
 		}
@@ -431,30 +440,37 @@ public class ClassSpells implements HasConfig, HasState
 	@Override
 	public void loadState(JSONObject data)
 	{
-		getObjList(data, "cantripBucket").forEach(s ->
+		if (data != null)
 		{
-			SpellChoice sc = new SpellChoice();
-			sc.loadState(s);
-			cantripBucket.add(sc);
-		});
-		getObjList(data, "spellBucket").forEach(s ->
-		{
-			SpellChoice sc = new SpellChoice();
-			sc.loadState(s);
-			spellBucket.add(sc);
-		});
-
-		JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("spellChoicesByLvl")).forEach(l ->
-		{
-			int spLvl = l.getInt("spellLevel");
-			List<SpellChoice> sels = new ArrayList<>();
-			JsonDataLoader.jsonArrayToObjectArray(data.getJSONArray("selections")).forEach(s ->
+			cantripBucket = new ArrayList<>(getObjList(data, "cantripBucket").stream().map(s ->
 			{
 				SpellChoice sc = new SpellChoice();
 				sc.loadState(s);
-				sels.add(sc);
-			});
-			spellChoicesByLvl.put(spLvl, sels);
-		});
+				return sc;
+			}).toList());
+			spellBucket = new ArrayList<>(getObjList(data, "spellBucket").stream().map(s ->
+			{
+				SpellChoice sc = new SpellChoice();
+				sc.loadState(s);
+				return sc;
+			}).toList());
+
+			JSONArray scbl = data.optJSONArray("spellChoicesByLvl");
+			for (int i = 0; i < scbl.length(); i++)
+			{
+				JSONObject spl = scbl.getJSONObject(i);
+				int spLvl = spl.getInt("spellLevel");
+				List<SpellChoice> sels = new ArrayList<>();
+				JsonDataLoader.jsonArrayToObjectArray(spl.getJSONArray("selections")).forEach(s ->
+				{
+					SpellChoice sc = new SpellChoice();
+					sc.loadState(s);
+					sels.add(sc);
+				});
+				spellChoicesByLvl.put(spLvl, sels);
+			}
+			// Too many changes to do 1 at a time, just assume something in spells changed
+			pcs.firePropertyChange(PropertyListener.SPELLS, "", "Spells loaded");
+		}
 	}
 }

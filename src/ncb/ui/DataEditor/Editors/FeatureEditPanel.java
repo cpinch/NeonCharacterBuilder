@@ -49,12 +49,15 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			OPT_ABL_SKILLS = "Adds Extra Ability to Skills", OPT_SPD = "Increase Speed", OPT_HP_1 = "+HP Lvl 1 Only",
 			OPT_HP_LVL = "+HP/Level", OPT_FEAT = "Choose Feat", OPT_SEL = "Choose Selectable",
 			OPT_NOTES = "Puts Notes on Sheet", OPT_HALFPROF_ALL = "Gives Half Proficiency to all non-Proficient Skills",
-			OPT_PROF_INIT = "Gives Proficiency to Initiative";
+			OPT_PROF_INIT = "Gives Proficiency to Initiative", OPT_ABL_INIT = "Use other Abilities for Initiative",
+			OPT_C_SKILL_ABL_TO = "Choose Skill Prof and get extra Ability to it.",
+			OPT_G_SKILL_EXP = "Gives Skills or Expertise";
 
 	private static final List<String> options = List.of(OPT_TEXT, OPT_G_SKILLS, OPT_C_SKILLS, OPT_G_SAVES, OPT_G_SPELLS,
 			OPT_C_SPELLS, OPT_C_S_SPELLS, OPT_G_ARMOR, OPT_G_LANGS, OPT_C_LANGS, OPT_G_RES, OPT_R_BY_H, OPT_C_RES,
 			OPT_C_EXP, OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP_1, OPT_HP_LVL,
-			OPT_HALFPROF_ALL, OPT_PROF_INIT, OPT_FEAT, OPT_SEL, OPT_NOTES);
+			OPT_HALFPROF_ALL, OPT_PROF_INIT, OPT_ABL_INIT, OPT_C_SKILL_ABL_TO, OPT_G_SKILL_EXP, OPT_FEAT, OPT_SEL,
+			OPT_NOTES);
 
 	private final JComboBox<String> optionSel = new JComboBox<>(options.toArray(new String[0]));
 	private final JButton add = new JButton("Add Feature");
@@ -170,11 +173,20 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		addLabeledLinkedCheckbox(collapse.bodyPanel, OPT_PROF_INIT, Color.black, c, () -> getProfInit(),
 				(b) -> updateProfInit(b));
 
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_ABL_INIT, c, Color.white, Color.black, () -> getAblsToInit(),
+				(s) -> updateAblsToInit(s));
+
 		addLabeledLinkedTextField(collapse.bodyPanel, OPT_FEAT, c, Color.white, Color.black, () -> getFeatTrait(),
 				(s) -> updateFeatTrait(s));
 
 		addLabeledLinkedTextField(collapse.bodyPanel, OPT_SEL, c, Color.white, Color.black, () -> getSelectableType(),
 				(s) -> updateSelectableType(s));
+
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_SKILL_ABL_TO, c, Color.white, Color.black,
+				() -> getSkillChoiceWithAbilityAdd(), (s) -> updateSkillChoiceWithAbilityAdd(s));
+
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_SKILL_EXP, c, Color.white, Color.black,
+				() -> getSkillProfExp(), (s) -> updateSkillProfExp(s));
 
 		c.weighty = 1;
 		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_TEXT, 3, c, Color.white, Color.black, () -> getText(),
@@ -182,25 +194,27 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_NOTES, 4, c, Color.white, Color.black, () -> getSheetNotes(),
 				(s) -> updateSheetNotes(s));
-		c.weighty = 0;
-
-		c.gridwidth = 1;
-		addUpgradeButton.addActionListener(this);
-		collapse.bodyPanel.add(addUpgradeButton, c);
-		c.gridx++;
-		removeUpgradeButton.addActionListener(this);
-		collapse.bodyPanel.add(removeUpgradeButton, c);
-		c.gridx = 0;
-		c.gridwidth = 2;
-		c.gridy++;
 
 		if (!f.isCopy())
 		{
+			int oldy = c.gridy;
+			c.gridy = 100;
+			c.gridwidth = 1;
+			addUpgradeButton.addActionListener(this);
+			collapse.bodyPanel.add(addUpgradeButton, c);
+			c.gridx++;
+			removeUpgradeButton.addActionListener(this);
+			collapse.bodyPanel.add(removeUpgradeButton, c);
+			c.gridx = 0;
+			c.gridwidth = 2;
+			c.gridy++;
+
 			upgradesPanel.setLayout(new GridBagLayout());
 			collapse.bodyPanel.add(upgradesPanel, c);
 			updateUpgradePanels();
-			c.gridy++;
+			c.gridy = oldy;
 		}
+		c.weighty = 0;
 
 		linkedProperties.forEach(p -> p.updateValue());
 	}
@@ -227,7 +241,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			upgradesPanel.add(new FeatureEditPanel(upgrade, true, null), c);
 			c.gridy++;
 		}
-		revalidate();
+		upgradesPanel.revalidate();
 	}
 
 	private static final GridBagConstraints STANDARDC = UILib.getStandardGBC();
@@ -239,11 +253,13 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		panel.setLayout(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder());
 		optionPanels.put(label, panel);
-		parent.add(panel, c);
-		panel.setVisible(!getter.get().isBlank());
+		if (!getter.get().isBlank())
+		{
+			parent.add(panel, c);
+			c.gridy++;
+		}
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(panel, label, c, bg, fg, getter, setter));
-		c.gridy++;
+		linkedProperties.add(UILib.addLabeledLinkedTextField(panel, label + ": ", c, bg, fg, getter, setter));
 	}
 
 	private void addLabeledLinkedTextArea(JComponent parent, String label, int rows, GridBagConstraints c, Color bg,
@@ -253,11 +269,13 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		panel.setLayout(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder());
 		optionPanels.put(label, panel);
-		parent.add(panel, c);
-		panel.setVisible(!getter.get().isBlank());
+		if (!getter.get().isBlank())
+		{
+			parent.add(panel, c);
+			c.gridy++;
+		}
 
-		linkedProperties.add(UILib.addLabeledLinkedTextArea(panel, rows, label, c, bg, fg, getter, setter));
-		c.gridy++;
+		linkedProperties.add(UILib.addLabeledLinkedTextArea(panel, rows, label + ": ", c, bg, fg, getter, setter));
 	}
 
 	private void addLabeledLinkedTextFieldAndSpinner(JComponent parent, String txtLabel, String spLabel,
@@ -268,15 +286,18 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		panel.setLayout(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder());
 		optionPanels.put(txtLabel, panel);
-		parent.add(panel, c);
-		panel.setVisible(!txtGetter.get().isBlank());
+		if (!txtGetter.get().isBlank())
+		{
+			parent.add(panel, c);
+			c.gridy++;
+		}
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(panel, txtLabel, STANDARDC, bg, fg, txtGetter, txtSetter));
-		STANDARDC.gridx = 1;
 		linkedProperties
-				.add(UILib.addLabeledLinkedSpinner(panel, spLabel, STANDARDC, model, bg, fg, spGetter, spSetter));
+				.add(UILib.addLabeledLinkedTextField(panel, txtLabel + ": ", STANDARDC, bg, fg, txtGetter, txtSetter));
+		STANDARDC.gridx = 1;
+		linkedProperties.add(
+				UILib.addLabeledLinkedSpinner(panel, spLabel + ": ", STANDARDC, model, bg, fg, spGetter, spSetter));
 		STANDARDC.gridx = 0;
-		c.gridy++;
 	}
 
 	private void addLabeledLinkedSpinner(JComponent parent, String label, SpinnerNumberModel model,
@@ -286,11 +307,13 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		panel.setLayout(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder());
 		optionPanels.put(label, panel);
-		parent.add(panel, c);
-		panel.setVisible(getter.getAsInt() > 0);
+		if (getter.getAsInt() > 0)
+		{
+			parent.add(panel, c);
+			c.gridy++;
+		}
 
-		linkedProperties.add(UILib.addLabeledLinkedSpinner(panel, label, c, model, bg, fg, getter, setter));
-		c.gridy++;
+		linkedProperties.add(UILib.addLabeledLinkedSpinner(panel, label + ": ", c, model, bg, fg, getter, setter));
 	}
 
 	private void addLabeledLinkedCheckbox(JComponent parent, String label, Color fg, GridBagConstraints c,
@@ -300,11 +323,13 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		panel.setLayout(new GridBagLayout());
 		panel.setBorder(BorderFactory.createEtchedBorder());
 		optionPanels.put(label, panel);
-		parent.add(panel, c);
-		panel.setVisible(getter.getAsBoolean());
+		if (getter.getAsBoolean())
+		{
+			parent.add(panel, c);
+			c.gridy++;
+		}
 
-		linkedProperties.add(UILib.addLabeledLinkedCheckbox(panel, label, c, fg, getter, setter));
-		c.gridy++;
+		linkedProperties.add(UILib.addLabeledLinkedCheckbox(panel, label + ": ", c, fg, getter, setter));
 	}
 
 	@Override
@@ -312,7 +337,9 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 	{
 		if (e.getSource().equals(add))
 		{
-			optionPanels.get(optionSel.getSelectedItem()).setVisible(true);
+			collapse.bodyPanel.add(optionPanels.get(optionSel.getSelectedItem()), c);
+			c.gridy++;
+			revalidate();
 		}
 		else if (e.getSource().equals(addUpgradeButton))
 		{
@@ -680,6 +707,16 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		f.setProfToInit(b);
 	}
 
+	private String getAblsToInit()
+	{
+		return String.join(", ", f.getInitAbilities().stream().map(a -> a.toString()).toList());
+	}
+
+	private void updateAblsToInit(String s)
+	{
+		f.setInitAbilities(parseAbilities(s.split(",")));
+	}
+
 	private String getFeatTrait()
 	{
 		return f.getFeatTraitName() + (f.featIgnoresPrereqs() ? " (ignores prereqs)" : "");
@@ -706,6 +743,48 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 	private void updateSelectableType(String s)
 	{
 		f.setSelectableName(s);
+	}
+
+	private String getSkillChoiceWithAbilityAdd()
+	{
+		List<Skill> skills = f.getSkillsWAblSkills();
+		Ability abl = f.getSkillsWAblAbility();
+
+		if (!skills.isEmpty() && abl != null)
+		{
+			return String.join(", ", skills.stream().map(s -> s.toString()).toList()) + " | " + abl.toString();
+		}
+		return "";
+	}
+
+	private void updateSkillChoiceWithAbilityAdd(String s)
+	{
+		String[] split = s.split("\\|");
+		if (split.length != 2)
+		{
+			showErrorMessage(List.of(s), "skill choices | ability");
+		}
+		else
+		{
+			List<Skill> skills = parseSkills(split[0].split(","));
+			List<Ability> ability = parseAbilities(new String[]
+			{ split[1] });
+
+			if (!skills.isEmpty() && ability.size() == 1)
+			{
+				f.setSkillsWAbl(skills, ability.get(0));
+			}
+		}
+	}
+
+	private String getSkillProfExp()
+	{
+		return String.join(", ", f.getSkillProfOrExpertise().stream().map(s -> s.toString()).toList());
+	}
+
+	private void updateSkillProfExp(String s)
+	{
+		f.setSkillProfOrExpertise(parseSkills(s.split(", ")));
 	}
 
 	private String getText()

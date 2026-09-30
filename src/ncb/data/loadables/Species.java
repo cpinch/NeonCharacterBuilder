@@ -77,8 +77,6 @@ public class Species extends Feature
 		allSpecies.add(newS);
 	}
 
-	// TODO - I think we want to make CharacterSheet accessible on static somewhere,
-	// so this could be replaced with "(source).getSheet().getCharLevel();"
 	private Callable<Integer> getCharLevel;
 
 	public void setupGetCharLevel(Callable<Integer> getCharLevel)
@@ -99,17 +97,11 @@ public class Species extends Feature
 		}
 	}
 
-	public List<Feature> getTraitsAtLevel(int lvl)
+	public List<String> getTraitNamesAtLevel(int lvl)
 	{
-		List<Feature> features = new ArrayList<>();
-		for (Feature f : traits)
-		{
-			if (f.getLevel() == lvl)
-			{
-				features.add(f);
-			}
-		}
-		return features;
+		List<String> names = new ArrayList<>();
+		traits.forEach(f -> names.addAll(f.getFeatureNamesAtLevel(lvl)));
+		return names;
 	}
 
 	public List<Feature> getAllTraits()
@@ -131,7 +123,7 @@ public class Species extends Feature
 			// Handle upgrades
 			features.add(f.getHighestFeature(lvl));
 		}
-		return traits;
+		return features;
 	}
 
 	public void addNewTrait(String name)
@@ -198,14 +190,16 @@ public class Species extends Feature
 		allSpecies.sort((a, b) -> a.getName().compareTo(b.getName()));
 	}
 
-	public static void addNewSpecies(String newName)
+	public static Species addNewSpecies(String newName)
 	{
 		if (!newName.isBlank())
 		{
 			Species sp = new Species();
 			sp.setName(newName);
 			allSpecies.add(sp);
+			return sp;
 		}
+		return null;
 	}
 
 	// Configuration
@@ -270,8 +264,6 @@ public class Species extends Feature
 		});
 	}
 
-	// TODO - move traits getters/setters down here
-
 	@Override
 	public JSONObject saveConfig()
 	{
@@ -310,6 +302,7 @@ public class Species extends Feature
 		{
 			Feature f = new Feature();
 			f.loadConfig(t);
+			f.setParent(this);
 			traits.add(f);
 		});
 	}
@@ -337,6 +330,15 @@ public class Species extends Feature
 
 		json = putStr(json, "selectedSize", selectedSize);
 
+		json = putObjList(json, "features", traits.stream().map(f ->
+		{
+			JSONObject d = new JSONObject();
+			d.put("fname", f.getName());
+			d.put("flvl", f.getLevel());
+			d.put("fstate", f.saveState());
+			return d;
+		}).toList());
+
 		return json;
 	}
 
@@ -345,6 +347,20 @@ public class Species extends Feature
 	{
 		super.loadState(data);
 
-		selectedSize = data.optString("selectedSize", "");
+		setSelectedSize(data.optString("selectedSize", ""));
+
+		getObjList(data, "features").forEach(f ->
+		{
+			String fname = f.getString("fname");
+			int flvl = f.getInt("flvl");
+			for (Feature f2 : traits)
+			{
+				if (f2.getName().equals(fname) && f2.getLevel() == flvl)
+				{
+					f2.loadState(f.getJSONObject("fstate"));
+					break;
+				}
+			}
+		});
 	}
 }

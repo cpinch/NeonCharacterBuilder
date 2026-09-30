@@ -119,7 +119,7 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener
 		traitsPanel.removeAll();
 		for (Feature st : species.getAllTraits())
 		{
-			FeatureEditPanel step = new FeatureEditPanel(st, false, this);
+			FeatureEditPanel step = new FeatureEditPanel(st, true, this);
 			traitsPanel.add(step, c);
 			c.gridy++;
 		}

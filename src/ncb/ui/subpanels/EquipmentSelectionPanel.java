@@ -34,6 +34,7 @@ public class EquipmentSelectionPanel extends JPanel implements ActionListener, L
 		setOpaque(false);
 		setLayout(new GridBagLayout());
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
+		PropertyListener.listenForChanges(PropertyListener.EQUIPMENT, this);
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.insets = new Insets(0, 0, 0, 0);
 
@@ -78,8 +79,6 @@ public class EquipmentSelectionPanel extends JPanel implements ActionListener, L
 			}
 			labelText += sheet.getCharClass().getEquipmentNotes() + " Notes";
 			label.setText(labelText);
-			revalidate();
-			repaint();
 		}
 	}
 }

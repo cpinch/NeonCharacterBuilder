@@ -64,7 +64,7 @@ public class LevelUpPanel extends UIPanel implements ActionListener, ListensForC
 	{
 		if (e.getSource().equals(lvlUp))
 		{
-			// TODO - multiclassing will change this
+			// TODO Multiclass
 			sheet.getCharClass().setLevel(sheet.getLevel() + 1);
 		}
 	}

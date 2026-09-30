@@ -30,6 +30,8 @@ public class SubclassPanel extends UIPanel implements ActionListener, ListensFor
 	{
 		this.sheet = sheet;
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
+		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
+		PropertyListener.listenForChanges(PropertyListener.SUBCLASS, this);
 
 		GridBagConstraints c = UILib.getStandardGBC();
 
