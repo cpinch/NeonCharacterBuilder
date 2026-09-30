@@ -38,12 +38,12 @@ jobs:
       run: mvn -B clean compile assembly:single --file pom.xml
 
     - name: Run jpackage (Windows)
-      if: runner.os == "Windows"
+      if: runner.os == 'windows-latest'
       run: jpackage --type exe --name NeonCharacterBuilder --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
 
-	  - name: Run jpackage (Mac)
-	    if: runner.os == "macOS"
-	    run: jpackage --type app --name NeonCharacterBuilder --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
+    - name: Run jpackage (Mac)
+      if: runner.os == 'macos-latest'
+      run: jpackage --type app --name NeonCharacterBuilder --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
 
     - name: Create Release and Upload Asset
       uses: softprops/action-gh-release@v2
