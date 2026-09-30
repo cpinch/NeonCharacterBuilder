@@ -125,16 +125,18 @@ public class AbilityScores implements HasState
 	@Override
 	public void loadState(JSONObject data)
 	{
-		scores.clear();
-		scores.putAll(getStrIntMap(data, "scores", "ability", "score").entrySet().stream()
-				.collect(Collectors.toMap(e -> Ability.valueOf(e.getKey()), e -> e.getValue())));
-		bgIncreases.clear();
-		bgIncreases.putAll(getStrIntMap(data, "bgIncreases", "ability", "increase").entrySet().stream()
-				.collect(Collectors.toMap(e -> Ability.valueOf(e.getKey()), e -> e.getValue())));
+		for (Map.Entry<String, Integer> ablScores : getStrIntMap(data, "scores", "ability", "score").entrySet())
+		{
+			setBaseScoreFor(Ability.valueOf(ablScores.getKey()), ablScores.getValue());
+		}
+		for (Map.Entry<String, Integer> ablInc : getStrIntMap(data, "bgIncreases", "ability", "increase").entrySet())
+		{
+			setBGIncreaseFor(Ability.valueOf(ablInc.getKey()), ablInc.getValue());
+		}
 		String spAblName = data.optString("spellcastingAbility", "");
 		if (!spAblName.isBlank())
 		{
-			spellcastingAbility = Ability.valueOf(spAblName);
+			setSpellcastingAbility(Ability.valueOf(spAblName));
 		}
 	}
 }

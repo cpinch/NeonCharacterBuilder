@@ -1,5 +1,5 @@
 # NeonCharacterBuilder Data Editor
-The data editor is intended to allow users to enter in the data from the Neon Odyssey system (or, technically, most any 5.5E system, though only Neon Odyssey features are guarenteed to be supported) as distributing the class/species/etc features would not be ok.
+The data editor is intended to allow users to enter in the data from the Neon Odyssey system (or, technically, most any 5.5E system, though only Neon Odyssey features are guaranteed to be supported) as distributing the class/species/etc features would not be ok.
 
 THIS TOOL IS A WORK IN PROGRESS. Some of its functionality is a bit clunky right now. I intend to clean up and improve it as level-up support is built in and I use it for adding higher level class features to my own private data libraries.
 
@@ -8,7 +8,7 @@ As noted in the main README, to start the Data Editor, open the NeonCharacterBui
 
 You will open to a page with the data types in a selectable list on the left and a Save and Return button at the bottom. Click on any of the types to select and edit or create new objects of that type. When you are done making changes, click the Save and Return button to generate the Custom .nlib file with all of your changes for future use and your own group-internal distribution.
 
-Each data type sub-panel will have a "New" and "Clear" button at the bottom of its list. New will prompt you for a name and then create a new element of that name and add it to the list of options to edit. Clear will mark the item as no longer customized, which means that the next time you save it will not be saved in your custom data library. If the item is in another library in your data folder this will return it to defaul. Otherwise it will remove it.
+Each data type sub-panel will have a "New" and "Clear" button at the bottom of its list. New will prompt you for a name and then create a new element of that name and add it to the list of options to edit. Clear will mark the item as no longer customized, which means that the next time you save it will not be saved in your custom data library. If the item is in another library in your data folder this will return it to default. Otherwise it will remove it.
 
 ### Backgrounds
 Backgrounds are TBD. I am waiting for actual playtest sample backgrounds before building the save/load functionality for these. Most likely they'll look like standard 5.5E backgrounds, but until that's settled down all backgrounds in the app are custom.
@@ -37,8 +37,6 @@ The Add Class Feature button will create a new Class Feature for the class. Each
 
 All of these options add to their respective areas of the sheet (spells go in the spells area, resistances in the resistance box, etc). Text goes straight into the Features box (unless it's text for a Feat, which goes in the Feat field) and Sheet Notes goes straight into the "Notes" section of the PDF.
 
-Class Features whose name contains "Magic" or "Spellcasting" also allow the selection of a spellcasting ability. Only use this dropdown for a class's main spellcasting feature.
-
 See the "Features" section below for exact details on how each of these option's corresponding fields behave.
 
 #### Class Selectables
@@ -64,7 +62,7 @@ This category is a catch-all for choices the user can select from that work like
 
 ### Species
 + Name - The species name
-+ Desc - I put in the couple of paragphs of descripotion species page here, this is intended as a "here's what this species is about" primer for users, so put whatever you want in.
++ Desc - I put in the couple of paragraphs of description species page here, this is intended as a "here's what this species is about" primer for users, so put whatever you want in.
 + Type - Simple text, defaults to Humanoid
 + Size - Choose M, S, or "M or S"
 + Speed - Number field, defaults to 30
@@ -107,6 +105,16 @@ Selectables have 3 parts.
 + Selectable Prereqs - Current 3 types of prereqs are supported. Class Level expects a comma separated list of required class levels in the format "(class)-(level)", ie "Cryptist-2". Prior Selection expects a name of a Class Feature, Selectable, or Feat that must already be on the character sheet for this option to be available. Homeworld Trait expects a comma separated list of homeworld traits, at least one of which must be present in the user's chosen homeworld.
 + Selectable Features - These are Features. See below for details.
 
+### Subclass
++ Name - The subclass's name
++ Desc - Descriptive text of the subclass, I put the paragraph before the rules in myself
++ Associated Class - What class it is a subclass for, ie "Cryptist" or "Gridrunner" etc
+
+#### Subclass Features
+The Add Feature button will create a new Subclass Feature for the Subclass. These work identically to Class Features.
+
+See the "Features" section below for exact details on how each of these option's corresponding fields behave.
+
 ## Features
 A lot of things in this application are classified as "Features", a generic catch-all term for "part of a character that changes something about that character". The Features data editor is generic and shared across Classes, Feats, and Species. It has so many fields that it uses a dropdown to select which you want to include. Details on all the fields are below:
 
@@ -126,13 +134,21 @@ A lot of things in this application are classified as "Features", a generic catc
 + Choose Skill Expertise - Comma separated list of Skills, users will be able to select Skills from this list only if they already have proficiency, "Any" for any.
 + Gives Tool Profs - Comma separated list of Tool Proficiencies.
 + Gives Weapon Profs - Comma separated list of Weapon Proficiencies.
-+ Sets AC Abilities - Comma separated list of Ability mods to add to base AC (ie "Dex, Wis" or "Con, Int")
++ Sets AC Abilities - Comma separated list of Ability mods to add to base AC (ie "Dex, Wis" or "Con, Int"). Note - You should also include text explaining this so users know the limits
 + Adds Extra Ability to Skills - Comma separated list of Skill-Ability mappings. For example, if your feature gives Wis to Religion and Arcana, you would enter "Religion-Wis, Arcana-Wis"
 + Increase Speed - Number field, supports 0-50 in increments of 5
 + +HP Lvl 1 Only - Number field, supports 0-5
 + +HP/Level - Number field, supports 0-5
 + Gives Half Proficiency to all non-Proficient Skills - Exactly what it says, used for stuff like the 5.5E Bard Jack of All Trades feature. Simple on/off checkbox.
 + Gives Proficiency to Initiative - Exactly what it says. Simple on/off checkbox.
++ Use other Abilities for Initiative - Comma separated list of Abilities to add to initiative
++ Choose Skill Prof and get extra Ability to it - Comma seperated list of skills to choose from and then | and then the ability that gets added to whatever is chosen (ie "Acrobatics, Stealth | Int")
++ Gives Skills or Expertise - Comma separated list of skills that the character will get proficiency in if they don't have it or expertise if they do
 + Choose Feat - Expects a single feat type (ie "Origin" or "Fighting Style", etc). Optionally you may add "(ignores prereqs)" after the feat trait name to indicate that it ignores feat prereqs (for example, a feature that allows picking any Origin feat, regardless of homeworld)
 + Choose Selectable - Expects a single selectable type (see Selectables above for more details). Note that if both Feat and Selectable are added for a single feature they will be combined into a single list, useful for features that offer selections like "Choose a feat of type. You may also choose from the options below"
 + Puts Notes on Sheet - Text field, goes straight into the Notes field on the character sheet without being shown anywhere in the app.
+
+### Feature Upgrades
+Many features in Neon Odyssey, and 5E in general, get stronger as the character grows in levels. This is represented in the character builder by the feature having "upgrades". All features have an "Add Upgrade" button that will spawn an identical copy of the feature with its level increased by 1 in a sub-level below the feature. If you set that new sub-feature to the level/effect of the upgrade, when the player levels up to that level, they will be informed that it has changed and see the upgraded version in the app as well as its effects on their sheet.
+
+This should only be used for features that upgrade occassionally, not ones that upgrade ever level, those you should just use "class level" in the description for how they work.

@@ -26,6 +26,7 @@ public class Prereq implements HasConfig
 		this.id = nId++;
 	}
 
+	@Override
 	public int getId()
 	{
 		return id;
@@ -37,6 +38,7 @@ public class Prereq implements HasConfig
 		return parent;
 	}
 
+	@Override
 	public void setParent(Customizable p)
 	{
 		this.parent = p;
@@ -63,7 +65,7 @@ public class Prereq implements HasConfig
 				final Map<String, Integer> requiredClassLevels = new HashMap<>();
 				required.forEach(
 						r -> requiredClassLevels.put(r.split("-")[0].trim(), Integer.parseInt(r.split("-")[1].trim())));
-				List<CharacterClass> classes = List.of(sheet.getCharClass()); // TODO multiclass - revise this
+				List<CharacterClass> classes = List.of(sheet.getCharClass()); // TODO Multiclass
 
 				for (Map.Entry<String, Integer> rcl : requiredClassLevels.entrySet())
 				{

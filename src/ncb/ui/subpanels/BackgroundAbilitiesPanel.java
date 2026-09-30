@@ -35,6 +35,7 @@ public class BackgroundAbilitiesPanel extends JPanel implements ActionListener, 
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		setOpaque(false);
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
+		PropertyListener.listenForChanges(PropertyListener.BGABILITYOPTIONS, this);
 
 		label = UILib.addLabel(this, "Ability Options: ", VaporwaveColors.HOT_PINK);
 		label.setFont(UILib.boldFont);

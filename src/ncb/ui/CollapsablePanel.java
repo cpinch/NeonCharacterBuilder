@@ -1,7 +1,5 @@
 package ncb.ui;
 
-import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -21,12 +19,12 @@ public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 	public final JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	public final JPanel bodyPanel = new NoHorizontalScrollPanel();
 
-	private final JButton toggleBtn = new JButton();
+	private final JButton toggleBtn = new JButton("▼");
 	private boolean collapsed = false;
 
 	public CollapsablePanel(boolean startCollapsed)
 	{
-		setLayout(new BorderLayout());
+		setLayout(new GridBagLayout());
 		setBorder(BorderFactory.createEtchedBorder());
 		setOpaque(false);
 
@@ -39,13 +37,18 @@ public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 		headerArea.add(headerPanel, c);
 		c.gridx++;
 		c.weightx = 0;
+		toggleBtn.setFocusPainted(false);
 		headerArea.add(toggleBtn);
 
 		bodyPanel.setOpaque(false);
 		bodyPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
 
-		add(headerArea, BorderLayout.PAGE_START);
-		add(bodyPanel, BorderLayout.CENTER);
+		c.gridx = 0;
+		c.weightx = 1;
+		add(headerArea, c);
+		c.weighty = 1;
+		c.gridy++;
+		add(bodyPanel, c);
 
 		setToggleState(startCollapsed);
 
@@ -92,15 +95,7 @@ public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 	private void setToggleState(boolean collapsed)
 	{
 		this.collapsed = collapsed;
-		toggleBtn.setText(collapsed ? "+" : "-");
+		toggleBtn.setText(collapsed ? "▼" : "▲");
 		bodyPanel.setVisible(!collapsed);
-		revalidate();
-	}
-
-	// To avoid growing while minimized
-	@Override
-	public Dimension getMaximumSize()
-	{
-		return new Dimension(Integer.MAX_VALUE, (int) getPreferredSize().getHeight());
 	}
 }

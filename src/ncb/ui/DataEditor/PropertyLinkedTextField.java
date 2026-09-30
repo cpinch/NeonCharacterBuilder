@@ -3,11 +3,10 @@ package ncb.ui.DataEditor;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import javax.swing.JTextField;
-
 import ncb.ui.UILib;
+import ncb.ui.UndoTextField;
 
-public class PropertyLinkedTextField extends JTextField implements HasLinkedProperty
+public class PropertyLinkedTextField extends UndoTextField implements HasLinkedProperty
 {
 	private static final long serialVersionUID = 1745018999383177794L;
 

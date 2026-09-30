@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import org.json.JSONObject;
 
 import ncb.data.enums.Ability;
+import ncb.data.enums.Skill;
 import ncb.data.loadables.Homeworld;
 import ncb.data.loadables.Selectable;
 import ncb.data.loadables.Spell;
@@ -58,6 +59,15 @@ public interface HasState extends AlertsChanges, SavesLoadsJson
 	default void updateWithAlert(Subclass o, Subclass n, Consumer<Subclass> setter, String eventType)
 	{
 		if ((o == null && n != null) || (o != null && n == null) || (o != n && !o.getName().equals(n.getName())))
+		{
+			setter.accept(n);
+			getPCS().firePropertyChange(eventType, o, n);
+		}
+	}
+
+	default void updateWithAlert(Skill o, Skill n, Consumer<Skill> setter, String eventType)
+	{
+		if ((o == null && n != null) || (o != null && n == null) || (o != n && !o.toString().equals(n.toString())))
 		{
 			setter.accept(n);
 			getPCS().firePropertyChange(eventType, o, n);

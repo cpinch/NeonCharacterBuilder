@@ -132,14 +132,16 @@ public class Feat extends Selectable
 		return null;
 	}
 
-	public static void addNewFeat(String newName)
+	public static Feat addNewFeat(String newName)
 	{
 		if (!newName.isBlank())
 		{
 			Feat ft = new Feat();
 			ft.setName(newName);
 			allFeats.add(ft);
+			return ft;
 		}
+		return null;
 	}
 
 	public static void sortAll()

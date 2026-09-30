@@ -47,7 +47,7 @@ public class BackgroundPanel extends UIPanel implements ActionListener
 
 		c.gridwidth = 2;
 		List<Background> allBg = Background.getAllBackgrounds();
-		allBg.add(Background.getCustom()); // TODO - at some point Custom is going to be loaded
+		allBg.add(Background.getCustom()); // TODO Background Loading
 		backgroundName = UILib.getComboBox(allBg.toArray(new Background[0]), this, VaporwaveColors.DEEP_VIOLET,
 				VaporwaveColors.LASER_YELLOW);
 		UILib.addLabeledComponent(this, "Background: ", backgroundName, c, VaporwaveColors.HOT_PINK);

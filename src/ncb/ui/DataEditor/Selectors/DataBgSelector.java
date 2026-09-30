@@ -22,8 +22,9 @@ public class DataBgSelector extends SelectorPanel
 	}
 
 	@Override
-	protected void createNew(String name)
+	protected Customizable createNew(String name)
 	{
+		return null;
 	}
 
 	@Override

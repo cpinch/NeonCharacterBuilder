@@ -43,11 +43,10 @@ public class PropertyListener implements PropertyChangeListener
 	@Override
 	public void propertyChange(PropertyChangeEvent e)
 	{
-		System.out.println("Got property change event " + e.getPropertyName());
-
 		if (listeners.containsKey(e.getPropertyName()))
 		{
-			listeners.get(e.getPropertyName()).forEach(l -> l.updateProperty(e.getPropertyName()));
+			List<ListensForChanges> lcs = new ArrayList<>(listeners.get(e.getPropertyName()));
+			lcs.forEach(l -> l.updateProperty(e.getPropertyName()));
 		}
 	}
 }

@@ -41,6 +41,7 @@ public class BackgroundLangsPanel extends JPanel implements ActionListener, List
 		setLayout(new GridBagLayout());
 		setOpaque(false);
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
+		PropertyListener.listenForChanges(PropertyListener.LANGUAGES, this);
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.insets = new Insets(0, 0, 0, 0);
 
@@ -49,7 +50,7 @@ public class BackgroundLangsPanel extends JPanel implements ActionListener, List
 		c.gridx++;
 
 		// Custom backgrounds have Common and 2 of any languages
-		// TODO - this should be pulled in the future instead of hardcoded
+		// TODO Background loading
 		lang1 = UILib.getComboBox(new Language[]
 		{ Language.getByName("Common") }, this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
 		add(lang1, c);

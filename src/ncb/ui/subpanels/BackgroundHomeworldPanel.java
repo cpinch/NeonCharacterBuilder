@@ -41,6 +41,7 @@ public class BackgroundHomeworldPanel extends JPanel implements ActionListener, 
 		setOpaque(false);
 		GridBagConstraints c = UILib.getStandardGBC();
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
+		PropertyListener.listenForChanges(PropertyListener.HOMEWORLD, this);
 
 		label = UILib.addLabel(this, "Homeworld: ", c, VaporwaveColors.HOT_PINK);
 		c.gridx++;

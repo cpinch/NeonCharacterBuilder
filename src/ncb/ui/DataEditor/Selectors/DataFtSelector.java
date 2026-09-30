@@ -23,9 +23,9 @@ public class DataFtSelector extends SelectorPanel
 	}
 
 	@Override
-	protected void createNew(String name)
+	protected Customizable createNew(String name)
 	{
-		Feat.addNewFeat(name);
+		return Feat.addNewFeat(name);
 	}
 
 	@Override

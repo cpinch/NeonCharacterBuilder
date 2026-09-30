@@ -100,14 +100,16 @@ public class Language implements HasConfig
 		return null;
 	}
 
-	public static void addNewLanguage(String newName)
+	public static Language addNewLanguage(String newName)
 	{
 		if (!newName.isBlank())
 		{
 			Language l = new Language();
 			l.setName(newName);
 			allLanguages.add(l);
+			return l;
 		}
+		return null;
 	}
 
 	public static void sortAll()

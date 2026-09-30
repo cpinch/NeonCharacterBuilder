@@ -8,7 +8,7 @@ import org.json.JSONObject;
 import ncb.data.interfaces.Customizable;
 import ncb.data.interfaces.HasConfig;
 
-public class Spell implements Cloneable, HasConfig
+public class Spell implements HasConfig
 {
 	private static int nId = 1;
 	private final int id;
@@ -60,6 +60,7 @@ public class Spell implements Cloneable, HasConfig
 		this.id = nId++;
 	}
 
+	@Override
 	public int getId()
 	{
 		return id;
@@ -125,7 +126,7 @@ public class Spell implements Cloneable, HasConfig
 		}
 		else
 		{
-			Spell copy = (Spell) baseSpell.clone();
+			Spell copy = new Spell(baseSpell);
 			copy.name = altName;
 			copy.baseName = baseName;
 			allSpells.add(copy);
@@ -135,28 +136,32 @@ public class Spell implements Cloneable, HasConfig
 
 	public static Spell getCopyByName(String name, String notes)
 	{
-		Spell spell = Spell.getByName(name);
-		Spell copy = (Spell) spell.clone();
+		Spell original = Spell.getByName(name);
+		Spell copy = new Spell(original);
 		copy.notes = notes;
 		return copy;
 	}
 
 	public static Spell getCopyByAltName(String altName, String baseName, String notes)
 	{
-		Spell spell = Spell.getByAltName(altName, baseName);
-		Spell copy = (Spell) spell.clone();
+		Spell original = Spell.getByAltName(altName, baseName);
+		Spell copy = new Spell(original);
+		copy.name = altName;
+		copy.baseName = baseName;
 		copy.notes = notes;
 		return copy;
 	}
 
-	public static void addNewSpell(String newName)
+	public static Spell addNewSpell(String newName)
 	{
 		if (!newName.isBlank())
 		{
 			Spell sp = new Spell();
 			sp.setName(newName);
 			allSpells.add(sp);
+			return sp;
 		}
+		return null;
 	}
 
 	public static void sortAll()
@@ -382,7 +387,6 @@ public class Spell implements Cloneable, HasConfig
 
 	public static Spell getFromJSONObject(JSONObject sp)
 	{
-		System.out.println("Getting spell from " + sp);
 		if (sp.has("baseName") && sp.has("note"))
 		{
 			return Spell.getCopyByAltName(sp.getString("spell"), sp.getString("baseName"), sp.getString("note"));
@@ -407,17 +411,21 @@ public class Spell implements Cloneable, HasConfig
 		return name + (ritual ? " (R)" : "");
 	}
 
-	@Override
-	public Object clone()
+	private Spell(Spell original)
 	{
-		try
-		{
-			return super.clone();
-		}
-		catch (CloneNotSupportedException e)
-		{
-			return null;
-		}
+		this();
+
+		this.name = original.name;
+		this.school = original.school;
+		this.time = original.time;
+		this.trigger = original.trigger;
+		this.components = original.components;
+		this.range = original.range;
+		this.duration = original.duration;
+		this.text = original.text;
+		this.materials = original.materials;
+		this.level = original.level;
+		this.ritual = original.ritual;
 	}
 
 	@Override

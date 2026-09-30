@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -44,7 +43,7 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 
 	public EditPanel(boolean startCollapsed)
 	{
-		setLayout(new BorderLayout());
+		setLayout(new GridBagLayout());
 
 		collapse = new CollapsablePanel(startCollapsed);
 
@@ -53,7 +52,9 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 
 		collapse.bodyPanel.setLayout(new GridBagLayout());
 
-		add(collapse, BorderLayout.CENTER);
+		GridBagConstraints c = UILib.getStandardGBC();
+		c.weighty = 1;
+		add(collapse, c);
 	}
 
 	protected void showErrorMessage(List<String> invalid, String type)
@@ -144,7 +145,7 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 
 	protected List<Spell> parseSpells(String[] strings)
 	{
-		List<Spell> armor = new ArrayList<>();
+		List<Spell> spell = new ArrayList<>();
 		List<String> invalid = new ArrayList<>();
 		for (String s : strings)
 		{
@@ -152,7 +153,7 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 			{
 				try
 				{
-					armor.add(getSpellFromText(s.trim()));
+					spell.add(getSpellFromText(s.trim()));
 				}
 				catch (Exception e)
 				{
@@ -161,7 +162,7 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 			}
 		}
 		showErrorMessage(invalid, "spell");
-		return armor;
+		return spell;
 	}
 
 	protected List<Language> parseLanguages(String[] strings)

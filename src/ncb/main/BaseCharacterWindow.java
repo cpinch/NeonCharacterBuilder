@@ -206,17 +206,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
 				JsonDataLoader.loadCharacterStateFromFile(sheet, fileChooser.getSelectedFile());
-				// TODO figure out how to flag if something failed to load
-				if (true)
-				{
-					new Toast("Successfully loaded character sheet.", 0);
-				}
-				else
-				{
-					JOptionPane.showMessageDialog(null,
-							"Encountered an error while loading character. Most likely the data set of the character builder this character was created on is different than this character builder's dataset. As much of the character was loaded as possible but some fields may have changed or been missed.",
-							"Character Load Error", JOptionPane.ERROR_MESSAGE);
-				}
+				new Toast("Loaded character.", 0);
 				nameF.setText(sheet.getName());
 			}
 		}
@@ -226,7 +216,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 
 	public static void main(String[] args)
 	{
-		// TODO post1.0 - figure out a way to only do this on larger screens, checking
+		// TODO future - figure out a way to only do this on larger screens, checking
 		// screensize with toolkit "locks in" the scaling, so that doesn't work.
 		System.setProperty("sun.java2d.uiScale", "2.0");
 

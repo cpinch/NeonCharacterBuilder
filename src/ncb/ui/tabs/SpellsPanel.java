@@ -40,6 +40,7 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 		PropertyListener.listenForChanges(PropertyListener.SPECIES, this);
 		PropertyListener.listenForChanges(PropertyListener.SELECTED, this);
+		PropertyListener.listenForChanges(PropertyListener.SPELLS, this);
 
 		grantedSpellsPanel.setLayout(new BoxLayout(grantedSpellsPanel, BoxLayout.Y_AXIS));
 		grantedSpellsPanel.setAlignmentX(JComponent.LEFT_ALIGNMENT);

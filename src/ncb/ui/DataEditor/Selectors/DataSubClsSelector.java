@@ -23,9 +23,9 @@ public class DataSubClsSelector extends SelectorPanel
 	}
 
 	@Override
-	protected void createNew(String name)
+	protected Customizable createNew(String name)
 	{
-		Subclass.addNewSubclass(name);
+		return Subclass.addNewSubclass(name);
 	}
 
 	@Override

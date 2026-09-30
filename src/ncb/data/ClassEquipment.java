@@ -21,6 +21,12 @@ public class ClassEquipment implements HasConfig
 		this.parent = p;
 	}
 
+	@Override
+	public int getId()
+	{
+		return 0;
+	}
+
 	// Configuration
 	private String items = "";
 	private int notes = 0;

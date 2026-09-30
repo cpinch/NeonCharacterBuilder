@@ -23,9 +23,9 @@ public class DataHwSelector extends SelectorPanel
 	}
 
 	@Override
-	protected void createNew(String name)
+	protected Customizable createNew(String name)
 	{
-		Homeworld.addNewHomeworld(name);
+		return Homeworld.addNewHomeworld(name);
 	}
 
 	@Override

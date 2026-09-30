@@ -157,8 +157,6 @@ public class UILib
 		return textPane;
 	}
 
-	// TODO - Think about, instead of taking in an action listener, taking in an
-	// action callback and making an anon action listener
 	public static JCheckBox addCheckbox(JComponent parent, String label, ActionListener listener, Color fg)
 	{
 		JCheckBox box = getCheckbox(label, listener, fg);

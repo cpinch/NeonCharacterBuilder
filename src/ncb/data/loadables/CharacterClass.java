@@ -188,14 +188,16 @@ public class CharacterClass extends Feature
 		allClasses.sort((a, b) -> a.getName().compareTo(b.getName()));
 	}
 
-	public static void addNewClass(String newName)
+	public static CharacterClass addNewClass(String newName)
 	{
 		if (!newName.isBlank())
 		{
 			CharacterClass cc = new CharacterClass();
 			cc.setName(newName);
 			allClasses.add(cc);
+			return cc;
 		}
+		return null;
 	}
 
 	// Configuration
@@ -206,7 +208,6 @@ public class CharacterClass extends Feature
 	private final List<Ability> primaryAbilityOptions = new ArrayList<>();
 	private final List<ClassEquipment> equipment = new ArrayList<>();
 	private final List<Feature> classFeatures = new ArrayList<>();
-	private final ClassSpells classSpells = new ClassSpells();
 
 	public String getDesc()
 	{
@@ -289,23 +290,19 @@ public class CharacterClass extends Feature
 		});
 	}
 
-	public List<Feature> getFeaturesAtLevel(int lvl)
+	@Override
+	public List<String> getFeatureNamesAtLevel(int lvl)
 	{
-		List<Feature> features = new ArrayList<>();
-		for (Feature f : classFeatures)
-		{
-			if (f.getLevel() == lvl)
-			{
-				features.add(f);
-			}
-		}
+		List<String> names = new ArrayList<>();
+		classFeatures.forEach(f -> names.addAll(f.getFeatureNamesAtLevel(lvl)));
+
+		// Hardcoding when classes get subclasses
 		if (lvl == 3)
 		{
-			Feature subclassF = new Feature();
-			subclassF.setName("Gain a Subclass");
-			features.add(subclassF);
+			names.add("Gain a Subclass");
 		}
-		return features;
+
+		return names;
 	}
 
 	public List<Feature> getAllClassFeatures()
@@ -400,10 +397,14 @@ public class CharacterClass extends Feature
 		{
 			Feature fe = new Feature();
 			fe.loadConfig(f);
+			fe.setParent(this);
 			classFeatures.add(fe);
 		});
 		classSpells.loadConfig(data.optJSONObject("classSpells"));
 	}
+
+	// Class Spells has both config and state
+	private final ClassSpells classSpells = new ClassSpells();
 
 	// State
 	private Ability selectedPrimary = null;
@@ -481,6 +482,8 @@ public class CharacterClass extends Feature
 		json = putInt(json, "selectedEquipmentIndex", selectedEquipmentIndex);
 		json = putInt(json, "level", level);
 
+		json = putObjList(json, "features", classFeatures.stream().map(f -> f.saveState()).toList());
+
 		if (subclass != null)
 		{
 			JSONObject subclassObj = new JSONObject();
@@ -488,6 +491,16 @@ public class CharacterClass extends Feature
 			subclassObj.put("state", subclass.saveState());
 			json = putObj(json, "subclass", subclassObj);
 		}
+		json = putObj(json, "classSpells", classSpells.saveState());
+
+		json = putObjList(json, "features", classFeatures.stream().map(f ->
+		{
+			JSONObject d = new JSONObject();
+			d.put("fname", f.getName());
+			d.put("flvl", f.getLevel());
+			d.put("fstate", f.saveState());
+			return d;
+		}).toList());
 
 		return json;
 	}
@@ -495,18 +508,36 @@ public class CharacterClass extends Feature
 	@Override
 	public void loadState(JSONObject data)
 	{
+		super.loadState(data);
+
 		String selectedPrimaryName = data.optString("selectedPrimary", "");
 		if (!selectedPrimaryName.isBlank())
 		{
-			selectedPrimary = Ability.valueOf(selectedPrimaryName);
+			setSelectedPrimary(Ability.valueOf(selectedPrimaryName));
 		}
-		selectedEquipmentIndex = data.optInt("selectedEquipmentIndex", 0);
-		level = data.optInt("level", 1);
+		setSelectedEquipmentIndex(data.optInt("selectedEquipmentIndex", 0));
+		setLevel(data.optInt("level", 1));
 		JSONObject subclassO = data.optJSONObject("subclass");
 		if (subclassO != null)
 		{
-			subclass = Subclass.getByName(subclassO.getString("name"));
-			subclass.loadState(subclassO.getJSONObject("state"));
+			Subclass sub = Subclass.getByName(subclassO.getString("name"));
+			sub.loadState(subclassO.getJSONObject("state"));
+			setSubclass(sub);
 		}
+		classSpells.loadState(data.optJSONObject("classSpells"));
+
+		getObjList(data, "features").forEach(f ->
+		{
+			String fname = f.getString("fname");
+			int flvl = f.getInt("flvl");
+			for (Feature f2 : classFeatures)
+			{
+				if (f2.getName().equals(fname) && f2.getLevel() == flvl)
+				{
+					f2.loadState(f.getJSONObject("fstate"));
+					break;
+				}
+			}
+		});
 	}
 }

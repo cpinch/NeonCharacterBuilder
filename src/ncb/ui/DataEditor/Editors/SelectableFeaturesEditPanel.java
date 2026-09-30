@@ -38,7 +38,7 @@ public class SelectableFeaturesEditPanel extends NoHorizontalScrollPanel impleme
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.gridwidth = 2;
 		removeAll();
-		for (Feature sf : sel.getFeatures())
+		for (Feature sf : sel.getOriginalFeatures())
 		{
 			FeatureEditPanel sfep = new FeatureEditPanel(sf, false, null);
 			add(sfep, c);

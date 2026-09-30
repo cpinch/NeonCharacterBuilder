@@ -6,6 +6,8 @@ public interface Customizable
 
 	public abstract void setParent(Customizable p);
 
+	public abstract int getId();
+
 	default boolean isCustom()
 	{
 		return false;

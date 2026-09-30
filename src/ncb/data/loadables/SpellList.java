@@ -65,6 +65,7 @@ public class SpellList implements HasConfig
 		this.id = nId++;
 	}
 
+	@Override
 	public int getId()
 	{
 		return id;
@@ -157,14 +158,16 @@ public class SpellList implements HasConfig
 		return null;
 	}
 
-	public static void addNewSpellList(String newName)
+	public static SpellList addNewSpellList(String newName)
 	{
 		if (!newName.isBlank())
 		{
 			SpellList sl = new SpellList();
 			sl.setName(newName);
 			allSpellLists.add(sl);
+			return sl;
 		}
+		return null;
 	}
 
 	public static void sortAll()
@@ -189,8 +192,6 @@ public class SpellList implements HasConfig
 			setCustom(true);
 		}
 	}
-
-	// TODO - spellNames getter/setter
 
 	@Override
 	public JSONObject saveConfig()
