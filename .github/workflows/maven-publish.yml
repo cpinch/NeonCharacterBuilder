@@ -35,14 +35,18 @@ jobs:
       run: mvn -B clean compile assembly:single --file pom.xml
 
     - name: Run jpackage (Windows)
-      run: jpackage --type exe --name NeonCharacterBuilder --input target --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
+      run: jpackage --type app-image --name NeonCharacterBuilder --input target --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
+
+    - name: Zip up the App Image
+      shell: powershell
+      run: Compress-Archive -Path target/NeonCharacterBuilder -DestinationPath target/NeonCharacterBuilder-Windows.zip
 
     - name: Create Release and Upload Asset
       uses: softprops/action-gh-release@v2
       with:
         files: |
           target/NeonCharacterBuilder.jar
-          target/*.exe
+          target/NeonCharacterBuilder-Windows.zip
         generate_release_notes: true
         fail_on_unmatched_files: true
       env:
