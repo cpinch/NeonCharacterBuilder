@@ -35,7 +35,7 @@ jobs:
       run: mvn -B clean compile assembly:single --file pom.xml
 
     - name: Run jpackage (Windows)
-      run: jpackage --type exe --name NeonCharacterBuilder --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
+      run: jpackage --type exe --name NeonCharacterBuilder --input target --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
 
     - name: Create Release and Upload Asset
       uses: softprops/action-gh-release@v2
