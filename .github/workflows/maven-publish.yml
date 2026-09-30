@@ -19,9 +19,6 @@ jobs:
           - os: windows-latest
             artifact_name: NeonCharacterBuilder
             ext: exe
-          - os: macos-latest
-            artifact_name: NeonCharacterBuilder
-            ext: app
 
     steps:
     - name: Checkout Code
@@ -40,10 +37,6 @@ jobs:
     - name: Run jpackage (Windows)
       if: runner.os == 'windows-latest'
       run: jpackage --type exe --name NeonCharacterBuilder --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
-
-    - name: Run jpackage (Mac)
-      if: runner.os == 'macos-latest'
-      run: jpackage --type app --name NeonCharacterBuilder --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
 
     - name: Create Release and Upload Asset
       uses: softprops/action-gh-release@v2
