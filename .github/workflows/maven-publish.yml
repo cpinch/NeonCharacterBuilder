@@ -35,7 +35,6 @@ jobs:
       run: mvn -B clean compile assembly:single --file pom.xml
 
     - name: Run jpackage (Windows)
-      if: runner.os == 'windows-latest'
       run: jpackage --type exe --name NeonCharacterBuilder --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest target
 
     - name: Create Release and Upload Asset
@@ -44,7 +43,6 @@ jobs:
         files: |
           target/NeonCharacterBuilder.jar
           target/NeonCharacterBuilder.exe
-          target/NeonCharacterBuilder.app
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
