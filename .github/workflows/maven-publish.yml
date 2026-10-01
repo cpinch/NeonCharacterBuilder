@@ -37,7 +37,7 @@ jobs:
     - name: Run jpackage (Windows)
       run: jpackage --type app-image --name NeonCharacterBuilder --input target --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest dist-win
 
-    - name: Zip up the App Image
+    - name: Zip up the App Image (Windows)
       shell: powershell
       run: Compress-Archive -Path dist-win/NeonCharacterBuilder -DestinationPath target/NeonCharacterBuilder-Windows.zip
 
