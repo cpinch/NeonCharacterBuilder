@@ -102,7 +102,14 @@ Some classes and species have extra selectable options built-in that are unique 
 
 Selectables have 3 parts.
 + Selectable Type - Should be set to match whatever was entered in the "Choose Selectable" above, this is how these are located for each class feature/species trait.
-+ Selectable Prereqs - Current 3 types of prereqs are supported. Class Level expects a comma separated list of required class levels in the format "(class)-(level)", ie "Cryptist-2". Prior Selection expects a name of a Class Feature, Selectable, or Feat that must already be on the character sheet for this option to be available. Homeworld Trait expects a comma separated list of homeworld traits, at least one of which must be present in the user's chosen homeworld.
++ Selectable Prereqs - 7 types of prereqs are supported.
++ + Class Level - Select a class from the dropdown and set the value to the level required in that class
++ + Character Level - Set the value to the character level required
++ + Prior Selection - Enter the name of a Class Feature, Selectable, or Feat that must already be on the character sheet.
++ + Homeworld Trait - Enter a comma separated list of homeworld traits, at least one of which must be present in the user's chosen homeworld.
++ + Ability Score - Enter a comma separated list of abilities (ie "Str, Con") and set the value to the score required
++ + Armor Training - Select the armor training required
++ + Spellcaster - No further input, this just matches if the user is a spellcaster from any source
 + Selectable Features - These are Features. See below for details.
 
 ### Subclass
@@ -146,6 +153,8 @@ A lot of things in this application are classified as "Features", a generic catc
 + Gives Skills or Expertise - Comma separated list of skills that the character will get proficiency in if they don't have it or expertise if they do
 + Choose Feat - Expects a single feat type (ie "Origin" or "Fighting Style", etc). Optionally you may add "(ignores prereqs)" after the feat trait name to indicate that it ignores feat prereqs (for example, a feature that allows picking any Origin feat, regardless of homeworld)
 + Choose Selectable - Expects a single selectable type (see Selectables above for more details). Note that if both Feat and Selectable are added for a single feature they will be combined into a single list, useful for features that offer selections like "Choose a feat of type. You may also choose from the options below"
++ Gives Ability Score Increases - Text field expects a comma separated list of abilities to increase by 1, number field is the max that this increase can raise the given ability to.
++ Choose Ability Score Increases - Text field expects a comma separated list of abilities a player can choose to increase by 1, number field is the max that this increase can raise the given ability to.
 + Puts Notes on Sheet - Text field, goes straight into the Notes field on the character sheet without being shown anywhere in the app.
 
 ### Feature Upgrades

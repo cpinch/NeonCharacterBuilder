@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import org.json.JSONObject;
 
 import ncb.data.enums.Ability;
+import ncb.data.enums.ArmorTraining;
 import ncb.data.loadables.Homeworld;
 import ncb.data.loadables.Selectable;
 import ncb.data.loadables.Spell;
@@ -73,6 +74,15 @@ public interface HasConfig extends Customizable, SavesLoadsJson
 	}
 
 	default void updateConfig(Ability o, Ability n, Consumer<Ability> setter)
+	{
+		if ((o == null && n != null) || (o != null && n == null) || (o != n && !o.toString().equals(n.toString())))
+		{
+			setter.accept(n);
+			setCustom(true);
+		}
+	}
+
+	default void updateConfig(ArmorTraining o, ArmorTraining n, Consumer<ArmorTraining> setter)
 	{
 		if ((o == null && n != null) || (o != null && n == null) || (o != n && !o.toString().equals(n.toString())))
 		{

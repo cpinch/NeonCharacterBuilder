@@ -42,6 +42,7 @@ public class Homeworld implements HasConfig
 		this.id = nId++;
 	}
 
+	@Override
 	public int getId()
 	{
 		return id;
@@ -60,8 +61,8 @@ public class Homeworld implements HasConfig
 			return;
 		}
 		Homeworld newH = new Homeworld();
-		newH.loadConfig(data);
 		newH.setCustom(custom);
+		newH.loadConfig(data);
 		allHomeworlds.add(newH);
 	}
 
@@ -70,7 +71,7 @@ public class Homeworld implements HasConfig
 
 	public static List<Homeworld> getAllHomeworlds()
 	{
-		return allHomeworlds;
+		return new ArrayList<>(allHomeworlds);
 	}
 
 	public static Homeworld getById(int id)
@@ -136,7 +137,7 @@ public class Homeworld implements HasConfig
 
 	public List<String> getTraits()
 	{
-		return traits;
+		return new ArrayList<>(traits);
 	}
 
 	public void setTraits(List<String> t)

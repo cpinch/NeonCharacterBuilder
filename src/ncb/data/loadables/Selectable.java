@@ -41,8 +41,8 @@ public class Selectable extends Feature
 			return;
 		}
 		Selectable newSel = new Selectable();
-		newSel.loadConfig(data);
 		newSel.setCustom(custom);
+		newSel.loadConfig(data);
 		allSelectables.add(newSel);
 	}
 
@@ -99,7 +99,7 @@ public class Selectable extends Feature
 
 	public static List<Selectable> getAllSelectables()
 	{
-		return allSelectables;
+		return new ArrayList<>(allSelectables);
 	}
 
 	public static List<Selectable> getAllValidSelectables(CharacterSheet sheet)
@@ -209,16 +209,7 @@ public class Selectable extends Feature
 
 	public List<Prereq> getPrereqs()
 	{
-		return prereqs;
-	}
-
-	public void setPrereqs(List<Prereq> prereqs)
-	{
-		updateConfig(this.prereqs, prereqs, (v) ->
-		{
-			this.prereqs.clear();
-			this.prereqs.addAll(v);
-		});
+		return new ArrayList<>(prereqs);
 	}
 
 	public List<Feature> getFeatures()
@@ -229,7 +220,7 @@ public class Selectable extends Feature
 
 	public List<Feature> getOriginalFeatures()
 	{
-		return features;
+		return new ArrayList<>(features);
 	}
 
 	@Override
@@ -243,15 +234,6 @@ public class Selectable extends Feature
 		features.forEach(f -> names.addAll(f.getFeatureNamesAtLevel(lvl)));
 
 		return names;
-	}
-
-	public void setFeatures(List<Feature> features)
-	{
-		updateConfig(this.features, features, (v) ->
-		{
-			this.features.clear();
-			this.features.addAll(v);
-		});
 	}
 
 	@Override
@@ -276,14 +258,52 @@ public class Selectable extends Feature
 		getObjList(data, "prereqs").forEach(p ->
 		{
 			Prereq pr = new Prereq();
+			pr.setParent(this);
 			pr.loadConfig(p);
 			prereqs.add(pr);
 		});
+		features.clear();
 		getObjList(data, "features").forEach(f ->
 		{
 			Feature fe = new Feature();
+			fe.setParent(this);
 			fe.loadConfig(f);
 			features.add(fe);
+		});
+	}
+
+	@Override
+	public JSONObject saveState()
+	{
+		JSONObject json = super.saveState();
+
+		json = putObjList(json, "features", features.stream().map(f ->
+		{
+			JSONObject fState = new JSONObject();
+			fState.put("name", f.getName());
+			fState.put("state", f.saveState());
+			return fState;
+		}).toList());
+
+		return json;
+	}
+
+	@Override
+	public void loadState(JSONObject data)
+	{
+		super.loadState(data);
+
+		getObjList(data, "features").forEach(f ->
+		{
+			String name = f.getString("name");
+			for (Feature fe : features)
+			{
+				if (fe.getName().equals(name))
+				{
+					fe.loadState(f.getJSONObject("state"));
+					break;
+				}
+			}
 		});
 	}
 }

@@ -19,7 +19,6 @@ import ncb.data.interfaces.GetAll;
 import ncb.data.interfaces.HasConfig;
 import ncb.data.interfaces.HasState;
 import ncb.data.loadables.Feat;
-import ncb.data.loadables.Homeworld;
 import ncb.data.loadables.Language;
 import ncb.data.loadables.Selectable;
 import ncb.data.loadables.Spell;
@@ -167,6 +166,8 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private final List<Skill> skillsOptsToAddExtraAbl = new ArrayList<>();
 	private Ability extraAblForSkillOpt = null;
 	private final List<Skill> profOrExp = new ArrayList<>();
+	private final List<AbilityIncrease> increasesAbilities = new ArrayList<>();
+	private final List<AbilityIncrease> abilityIncreaseOptions = new ArrayList<>();
 
 	public String getName()
 	{
@@ -287,7 +288,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Ability> getSaveProfs()
 	{
-		return saveProfs;
+		return new ArrayList<>(saveProfs);
 	}
 
 	public void setSaveProfs(List<Ability> saves)
@@ -301,7 +302,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<String> getWeaponProfs()
 	{
-		return weaponProfs;
+		return new ArrayList<>(weaponProfs);
 	}
 
 	public void setWeaponProfs(List<String> weapons)
@@ -315,7 +316,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<String> getToolProfs()
 	{
-		return tools;
+		return new ArrayList<>(tools);
 	}
 
 	public void setToolProfs(List<String> tools)
@@ -329,7 +330,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<String> getVehicleProfs()
 	{
-		return vehicles;
+		return new ArrayList<>(vehicles);
 	}
 
 	public void setVehicleProfs(List<String> profs)
@@ -343,7 +344,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<ArmorTraining> getArmorProfs()
 	{
-		return armorTrains;
+		return new ArrayList<>(armorTrains);
 	}
 
 	public void setArmorProfs(List<ArmorTraining> armor)
@@ -357,7 +358,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Skill> getSkillsGranted()
 	{
-		return skillProfs;
+		return new ArrayList<>(skillProfs);
 	}
 
 	public void setSkillsGranted(List<Skill> skills)
@@ -371,7 +372,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Spell> getSpellsGranted()
 	{
-		return freeSpells;
+		return new ArrayList<>(freeSpells);
 	}
 
 	public void setSpellsGranted(List<Spell> spells)
@@ -385,7 +386,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Language> getLanguagesGranted()
 	{
-		return freeLangs;
+		return new ArrayList<>(freeLangs);
 	}
 
 	public void setLanguagesGranted(List<Language> langs)
@@ -399,11 +400,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<String> getResistancesGranted()
 	{
-		return freeRes;
+		return new ArrayList<>(freeRes);
 	}
 
 	public void setResistancesGranted(List<String> res)
 	{
+		System.out.println("Setting res " + res + " / " + res.size());
 		updateConfig(freeRes, res, (v) ->
 		{
 			this.freeRes.clear();
@@ -413,7 +415,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Ability> getAbilitiesToAC()
 	{
-		return ACAbilities;
+		return new ArrayList<>(ACAbilities);
 	}
 
 	public void setAbilitiesToAC(List<Ability> abilities)
@@ -427,7 +429,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<String> getResistanceOptions()
 	{
-		return optResistances;
+		return new ArrayList<>(optResistances);
 	}
 
 	public void setResistanceOptions(List<String> res)
@@ -454,7 +456,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Skill> getSkillSelectionOptions()
 	{
-		return skillOptions;
+		return new ArrayList<>(skillOptions);
 	}
 
 	public void setSkillSelectionOptions(List<Skill> skills)
@@ -481,7 +483,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Skill> getSkillExpertOptions()
 	{
-		return optSkillExps;
+		return new ArrayList<>(optSkillExps);
 	}
 
 	public void setSkillExpertOptions(List<Skill> skills)
@@ -536,7 +538,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Spell> getSpecificSpellChoices()
 	{
-		return optSpellChoices;
+		return new ArrayList<>(optSpellChoices);
 	}
 
 	public void setSpecificSpellChoices(List<Spell> spells)
@@ -589,22 +591,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public Map<String, String> getResistancesByHomeworld()
 	{
-		return resistanceByHomeworldTrait;
-	}
-
-	public String getResistanceByHomeworld(Homeworld h)
-	{
-		if (h != null)
-		{
-			for (String trait : h.getTraits())
-			{
-				if (resistanceByHomeworldTrait.containsKey(trait))
-				{
-					return resistanceByHomeworldTrait.get(trait);
-				}
-			}
-		}
-		return "";
+		return new HashMap<>(resistanceByHomeworldTrait);
 	}
 
 	public void setResistancesByHomeworld(Map<String, String> resByHome)
@@ -618,7 +605,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public Map<Skill, Ability> getAbilitiesAddToSkills()
 	{
-		return skillsAddExtraAbility;
+		return new HashMap<>(skillsAddExtraAbility);
 	}
 
 	public void setAbilitiesAddToSkills(Map<Skill, Ability> sToA)
@@ -632,7 +619,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public Map<Integer, List<SpellChoice>> getSpellChoices()
 	{
-		return spellChoices;
+		return new HashMap<>(spellChoices);
 	}
 
 	public void setSpellChoices(Map<Integer, List<SpellChoice>> spellChoices)
@@ -646,7 +633,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Feature> getUpgrades()
 	{
-		return upgrades;
+		return new ArrayList<>(upgrades);
 	}
 
 	public void addUpgrade()
@@ -684,7 +671,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Ability> getInitAbilities()
 	{
-		return initAbilities;
+		return new ArrayList<>(initAbilities);
 	}
 
 	public void setInitAbilities(List<Ability> abls)
@@ -698,7 +685,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Skill> getSkillsWAblSkills()
 	{
-		return skillsOptsToAddExtraAbl;
+		return new ArrayList<>(skillsOptsToAddExtraAbl);
 	}
 
 	public Ability getSkillsWAblAbility()
@@ -720,7 +707,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public List<Skill> getSkillProfOrExpertise()
 	{
-		return profOrExp;
+		return new ArrayList<>(profOrExp);
 	}
 
 	public void setSkillProfOrExpertise(List<Skill> skills)
@@ -729,6 +716,34 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			profOrExp.clear();
 			profOrExp.addAll(v);
+		});
+	}
+
+	public List<AbilityIncrease> getIncreasedAbilities()
+	{
+		return new ArrayList<>(increasesAbilities);
+	}
+
+	public void setIncreasedAbilities(List<AbilityIncrease> abl)
+	{
+		updateConfig(increasesAbilities, abl, (v) ->
+		{
+			increasesAbilities.clear();
+			increasesAbilities.addAll(v);
+		});
+	}
+
+	public List<AbilityIncrease> getAbilityIncreaseOptions()
+	{
+		return new ArrayList<>(abilityIncreaseOptions);
+	}
+
+	public void setAbilityIncreaseOptions(List<AbilityIncrease> abl)
+	{
+		updateConfig(abilityIncreaseOptions, abl, (v) ->
+		{
+			abilityIncreaseOptions.clear();
+			abilityIncreaseOptions.addAll(v);
 		});
 	}
 
@@ -793,6 +808,9 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		json = putStr(json, "extraAblForSkillChoices",
 				extraAblForSkillOpt == null ? "" : extraAblForSkillOpt.toString());
 		json = putList(json, "profOrExp", profOrExp.stream().map(s -> s.toString()).toList());
+		json = putObjList(json, "increasesAbilities", increasesAbilities.stream().map(ia -> ia.saveConfig()).toList());
+		json = putObjList(json, "abilityIncreaseOptions",
+				abilityIncreaseOptions.stream().map(ia -> ia.saveConfig()).toList());
 
 		return json;
 	}
@@ -889,6 +907,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		}
 		profOrExp.clear();
 		profOrExp.addAll(getList(data, "profOrExp").stream().map(s -> Skill.skillByName(s)).toList());
+		increasesAbilities.clear();
+		increasesAbilities
+				.addAll(getObjList(data, "increasesAbilities").stream().map(ia -> new AbilityIncrease(ia)).toList());
+		abilityIncreaseOptions.clear();
+		abilityIncreaseOptions.addAll(
+				getObjList(data, "abilityIncreaseOptions").stream().map(ia -> new AbilityIncrease(ia)).toList());
 	}
 
 	// Used for upgrades, as we want to keep the same state
@@ -909,6 +933,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private Feat feat;
 	private Spell chosenSpell;
 	private Skill skillWAblSelected = null;
+	private final List<AbilityIncrease> abilityIncreasesSelected = new ArrayList<>();
 
 	public List<String> getResistancesSelected()
 	{
@@ -918,7 +943,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		}
 		else
 		{
-			return resistancesSelected;
+			return new ArrayList<>(resistancesSelected);
 		}
 	}
 
@@ -946,7 +971,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		}
 		else
 		{
-			return skillsSelected;
+			return new ArrayList<>(skillsSelected);
 		}
 	}
 
@@ -974,7 +999,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		}
 		else
 		{
-			return skillExpertsSelected;
+			return new ArrayList<>(skillExpertsSelected);
 		}
 	}
 
@@ -1002,7 +1027,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		}
 		else
 		{
-			return languagesSelected;
+			return new ArrayList<>(languagesSelected);
 		}
 	}
 
@@ -1158,6 +1183,27 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		return map;
 	}
 
+	public List<AbilityIncrease> getAbilityIncreasesSelected()
+	{
+		return new ArrayList<>(abilityIncreasesSelected);
+	}
+
+	public void setAbilityIncreasesSelected(List<AbilityIncrease> abl)
+	{
+		if (isCopy)
+		{
+			original.setAbilityIncreasesSelected(abl);
+		}
+		else
+		{
+			updateWithAlert(abilityIncreasesSelected, abl, (v) ->
+			{
+				abilityIncreasesSelected.clear();
+				abilityIncreasesSelected.addAll(v);
+			}, PropertyListener.ABILITYSCOREINC);
+		}
+	}
+
 	@Override
 	public JSONObject saveState()
 	{
@@ -1195,6 +1241,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			json = putStr(json, "skillWAbl", skillWAblSelected.toString());
 		}
+		if (!abilityIncreasesSelected.isEmpty())
+		{
+			json = putList(json, "abilityIncreases",
+					abilityIncreasesSelected.stream().map(ai -> ai.getAbility().toString()).toList());
+		}
 
 		return json;
 	}
@@ -1231,6 +1282,18 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			setSkillWAbilitySelected(Skill.skillByName(skillWAblSelectedName));
 		}
+		setAbilityIncreasesSelected(getList(data, "abilityIncreases").stream().map(a ->
+		{
+			Ability abl = Ability.valueOf(a);
+			for (AbilityIncrease ai : abilityIncreaseOptions)
+			{
+				if (ai.getAbility() == abl)
+				{
+					return ai;
+				}
+			}
+			return abilityIncreaseOptions.get(0);
+		}).toList());
 	}
 
 	public Feature(Feature original)

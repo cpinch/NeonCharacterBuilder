@@ -33,7 +33,7 @@ public class FeatEditPanel extends EditPanel
 		super();
 
 		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Feat Type: ", c, Color.white, Color.black,
-				() -> feat.getType(), (s) -> feat.setType(s)));
+				() -> feat.getFeatType(), (s) -> feat.setFeatType(s)));
 		c.gridy++;
 
 		c.weighty = 1;

@@ -72,8 +72,8 @@ public class Species extends Feature
 			return;
 		}
 		Species newS = new Species();
-		newS.loadConfig(data);
 		newS.setCustom(custom);
+		newS.loadConfig(data);
 		allSpecies.add(newS);
 	}
 
@@ -107,7 +107,7 @@ public class Species extends Feature
 	public List<Feature> getAllTraits()
 	{
 		traits.sort((a, b) -> a.getName().compareTo(b.getName()));
-		return traits;
+		return new ArrayList<>(traits);
 	}
 
 	public List<Feature> getTraits()
@@ -156,7 +156,7 @@ public class Species extends Feature
 
 	public static List<Species> getAllSpecies()
 	{
-		return allSpecies;
+		return new ArrayList<>(allSpecies);
 	}
 
 	public static Species getByName(String name)
@@ -301,8 +301,8 @@ public class Species extends Feature
 		getObjList(data, "traits").forEach(t ->
 		{
 			Feature f = new Feature();
-			f.loadConfig(t);
 			f.setParent(this);
+			f.loadConfig(t);
 			traits.add(f);
 		});
 	}

@@ -1,12 +1,12 @@
 package ncb.data;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.json.JSONObject;
 
+import ncb.data.enums.Ability;
+import ncb.data.enums.ArmorTraining;
 import ncb.data.interfaces.Customizable;
 import ncb.data.interfaces.HasConfig;
 import ncb.data.loadables.CharacterClass;
@@ -15,8 +15,11 @@ import ncb.main.CharacterSheet;
 
 public class Prereq implements HasConfig
 {
-	private static final String clsLvl = "Class Level", pSel = "Prior Selection", hTrait = "Homeworld Trait";
-	public static final List<String> prereqTypes = List.of(clsLvl, pSel, hTrait);
+	public static final String clsLvl = "Class Level", chrLvl = "Character Level", pSel = "Prior Selection",
+			hTrait = "Homeworld Trait", ablScore = "Ability Score Minimum", armor = "Armor Training",
+			spellcast = "Spellcaster";
+	public static final List<String> prereqTypes = List.of(clsLvl, chrLvl, pSel, hTrait, ablScore, armor, spellcast);
+
 	private static int nId = 1;
 	private final int id;
 	private Customizable parent;
@@ -52,7 +55,7 @@ public class Prereq implements HasConfig
 				Homeworld h = sheet.getBackground().getHomeworld();
 				if (h != null)
 				{
-					for (String req : required)
+					for (String req : reqHwTrait)
 					{
 						if (h.hasTrait(req))
 						{
@@ -62,40 +65,48 @@ public class Prereq implements HasConfig
 				}
 				return false;
 			case clsLvl:
-				final Map<String, Integer> requiredClassLevels = new HashMap<>();
-				required.forEach(
-						r -> requiredClassLevels.put(r.split("-")[0].trim(), Integer.parseInt(r.split("-")[1].trim())));
 				List<CharacterClass> classes = List.of(sheet.getCharClass()); // TODO Multiclass
 
-				for (Map.Entry<String, Integer> rcl : requiredClassLevels.entrySet())
-				{
-					if (classes.stream()
-							.anyMatch(c -> c.getName().equals(rcl.getKey()) && c.getLevel() >= rcl.getValue()))
-					{
-						return true;
-					}
-				}
-				return false;
+				return classes.stream().anyMatch(c -> c.getName().equals(reqClassName) && c.getLevel() >= reqVal);
 			case pSel:
 				for (Feature cf : sheet.getCharClass().getClassFeatures())
 				{
-					if (cf.getName().equals(required.get(0))
-							|| (cf.getSelected() != null && cf.getSelected().getName().equals(required.get(0)))
-							|| cf.getFeat() != null && cf.getFeat().getName().equals(required.get(0)))
+					if (cf.getName().equals(reqFeatureName)
+							|| (cf.getSelected() != null && cf.getSelected().getName().equals(reqFeatureName))
+							|| cf.getFeat() != null && cf.getFeat().getName().equals(reqFeatureName))
 					{
 						return true;
 					}
 				}
 				return false;
+			case chrLvl:
+				return sheet.getLevel() >= reqVal;
+			case ablScore:
+				for (Ability a : reqAbls)
+				{
+					if (sheet.getTotalAbilityScore(a) >= reqVal)
+					{
+						return true;
+					}
+				}
+				return false;
+			case armor:
+				return sheet.getAllArmorProfs().contains(reqArmor);
+			case spellcast:
+				return sheet.isSpellcaster();
 			default:
 				System.err.println("Unknown Prereq Type " + type);
+				return false;
 		}
-		return false;
 	}
 
 	// Configuration
-	private String type = "";
-	private final List<String> required = new ArrayList<>();
+	private String type = clsLvl;
+	private final List<String> reqHwTrait = new ArrayList<>();
+	private String reqClassName = "", reqFeatureName = "";
+	private final List<Ability> reqAbls = new ArrayList<>();
+	private ArmorTraining reqArmor = null;
+	private int reqVal = 0;
 
 	public String getType()
 	{
@@ -110,17 +121,83 @@ public class Prereq implements HasConfig
 		});
 	}
 
-	public List<String> getRequired()
+	public List<String> getReqHwTraits()
 	{
-		return required;
+		return reqHwTrait;
 	}
 
-	public void setRequired(List<String> req)
+	public void setReqHwTraits(List<String> traits)
 	{
-		updateConfig(this.required, req, (v) ->
+		updateConfig(reqHwTrait, traits, (v) ->
 		{
-			this.required.clear();
-			this.required.addAll(v);
+			reqHwTrait.clear();
+			reqHwTrait.addAll(traits);
+		});
+	}
+
+	public String getReqClassName()
+	{
+		return reqClassName;
+	}
+
+	public void setReqClassName(String name)
+	{
+		updateConfig(reqClassName, name, (v) ->
+		{
+			reqClassName = v;
+		});
+	}
+
+	public String getReqFeatureName()
+	{
+		return reqFeatureName;
+	}
+
+	public void setReqFeatureName(String name)
+	{
+		updateConfig(reqFeatureName, name, (v) ->
+		{
+			reqFeatureName = v;
+		});
+	}
+
+	public List<Ability> getReqAbilities()
+	{
+		return reqAbls;
+	}
+
+	public void setReqAbilities(List<Ability> abls)
+	{
+		updateConfig(reqAbls, abls, (v) ->
+		{
+			reqAbls.clear();
+			reqAbls.addAll(v);
+		});
+	}
+
+	public ArmorTraining getReqArmor()
+	{
+		return reqArmor;
+	}
+
+	public void setReqArmor(ArmorTraining at)
+	{
+		updateConfig(reqArmor, at, (v) ->
+		{
+			reqArmor = v;
+		});
+	}
+
+	public int getReqVal()
+	{
+		return reqVal;
+	}
+
+	public void setReqVal(int val)
+	{
+		updateConfig(reqVal, val, (v) ->
+		{
+			reqVal = v;
 		});
 	}
 
@@ -130,7 +207,26 @@ public class Prereq implements HasConfig
 		JSONObject json = new JSONObject();
 
 		json = putStr(json, "type", type);
-		json = putList(json, "required", required);
+
+		switch (type)
+		{
+			case hTrait:
+				json = putList(json, "hwTraits", reqHwTrait);
+			break;
+			case pSel:
+				json = putStr(json, "feature", reqFeatureName);
+			break;
+			case clsLvl:
+				json = putStr(json, "class", reqClassName);
+			break;
+			case ablScore:
+				json = putList(json, "abilities", reqAbls.stream().map(a -> a.toString()).toList());
+			break;
+			case armor:
+				json = putStr(json, "armor", reqArmor.toString());
+			break;
+		}
+		json = putInt(json, "val", reqVal);
 
 		return json;
 	}
@@ -139,8 +235,19 @@ public class Prereq implements HasConfig
 	public void loadConfig(JSONObject data)
 	{
 		type = data.optString("type", "");
-		required.clear();
-		getList(data, "required").forEach(r -> required.add(r));
+
+		reqHwTrait.clear();
+		reqHwTrait.addAll(getList(data, "hwTraits"));
+		reqClassName = data.optString("class", "");
+		reqFeatureName = data.optString("feature", "");
+		reqAbls.clear();
+		getList(data, "abilities").forEach(a -> reqAbls.add(Ability.valueOf(a)));
+		reqVal = data.optInt("val", 0);
+		String atName = data.optString("armor", "");
+		if (!atName.isBlank())
+		{
+			reqArmor = ArmorTraining.valueOf(atName);
+		}
 	}
 
 	@Override
@@ -149,11 +256,19 @@ public class Prereq implements HasConfig
 		switch (type)
 		{
 			case hTrait:
-				return "Requires Homeworld has trait in (" + String.join(", ", required) + ")";
+				return "Requires Homeworld with trait in (" + String.join(", ", reqHwTrait) + ")";
 			case clsLvl:
-				return "Requires Class Level " + String.join(", ", required);
+				return "Requires " + reqClassName + " level " + reqVal;
 			case pSel:
-				return "Requires Prior Class Feature " + required.get(0);
+				return "Requires " + reqFeatureName;
+			case chrLvl:
+				return "Requires Character Level " + reqVal;
+			case ablScore:
+				return "Requires one of " + reqAbls + " " + reqVal;
+			case armor:
+				return "Required Armor Training " + reqArmor;
+			case spellcast:
+				return "Requires spellcasting ability";
 			default:
 				return "Unknown Prereq Type " + type;
 		}

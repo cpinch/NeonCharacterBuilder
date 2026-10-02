@@ -25,6 +25,7 @@ import javax.swing.SpinnerNumberModel;
 
 import org.apache.commons.lang3.function.BooleanConsumer;
 
+import ncb.data.AbilityIncrease;
 import ncb.data.Feature;
 import ncb.data.SpellChoice;
 import ncb.data.enums.Ability;
@@ -51,13 +52,14 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			OPT_NOTES = "Puts Notes on Sheet", OPT_HALFPROF_ALL = "Gives Half Proficiency to all non-Proficient Skills",
 			OPT_PROF_INIT = "Gives Proficiency to Initiative", OPT_ABL_INIT = "Use other Abilities for Initiative",
 			OPT_C_SKILL_ABL_TO = "Choose Skill Prof and get extra Ability to it.",
-			OPT_G_SKILL_EXP = "Gives Skills or Expertise";
+			OPT_G_SKILL_EXP = "Gives Skills or Expertise", OPT_G_ABL = "Gives Ability Score Increases",
+			OPT_C_ABL = "Choose Ability Score Increases";
 
 	private static final List<String> options = List.of(OPT_TEXT, OPT_G_SKILLS, OPT_C_SKILLS, OPT_G_SAVES, OPT_G_SPELLS,
 			OPT_C_SPELLS, OPT_C_S_SPELLS, OPT_G_ARMOR, OPT_G_LANGS, OPT_C_LANGS, OPT_G_RES, OPT_R_BY_H, OPT_C_RES,
 			OPT_C_EXP, OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP_1, OPT_HP_LVL,
 			OPT_HALFPROF_ALL, OPT_PROF_INIT, OPT_ABL_INIT, OPT_C_SKILL_ABL_TO, OPT_G_SKILL_EXP, OPT_FEAT, OPT_SEL,
-			OPT_NOTES);
+			OPT_G_ABL, OPT_C_ABL, OPT_NOTES);
 
 	private final JComboBox<String> optionSel = new JComboBox<>(options.toArray(new String[0]));
 	private final JButton add = new JButton("Add Feature");
@@ -187,6 +189,14 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_SKILL_EXP, c, Color.white, Color.black,
 				() -> getSkillProfExp(), (s) -> updateSkillProfExp(s));
+
+		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_G_ABL, "Max: ", c,
+				new SpinnerNumberModel(20, 10, 30, 1), Color.white, Color.black, () -> getGrantedAblIncreases(),
+				(s) -> updateGrantedAblIncreases(s), () -> getGrantedAblMax(), (i) -> updateGrantedAblMax(i));
+
+		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_C_ABL, "Max: ", c,
+				new SpinnerNumberModel(20, 10, 30, 1), Color.white, Color.black, () -> getChooseAblIncreases(),
+				(s) -> updateChooseAblIncreases(s), () -> getChooseAblMax(), (i) -> updateChooseAblMax(i));
 
 		c.weighty = 1;
 		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_TEXT, 3, c, Color.white, Color.black, () -> getText(),
@@ -525,7 +535,15 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private void updateResistancesGranted(String s)
 	{
-		f.setResistancesGranted(Arrays.asList(s.split(",")).stream().map(s2 -> s2.trim()).toList());
+		List<String> res = new ArrayList<>();
+		for (String r : s.split(","))
+		{
+			if (!r.trim().isBlank())
+			{
+				res.add(r.trim());
+			}
+		}
+		f.setResistancesGranted(res);
 	}
 
 	private String getResByHome()
@@ -584,7 +602,15 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private void updateResOptions(String s)
 	{
-		f.setResistanceOptions(Arrays.asList(s.split(",")).stream().map(s2 -> s2.trim()).toList());
+		List<String> res = new ArrayList<>();
+		for (String r : s.split(","))
+		{
+			if (!r.trim().isBlank())
+			{
+				res.add(r.trim());
+			}
+		}
+		f.setResistanceOptions(res);
 	}
 
 	private String getToolProfs()
@@ -805,5 +831,51 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 	private void updateSheetNotes(String s)
 	{
 		f.setSheetNotes(s);
+	}
+
+	private String getGrantedAblIncreases()
+	{
+		return String.join(", ", f.getIncreasedAbilities().stream().map(ai -> ai.getAbility().toString()).toList());
+	}
+
+	private void updateGrantedAblIncreases(String s)
+	{
+		List<Ability> abilities = parseAbilities(s.split(","));
+		int max = getGrantedAblMax();
+		f.setIncreasedAbilities(abilities.stream().map(a -> new AbilityIncrease(a, 1, max)).toList());
+	}
+
+	private int getGrantedAblMax()
+	{
+		return f.getIncreasedAbilities().isEmpty() ? 20 : f.getIncreasedAbilities().get(0).getMax();
+	}
+
+	private void updateGrantedAblMax(int i)
+	{
+		List<Ability> abilities = f.getIncreasedAbilities().stream().map(ai -> ai.getAbility()).toList();
+		f.setIncreasedAbilities(abilities.stream().map(a -> new AbilityIncrease(a, 1, i)).toList());
+	}
+
+	private String getChooseAblIncreases()
+	{
+		return String.join(", ", f.getAbilityIncreaseOptions().stream().map(ai -> ai.getAbility().toString()).toList());
+	}
+
+	private void updateChooseAblIncreases(String s)
+	{
+		List<Ability> abilities = parseAbilities(s.split(","));
+		int max = getGrantedAblMax();
+		f.setAbilityIncreaseOptions(abilities.stream().map(a -> new AbilityIncrease(a, 1, max)).toList());
+	}
+
+	private int getChooseAblMax()
+	{
+		return f.getAbilityIncreaseOptions().isEmpty() ? 20 : f.getAbilityIncreaseOptions().get(0).getMax();
+	}
+
+	private void updateChooseAblMax(int i)
+	{
+		List<Ability> abilities = f.getAbilityIncreaseOptions().stream().map(ai -> ai.getAbility()).toList();
+		f.setAbilityIncreaseOptions(abilities.stream().map(a -> new AbilityIncrease(a, 1, i)).toList());
 	}
 }

@@ -14,6 +14,7 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import ncb.data.AbilityIncrease;
 import ncb.data.Feature;
 import ncb.data.SpellChoice;
 import ncb.data.enums.Ability;
@@ -48,6 +49,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 	private JComboBox<Spell> specificSpellOptions;
 	private JLabel resLabel;
 	private JComboBox<Skill> skillWAbilityOptions;
+	private JComboBox<AbilityIncrease> ablIncOptions;
 
 	public FeaturePanel(CharacterSheet sheet, Feature feature, boolean startCollapsed)
 	{
@@ -166,9 +168,10 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 			c.gridy++;
 		}
 		List<String> res = feature.getResistancesGranted();
-		if (sheet.getBackground() != null && !sheet.getBackground().getHomeworld().hasTrait("Any"))
+		if (!feature.getResistancesByHomeworld().isEmpty() && sheet.getBackground() != null)
 		{
-			String r = feature.getResistanceByHomeworld(sheet.getBackground().getHomeworld());
+			String r = CharacterSheet.getResistanceForHomeworld(sheet.getBackground().getHomeworld(),
+					feature.getResistancesByHomeworld());
 			if (!r.isBlank())
 			{
 				res.add(r);
@@ -224,15 +227,18 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 					c, VaporwaveColors.HOT_PINK);
 			c.gridy++;
 		}
+		if (!feature.getIncreasedAbilities().isEmpty())
+		{
+			UILib.addLabel(bodyPanel,
+					"<html><i>Increases " + String.join(", ",
+							feature.getIncreasedAbilities().stream().map(s -> s.toString()).toList()) + ".",
+					c, VaporwaveColors.HOT_PINK);
+			c.gridy++;
+		}
 		// abilitiesToAC always has accompanying text, so we don't show it
 
 		// Selections
 		List<String> resOpts = feature.getResistanceOptions();
-		if (!feature.getResistancesByHomeworld().isEmpty() && sheet.getBackground() != null
-				&& sheet.getBackground().getHomeworld().hasTrait("Any"))
-		{
-			resOpts.addAll(feature.getResistancesByHomeworld().values());
-		}
 		if (!resOpts.isEmpty())
 		{
 			resistanceOptions = UILib.getComboBox(resOpts.toArray(new String[0]), this, VaporwaveColors.DEEP_VIOLET,
@@ -360,6 +366,22 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 				skillWAbilityOptions.setSelectedItem(feature.getSkillWAbilitySelected());
 			}
 		}
+		if (!feature.getAbilityIncreaseOptions().isEmpty())
+		{
+			PropertyListener.listenForChanges(PropertyListener.ABILITYSCOREINC, this);
+			ablIncOptions = UILib.getComboBox(feature.getAbilityIncreaseOptions().toArray(new AbilityIncrease[0]), this,
+					VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+			UILib.addLabeledComponent(bodyPanel, "Increase Ability: ", ablIncOptions, c, VaporwaveColors.HOT_PINK);
+			c.gridy++;
+			if (feature.getAbilityIncreasesSelected().isEmpty())
+			{
+				ablIncOptions.setSelectedIndex(0);
+			}
+			else
+			{
+				ablIncOptions.setSelectedItem(feature.getAbilityIncreasesSelected().get(0));
+			}
+		}
 	}
 
 	@Override
@@ -422,6 +444,10 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 			{
 				feature.setSkillWAbilitySelected(skil);
 			}
+		}
+		else if (e.getSource().equals(ablIncOptions))
+		{
+			feature.setAbilityIncreasesSelected(List.of((AbilityIncrease) ablIncOptions.getSelectedItem()));
 		}
 	}
 
@@ -500,10 +526,18 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		if (resLabel != null)
 		{
 			List<String> res = feature.getResistancesGranted();
-			if (sheet.getBackground() != null && !sheet.getBackground().getHomeworld().hasTrait("Any"))
+			System.out.println("Base res " + res + " / " + res.size());
+			if (!feature.getResistancesByHomeworld().isEmpty() && sheet.getBackground() != null)
 			{
-				res.add(feature.getResistanceByHomeworld(sheet.getBackground().getHomeworld()));
+				String r = CharacterSheet.getResistanceForHomeworld(sheet.getBackground().getHomeworld(),
+						feature.getResistancesByHomeworld());
+				if (!r.isBlank())
+				{
+					System.out.println("Adding " + r + " to " + res + " / " + res.size());
+					res.add(r);
+				}
 			}
+			System.out.println("Updating res " + res + " / " + res.size());
 			if (res.isEmpty())
 			{
 				resLabel.setVisible(false);
@@ -530,7 +564,10 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 				updateSkillExpertiseLists();
 			break;
 			case PropertyListener.SELECTED:
-				this.updateSelectables();
+				updateSelectables();
+			break;
+			case PropertyListener.ABILITYSCOREINC:
+				ablIncOptions.setSelectedItem(feature.getAbilityIncreasesSelected().get(0));
 			break;
 		}
 	}

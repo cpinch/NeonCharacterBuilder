@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.json.JSONObject;
 
+import ncb.data.AbilityIncrease;
 import ncb.data.AbilityScores;
 import ncb.data.Feature;
 import ncb.data.enums.Ability;
@@ -20,6 +21,7 @@ import ncb.data.interfaces.HasState;
 import ncb.data.loadables.Background;
 import ncb.data.loadables.CharacterClass;
 import ncb.data.loadables.Feat;
+import ncb.data.loadables.Homeworld;
 import ncb.data.loadables.Language;
 import ncb.data.loadables.Species;
 import ncb.data.loadables.Spell;
@@ -318,16 +320,36 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		List<String> res = getAll(Feature::getResistancesGranted);
 		res.addAll(getAll(Feature::getResistancesSelected));
 		// Homeworld trait resistances are unique and have to be handled accordingly
-		// These all come from feats, so we just go through that to simplify
-		getAllOf(Feature::getFeat).forEach(f ->
-		{
-			String hwR = f.getResistanceByHomeworld(background.getHomeworld());
-			if (!hwR.isBlank())
-			{
-				res.add(hwR);
-			}
-		});
+		Homeworld h = background.getHomeworld();
+		getAllOf(Feature::getResistancesByHomeworld).forEach(hwRes -> res.add(getResistanceForHomeworld(h, hwRes)));
+
 		return res;
+	}
+
+	public static String getResistanceForHomeworld(Homeworld h, Map<String, String> traitToResistMap)
+	{
+		if (h != null)
+		{
+			if (h.hasTrait("Any"))
+			{
+				System.out.println("Any case");
+				// Extreme edge case, just let the user handle it on the sheet
+				return "Choose 1 (" + String.join(",", traitToResistMap.values()) + ")";
+			}
+			else
+			{
+				System.out.println("traitToResistMap " + traitToResistMap);
+				for (String trait : h.getTraits())
+				{
+					if (traitToResistMap.containsKey(trait))
+					{
+						System.out.println("Returning " + traitToResistMap.get(trait));
+						return traitToResistMap.get(trait);
+					}
+				}
+			}
+		}
+		return "";
 	}
 
 	public int getTotalAbilityScore(Ability a)
@@ -338,8 +360,25 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 			return getTotalAbilityScore(charClass.getSelectedPrimary());
 		}
 
-		// TODO lvl 4 - Need to query class features for ability score increases
-		return abilityScores.getTotalScoreFor(a);
+		int score = abilityScores.getTotalScoreFor(a);
+
+		// Handle ability score increases
+		List<AbilityIncrease> ablIncreases = getAll(Feature::getIncreasedAbilities);
+		ablIncreases.addAll(getAll(Feature::getAbilityIncreasesSelected));
+
+		for (AbilityIncrease ai : ablIncreases)
+		{
+			if (ai.getAbility() == a && score < ai.getMax())
+			{
+				score += ai.getAmount();
+				if (score > ai.getMax())
+				{
+					score = ai.getMax();
+				}
+			}
+		}
+
+		return score;
 	}
 
 	public int getTotalAbilityMod(Ability a)

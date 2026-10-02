@@ -50,8 +50,8 @@ public class Language implements HasConfig
 			return;
 		}
 		Language newL = new Language();
-		newL.loadConfig(data);
 		newL.setCustom(custom);
+		newL.loadConfig(data);
 		allLanguages.add(newL);
 	}
 
@@ -60,6 +60,7 @@ public class Language implements HasConfig
 		this.id = nId++;
 	}
 
+	@Override
 	public int getId()
 	{
 		return id;
@@ -70,7 +71,7 @@ public class Language implements HasConfig
 
 	public static List<Language> getAllLanguages()
 	{
-		return allLanguages;
+		return new ArrayList<>(allLanguages);
 	}
 
 	public static Language getById(int id)
@@ -136,7 +137,7 @@ public class Language implements HasConfig
 
 	public List<String> getSpokenAt()
 	{
-		return spokenAt;
+		return new ArrayList<>(spokenAt);
 	}
 
 	public void setSpokeAt(List<String> spoken)

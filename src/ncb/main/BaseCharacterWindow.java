@@ -228,14 +228,10 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 	@Override
 	public void updateProperty(String prop)
 	{
-		if (sheet.getLevel() == 3)
+		if (sheet.getLevel() >= 3 && tabbedPane.indexOfComponent(subclassP) < 0)
 		{
-			// Show the subclass tab if we just leveled up to 3
-			if (tabbedPane.indexOfComponent(subclassP) < 0)
-			{
-				// Insert before Species
-				tabbedPane.insertTab("Subclass", null, subclassP, null, tabbedPane.indexOfTab("Species"));
-			}
+			// Insert before Species
+			tabbedPane.insertTab("Subclass", null, subclassP, null, tabbedPane.indexOfTab("Species"));
 		}
 	}
 }

@@ -55,8 +55,8 @@ public class SpellList implements HasConfig
 			return;
 		}
 		SpellList newSL = new SpellList();
-		newSL.loadConfig(data);
 		newSL.setCustom(custom);
+		newSL.loadConfig(data);
 		allSpellLists.add(newSL);
 	}
 
@@ -129,7 +129,7 @@ public class SpellList implements HasConfig
 
 	public static List<SpellList> getAllSpellLists()
 	{
-		return allSpellLists;
+		return new ArrayList<>(allSpellLists);
 	}
 
 	public static SpellList getById(int id)

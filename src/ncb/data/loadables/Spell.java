@@ -50,8 +50,8 @@ public class Spell implements HasConfig
 			return;
 		}
 		Spell newSp = new Spell();
-		newSp.loadConfig(data);
 		newSp.setCustom(custom);
+		newSp.loadConfig(data);
 		allSpells.add(newSp);
 	}
 
@@ -76,7 +76,7 @@ public class Spell implements HasConfig
 
 	public static List<Spell> getAllSpells()
 	{
-		return allSpells;
+		return new ArrayList<>(allSpells);
 	}
 
 	public static Spell getById(int id)
@@ -350,7 +350,7 @@ public class Spell implements HasConfig
 		duration = data.optString("duration", "");
 		trigger = data.optString("trigger", "");
 		materials = data.optString("materials", "");
-		ritual = data.optBoolean("trigger", false);
+		ritual = data.optBoolean("ritual", false);
 		text = data.optString("text", "");
 	}
 
