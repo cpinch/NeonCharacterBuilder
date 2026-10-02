@@ -63,7 +63,7 @@ public class SpellEditPanel extends EditPanel
 				() -> spell.getDuration(), (s) -> spell.setDuration(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedCheckbox(this, "School: ", c, Color.black, () -> spell.isRitual(),
+		linkedProperties.add(UILib.addLabeledLinkedCheckbox(this, "Ritual: ", c, Color.black, () -> spell.isRitual(),
 				(b) -> spell.setRitual(b)));
 		c.gridy++;
 

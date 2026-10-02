@@ -56,8 +56,8 @@ public class Subclass extends Feature
 			return;
 		}
 		Subclass newS = new Subclass();
-		newS.loadConfig(data);
 		newS.setCustom(custom);
+		newS.loadConfig(data);
 		allSubclasses.add(newS);
 	}
 
@@ -112,7 +112,7 @@ public class Subclass extends Feature
 
 	public static List<Subclass> getAllSubclasses()
 	{
-		return allSubclasses;
+		return new ArrayList<>(allSubclasses);
 	}
 
 	public static List<Subclass> getForClassName(String clsName)
@@ -267,8 +267,8 @@ public class Subclass extends Feature
 		getObjList(data, "features").forEach(fs ->
 		{
 			Feature f = new Feature();
-			f.loadConfig(fs);
 			f.setParent(this);
+			f.loadConfig(fs);
 			subclassFeatures.add(f);
 		});
 	}

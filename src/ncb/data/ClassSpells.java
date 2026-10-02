@@ -456,18 +456,21 @@ public class ClassSpells implements HasConfig, HasState
 			}).toList());
 
 			JSONArray scbl = data.optJSONArray("spellChoicesByLvl");
-			for (int i = 0; i < scbl.length(); i++)
+			if (scbl != null)
 			{
-				JSONObject spl = scbl.getJSONObject(i);
-				int spLvl = spl.getInt("spellLevel");
-				List<SpellChoice> sels = new ArrayList<>();
-				JsonDataLoader.jsonArrayToObjectArray(spl.getJSONArray("selections")).forEach(s ->
+				for (int i = 0; i < scbl.length(); i++)
 				{
-					SpellChoice sc = new SpellChoice();
-					sc.loadState(s);
-					sels.add(sc);
-				});
-				spellChoicesByLvl.put(spLvl, sels);
+					JSONObject spl = scbl.getJSONObject(i);
+					int spLvl = spl.getInt("spellLevel");
+					List<SpellChoice> sels = new ArrayList<>();
+					JsonDataLoader.jsonArrayToObjectArray(spl.getJSONArray("selections")).forEach(s ->
+					{
+						SpellChoice sc = new SpellChoice();
+						sc.loadState(s);
+						sels.add(sc);
+					});
+					spellChoicesByLvl.put(spLvl, sels);
+				}
 			}
 			// Too many changes to do 1 at a time, just assume something in spells changed
 			pcs.firePropertyChange(PropertyListener.SPELLS, "", "Spells loaded");

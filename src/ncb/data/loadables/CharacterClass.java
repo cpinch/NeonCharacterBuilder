@@ -68,8 +68,8 @@ public class CharacterClass extends Feature
 			return;
 		}
 		CharacterClass newCls = new CharacterClass();
-		newCls.loadConfig(data);
 		newCls.setCustom(custom);
+		newCls.loadConfig(data);
 		allClasses.add(newCls);
 	}
 
@@ -154,7 +154,7 @@ public class CharacterClass extends Feature
 
 	public static List<CharacterClass> getAllClasses()
 	{
-		return allClasses;
+		return new ArrayList<>(allClasses);
 	}
 
 	public static CharacterClass getByName(String name)
@@ -250,7 +250,7 @@ public class CharacterClass extends Feature
 
 	public List<Ability> getPrimaryAbilities()
 	{
-		return primaryAbilities;
+		return new ArrayList<>(primaryAbilities);
 	}
 
 	public void setPrimaryAbilities(List<Ability> abilities)
@@ -264,7 +264,7 @@ public class CharacterClass extends Feature
 
 	public List<Ability> getPrimaryAbilityOptions()
 	{
-		return primaryAbilityOptions;
+		return new ArrayList<>(primaryAbilityOptions);
 	}
 
 	public void setPrimaryAbilityOptions(List<Ability> abilities)
@@ -278,7 +278,7 @@ public class CharacterClass extends Feature
 
 	public List<ClassEquipment> getEquipmentOptions()
 	{
-		return equipment;
+		return new ArrayList<>(equipment);
 	}
 
 	public void setEquipmentOptions(List<ClassEquipment> equipment)
@@ -308,7 +308,7 @@ public class CharacterClass extends Feature
 	public List<Feature> getAllClassFeatures()
 	{
 		classFeatures.sort((a, b) -> Integer.compare(a.getLevel(), b.getLevel()));
-		return classFeatures;
+		return new ArrayList<>(classFeatures);
 	}
 
 	public List<Feature> getClassFeatures()
@@ -396,8 +396,8 @@ public class CharacterClass extends Feature
 		getObjList(data, "features").forEach(f ->
 		{
 			Feature fe = new Feature();
-			fe.loadConfig(f);
 			fe.setParent(this);
+			fe.loadConfig(f);
 			classFeatures.add(fe);
 		});
 		classSpells.loadConfig(data.optJSONObject("classSpells"));

@@ -52,8 +52,8 @@ public class Background extends Feature
 			return;
 		}
 		Background newBg = new Background();
-		newBg.loadConfig(data);
 		newBg.setCustom(custom);
+		newBg.loadConfig(data);
 		allBackgrounds.add(newBg);
 	}
 
@@ -62,7 +62,7 @@ public class Background extends Feature
 
 	public static List<Background> getAllBackgrounds()
 	{
-		return allBackgrounds;
+		return new ArrayList<>(allBackgrounds);
 	}
 
 	public static void sortAll()

@@ -48,8 +48,8 @@ public class Feat extends Selectable
 			return;
 		}
 		Feat newFt = new Feat();
-		newFt.loadConfig(data);
 		newFt.setCustom(custom);
+		newFt.loadConfig(data);
 		allFeats.add(newFt);
 	}
 
@@ -58,7 +58,7 @@ public class Feat extends Selectable
 
 	public static List<Feat> getAllLoadedFeats()
 	{
-		return allFeats;
+		return new ArrayList<>(allFeats);
 	}
 
 	public static List<Feat> getAllValidFeats(CharacterSheet sheet)

@@ -43,6 +43,7 @@ public class SummaryPanel extends UIPanel implements ActionListener, ListensForC
 
 		// Summary panel needs to update for a lot of things
 		PropertyListener.listenForChanges(PropertyListener.ABILITYSCORES, this);
+		PropertyListener.listenForChanges(PropertyListener.ABILITYSCOREINC, this);
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
 		PropertyListener.listenForChanges(PropertyListener.BGABILITYOPTIONS, this);
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
@@ -89,6 +90,9 @@ public class SummaryPanel extends UIPanel implements ActionListener, ListensForC
 	@Override
 	public void updateProperty(String prop)
 	{
+		// We could be more efficient about this and only re-check/re-generate what was
+		// updated, but since it's one big text field by design that's kinda difficult
+		// and it's not that much processing time
 		hasEmptyCharName = sheet.getName().isBlank();
 		checkForInvalidBackgroundAbilityIncreases(sheet.getAbilityScores().getAllBGIncreases());
 		List<Skill> skillProfs = sheet.getAllSkillProfs();
