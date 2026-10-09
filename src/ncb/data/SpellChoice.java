@@ -24,9 +24,9 @@ public class SpellChoice implements HasState
 		addPropertyChangeListener(PropertyListener.getListener());
 	}
 
-	public SpellChoice(SpellList spellList, int lvl)
+	public SpellChoice(SpellList spellLists, int lvl)
 	{
-		this.spellList = spellList;
+		this.spellList = spellLists;
 		// Default to the first spell of the appropriate level in the list
 		selected = spellList.getSpellsForLevel(lvl).get(0);
 		addPropertyChangeListener(PropertyListener.getListener());

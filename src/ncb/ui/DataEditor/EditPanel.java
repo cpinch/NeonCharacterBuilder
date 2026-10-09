@@ -62,7 +62,7 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 		if (!invalid.isEmpty())
 		{
 			StringBuilder msg = new StringBuilder();
-			msg.append(String.join(", ", invalid));
+			msg.append(String.join(", ", invalid.stream().map(s -> s.trim()).toList()));
 			if (invalid.size() == 1)
 			{
 				msg.append(" was not a valid ");

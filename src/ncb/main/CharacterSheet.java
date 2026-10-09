@@ -2,6 +2,7 @@ package ncb.main;
 
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -250,6 +251,11 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 			}
 		}
 
+		if (profSkills.contains(Skill.All))
+		{
+			return Arrays.asList(Skill.realValues());
+		}
+
 		return profSkills;
 	}
 
@@ -271,6 +277,15 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 			if (profSkills.contains(s))
 			{
 				expSkills.add(s);
+			}
+		}
+
+		List<Skill> expGSkills = getAll(Feature::getSkillExpsGranted);
+		for (Skill prof : getAllSkillProfs())
+		{
+			if (!expSkills.contains(prof) && (expGSkills.contains(prof) || expGSkills.contains(Skill.All)))
+			{
+				expSkills.add(prof);
 			}
 		}
 
@@ -332,18 +347,15 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		{
 			if (h.hasTrait("Any"))
 			{
-				System.out.println("Any case");
 				// Extreme edge case, just let the user handle it on the sheet
 				return "Choose 1 (" + String.join(",", traitToResistMap.values()) + ")";
 			}
 			else
 			{
-				System.out.println("traitToResistMap " + traitToResistMap);
 				for (String trait : h.getTraits())
 				{
 					if (traitToResistMap.containsKey(trait))
 					{
-						System.out.println("Returning " + traitToResistMap.get(trait));
 						return traitToResistMap.get(trait);
 					}
 				}
@@ -412,7 +424,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 	public int getSpellSlots(int spellLevel)
 	{
 		// TODO Multiclass
-		return charClass.getClassSpells().getSpellSlots(charClass.getLevel(), spellLevel);
+		return charClass.getSpellSlots().getCount(spellLevel);
 	}
 
 	public int getAC()

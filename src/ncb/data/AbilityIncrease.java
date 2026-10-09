@@ -38,6 +38,11 @@ public class AbilityIncrease implements HasConfig
 		return max;
 	}
 
+	public void setMax(int m)
+	{
+		this.max = m;
+	}
+
 	@Override
 	public JSONObject saveConfig()
 	{

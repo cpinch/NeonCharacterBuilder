@@ -1,5 +1,6 @@
 package ncb.data.interfaces;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -112,6 +113,15 @@ public interface HasConfig extends Customizable, SavesLoadsJson
 	default void updateConfig(String o, String n, Consumer<String> setter)
 	{
 		if ((o == null && n != null) || (o != null && n == null) || (o != n && !o.equals(n)))
+		{
+			setter.accept(n);
+			setCustom(true);
+		}
+	}
+
+	default void updateConfig(Integer[] o, Integer[] n, Consumer<Integer[]> setter)
+	{
+		if (!Arrays.equals(o, n))
 		{
 			setter.accept(n);
 			setCustom(true);
