@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.cpinch</groupId>
   <artifactId>ncb</artifactId>
-  <version>1.0</version>
+  <version>1.5</version>
   <packaging>jar</packaging>
   <build>
   	<finalName>NeonCharacterBuilder</finalName>
@@ -20,7 +20,7 @@
 	      <configuration>
 	        <archive>
 	          <manifest>
-	            <mainClass>nocb.main.BaseCharacterWindow</mainClass>
+	            <mainClass>ncb.main.BaseCharacterWindow</mainClass>
 	          </manifest>
 	        </archive>
 	        <descriptorRefs>
