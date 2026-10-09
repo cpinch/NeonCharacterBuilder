@@ -100,7 +100,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 
 		try
 		{
-			setIconImage(ImageIO.read(BaseCharacterWindow.class.getResource("/NCBIcon-256.png")));
+			setIconImage(ImageIO.read(getClass().getResource("/NCBIcon-256.png")));
 		}
 		catch (Exception e)
 		{
