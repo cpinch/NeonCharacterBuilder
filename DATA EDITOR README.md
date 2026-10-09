@@ -25,12 +25,15 @@ Backgrounds are TBD. I am waiting for actual playtest sample backgrounds before 
 + Tool Profs - Put whatever tool proficiencies the class gets, comma separated.
 + Armor Trainings - Put whatever armor types the class gets training in, comma separated.
 + Equipment - Pipe (|) separated equipment options. Each option should be in the format "(items) / Notes: (notes)"
-+ Known Spells/Lvl - Comma separated list of levels. This sets the set of dropdowns to be shown on the spells page.
-	* For classes that can swap out spells known (or prepared) with ones of any level they have access to, enter (class level)-(cantrips known)-(total known spells lvl 1+) for each level. You can skip duplicates, the highest class level with an entry will be used. For example: "1-2-2, 2--2-3, 4-2-4".
-	* For classes that cannot swap out spells and gain a certain number each level (simiilar to the 5.5E Wizard), enter (class level)+(new known cantrips)+(new known spells lvl 1+) for each level. Any levels skipped will not gain new spells. New spells will automatically be of the highest level slot available at that level. For example: "1+2+4, 2+0+2, 3+1+2"
-+ Spell Slots/Lvl - Comma separated list of levels. This sets the slots put into the character sheet spells area.
-	* For classes that only have a single group of slots that increase in level (similar to the 5.5E Warlock), enter (class level)-(spell level)- (count), for example "1-1-1, 2-1-2, 3-2-3". Duplicate levels can be skipped, the last level with values will be used.
-	* For classes that have multiple levels of slots they should be entered as (class level) [(spell level)-(count) | (spell level)-count], for example "1 [1-2], 2 [1-3], 3 [1-4 | 2-1]" would indicate that the class gets 2 level 1 slots at level 1, 3 level 1 slots at level 2, and 4 level 1 and 1 level 2 slot at level 3. Duplicate values can be skipped, for example if 2 levels give 4 level 1 spells you can just enter [1-4] for the first and then skip straight to level 2+ for the second and it will pick up the max count from prior levels for the unlisted spell level.
++ Spellcasting Settings - Collapsable panel that contains all of the spellcasting-related inforamtion for a class, only needed if the class has spellcasting
++ + Spellcasting Ability - Selectable dropdown, set to whatever the class uses for spellcasting (Primary = whichever the class chooses as its Primary ability)
++ + Cantrips per Class Level - Straightforward, enter the number of cantrips at each level, it will auto-fill higher levels with the same value if they're lower so you only need to increment levels where new cantrips are learned.
++ + Personal Spell List or Full Spell List - Classes with a Personal Spell List, like the 5.5E wizard, are those that learn new spells every level but have no way to change or update them to higher level spells. Classes with Full Spell List are those that can change spells they know or have prepared from higher level spells as desired in some way (per Long Rest or per Level Up).
++ + + Personal Spell List, when chosen, offers 2 number entry areas, one for spells gained level 1 and one for spells gained at each other level. The character builder will automatically allow selection of any level <= the max slot level at that class level.
++ + + Full Spell List, when chosen, offers a number entry area for each level where you can enter how many spells the class should have prepared at that level. As with cantrips, it will auto-fill higher levels if they haven't been set, so you only need to put in levels that change.
++ + One set of Slots or Spell Slots per Level - Classes with One set of Slots, like the 5.5E Warlock, are those that have a pool of spell slots that grow in level. Classes with Spell Slots per Level are those that have specific slots for each of their available spell levels.
++ + + One Set of Slots, when chosen, offers 2 number entry areas per level, one for how many Spell Slots the class has at that level, and one for what level those slots are at that level. As with other areas, these auto-increment entry slots above them when set, so only places where the # changes have to be entered.
++ + + Spell Slots per Level, when selected, offers 9 number entry areas per level, one for each of the 9 levels of spells. As with all of these, these auto-increment, so you only need to enter where they change.
 
 #### Class Features
 The Add Class Feature button will create a new Class Feature for the class. Each feature has a name and level by default and shows a dropdown will all the supported options and a "Add Feature" button. To set these up properly, choose each option the feature has, add it, and then fill it in. For example, if you had a class feature that gave +5 speed always and let you perform a surge of speed some # of times per day with text rules you would select "Increase Speed", click Add Feature, enter 5 in the resulting number field, then select "Text", click Add Feature, and type in the text rules.
@@ -80,6 +83,7 @@ The Add Selectable button will create a new Selectable for this species. This is
 + Name - The class name the spell list is associated with
 + Cantrips - Comma separated list of level 0 cantrips the class can choose from
 + Level N - Comma separated list of spells of that level the class can choose from
+Note - As with every other entry point for spells, spells with alternate names should put the original spell name in [], ie "Cosmic Blast [Eldritch Blast]"
 
 ### Spell
 + Name - The spell name
@@ -126,8 +130,8 @@ See the "Features" section below for exact details on how each of these option's
 A lot of things in this application are classified as "Features", a generic catch-all term for "part of a character that changes something about that character". The Features data editor is generic and shared across Classes, Feats, and Species. It has so many fields that it uses a dropdown to select which you want to include. Details on all the fields are below:
 
 + Text - A simple text field
-+ Gives Skill Profs - Comma separated list of Skills
-+ Choose Skill Profs - Comma separated list of Skills plus number field (supports 0-5)
++ Gives Skill Profs - Comma separated list of Skills or "All"
++ Choose Skill Profs - Comma separated list of Skills (or "Any") plus number field (supports 0-5)
 + Gives Save Profs - Comma separated list of Abilities
 + Gives Spells - Pipe (|) separated list of Spells. Each spell may optionally have an attached note in parenthesis () after it with specific details. For example, "Eldritch Blast (1/long rest double damage)" (the | is used instead of , because you may want to include commas in your note). Spells with alternate names should put the original spell name in [], ie "Eldritch Super Blast [Eldritch Blast] (1/long rest double damage)"
 + Choose Spells - Expects a comma separated list of spell choices in the format "(level)-(count)-(spelllist)". For example, if the feature gives the player the option to choose 2 level 1 spells from the Oracle list, you would enter "2 1 Oracle"
@@ -138,6 +142,7 @@ A lot of things in this application are classified as "Features", a generic catc
 + Gives Resistances - Comma separated list of Resistances
 + Gives Resistances based on Homeworld Traits - Comma separated list of "(Homeworld Trait)-(Resistance given)". For example, if you had homeworld traits of "Acidic" and "Basic" that you wanted to give resistances to Acid and Bludgeoning respectively, you would enter "Acidic-Acid, Basic-Bludgeoning"
 + Choose Resistances - Comma separated list of Resistance options (note - currently only supports 1 resistance choice per feature, so no number is provided at this time)
++ Gives Skill Expertise - Comma separated list of Skills or "All", users will get expertise in any skills in this list they are proficient with.
 + Choose Skill Expertise - Comma separated list of Skills, users will be able to select Skills from this list only if they already have proficiency, "Any" for any.
 + Gives Tool Profs - Comma separated list of Tool Proficiencies.
 + Gives Weapon Profs - Comma separated list of Weapon Proficiencies.
@@ -153,9 +158,10 @@ A lot of things in this application are classified as "Features", a generic catc
 + Gives Skills or Expertise - Comma separated list of skills that the character will get proficiency in if they don't have it or expertise if they do
 + Choose Feat - Expects a single feat type (ie "Origin" or "Fighting Style", etc). Optionally you may add "(ignores prereqs)" after the feat trait name to indicate that it ignores feat prereqs (for example, a feature that allows picking any Origin feat, regardless of homeworld)
 + Choose Selectable - Expects a single selectable type (see Selectables above for more details). Note that if both Feat and Selectable are added for a single feature they will be combined into a single list, useful for features that offer selections like "Choose a feat of type. You may also choose from the options below"
-+ Gives Ability Score Increases - Text field expects a comma separated list of abilities to increase by 1, number field is the max that this increase can raise the given ability to.
++ Gives Ability Score Increases - Text field expects a comma separated list of abilities to increase by 1, number field is the max that this increase can raise the given ability to. You may alternatively enter abilities with the amount to increase them by in the text field in the format "(ability)-(increase)".
 + Choose Ability Score Increases - Text field expects a comma separated list of abilities a player can choose to increase by 1, number field is the max that this increase can raise the given ability to.
 + Puts Notes on Sheet - Text field, goes straight into the Notes field on the character sheet without being shown anywhere in the app.
++ Add Extra Spell Lists - Comma separated list of spell lists this class should be able to pick from for its normal spellcasting spells, in addition to its own list.
 
 ### Feature Upgrades
 Many features in Neon Odyssey, and 5E in general, get stronger as the character grows in levels. This is represented in the character builder by the feature having "upgrades". All features have an "Add Upgrade" button that will spawn an identical copy of the feature with its level increased by 1 in a sub-level below the feature. If you set that new sub-feature to the level/effect of the upgrade, when the player levels up to that level, they will be informed that it has changed and see the upgraded version in the app as well as its effects on their sheet.

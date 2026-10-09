@@ -11,7 +11,6 @@ import org.json.JSONObject;
 
 import ncb.data.interfaces.Customizable;
 import ncb.data.interfaces.HasConfig;
-import ncb.io.JsonDataLoader;
 
 public class SpellList implements HasConfig
 {
@@ -71,59 +70,6 @@ public class SpellList implements HasConfig
 		return id;
 	}
 
-	public List<String> getSpellNamesForLevel(int spellLevel)
-	{
-		if (spellNames.containsKey(spellLevel))
-		{
-			return spellNames.get(spellLevel);
-		}
-		return Collections.emptyList();
-	}
-
-	public List<Spell> getSpellsForLevel(int spellLevel)
-	{
-		return getSpells(getSpellNamesForLevel(spellLevel));
-	}
-
-	public void setSpellNamesForLevel(int spellLevel, List<String> spn)
-	{
-		if (!spellNames.containsKey(spellLevel) || !spellNames.get(spellLevel).equals(spn))
-		{
-			spellNames.put(spellLevel, spn);
-			setCustom(true);
-		}
-	}
-
-	public static List<Spell> getSpells(List<String> spellNames)
-	{
-		List<Spell> spells = new ArrayList<>();
-		for (String s : spellNames)
-		{
-			if (s.isBlank())
-			{
-				continue;
-			}
-			Spell spell;
-			if (s.contains("("))
-			{
-				// Alternate spell name
-				String altName = s.substring(0, s.indexOf('(')).trim();
-				String baseName = s.substring(s.indexOf('(') + 1, s.indexOf(')')).trim();
-				spell = Spell.getByAltName(altName, baseName);
-			}
-			else
-			{
-				spell = Spell.getByName(s);
-			}
-
-			if (spell != null)
-			{
-				spells.add(spell);
-			}
-		}
-		return spells;
-	}
-
 	// Loading
 	private static final List<SpellList> allSpellLists = new ArrayList<>();
 
@@ -177,7 +123,7 @@ public class SpellList implements HasConfig
 
 	// Configuration
 	private String name = "";
-	private final Map<Integer, List<String>> spellNames = new HashMap<>();
+	private final Map<Integer, List<Spell>> spells = new HashMap<>();
 
 	public String getName()
 	{
@@ -193,6 +139,24 @@ public class SpellList implements HasConfig
 		}
 	}
 
+	public List<Spell> getSpellsForLevel(int spellLevel)
+	{
+		if (spells.containsKey(spellLevel))
+		{
+			return new ArrayList<>(spells.get(spellLevel));
+		}
+		return Collections.emptyList();
+	}
+
+	public void setSpellsForLevel(int spellLevel, List<Spell> spells)
+	{
+		if (!this.spells.containsKey(spellLevel) || !this.spells.get(spellLevel).equals(spells))
+		{
+			this.spells.put(spellLevel, spells);
+			setCustom(true);
+		}
+	}
+
 	@Override
 	public JSONObject saveConfig()
 	{
@@ -201,17 +165,15 @@ public class SpellList implements HasConfig
 		json.put("name", name);
 
 		// Custon data object
-		if (!spellNames.isEmpty())
+		if (!spells.isEmpty())
 		{
 			JSONArray levels = new JSONArray();
-			for (Map.Entry<Integer, List<String>> sbl : spellNames.entrySet())
+			for (Map.Entry<Integer, List<Spell>> sbl : spells.entrySet())
 			{
 				JSONObject lvlObj = new JSONObject();
-				lvlObj.put("level", sbl.getKey());
 
-				JSONArray spells = new JSONArray();
-				sbl.getValue().forEach(s -> spells.put(s));
-				lvlObj.put("spells", spells);
+				lvlObj.put("level", sbl.getKey());
+				putObjList(lvlObj, "spells", sbl.getValue().stream().map(s -> Spell.saveToJSONObject(s)).toList());
 
 				levels.put(lvlObj);
 			}
@@ -233,10 +195,10 @@ public class SpellList implements HasConfig
 
 			int level = lvlList.getInt("level");
 
-			List<String> spellNames = new ArrayList<>();
-			JsonDataLoader.jsonArrayToStringArray(lvlList.getJSONArray("spells")).forEach(s -> spellNames.add(s));
+			List<Spell> spells = new ArrayList<>();
+			getObjList(lvlList, "spells").forEach(so -> spells.add(Spell.getFromJSONObject(so)));
 
-			this.spellNames.put(level, spellNames);
+			this.spells.put(level, spells);
 		}
 	}
 

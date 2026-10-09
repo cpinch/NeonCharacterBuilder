@@ -12,8 +12,8 @@ public enum Skill
 {
 	Acrobatics(Dex), Animal_Handling(Cha), Arcana(Int), Athletics(Str), Computers(Int), Deception(Cha), History(
 			Int), Insight(Wis), Intimidation(Cha), Investigation(Int), Medicine(Wis), Nature(Int), Perception(
-					Wis), Performance(Cha), Persuasion(Cha), Religion(
-							Int), Sleight_of_Hand(Dex), Stealth(Dex), Survival(Wis), Technology(Int), Any(Int);
+					Wis), Performance(Cha), Persuasion(Cha), Religion(Int), Sleight_of_Hand(
+							Dex), Stealth(Dex), Survival(Wis), Technology(Int), Any(Int), All(Int);
 
 	private final Ability associatedAbility;
 
@@ -35,7 +35,8 @@ public enum Skill
 	public static Skill[] realValues()
 	{
 		// Filters out "Any"
-		return Arrays.asList(values()).stream().filter(s -> !s.equals(Skill.Any)).toList().toArray(new Skill[0]);
+		return Arrays.asList(values()).stream().filter(s -> !s.equals(Skill.Any) && !s.equals(Skill.All)).toList()
+				.toArray(new Skill[0]);
 	}
 
 	@Override

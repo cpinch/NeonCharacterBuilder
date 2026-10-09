@@ -142,6 +142,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private final List<String> vehicles = new ArrayList<>();
 	private final List<ArmorTraining> armorTrains = new ArrayList<>();
 	private final List<Skill> skillProfs = new ArrayList<>();
+	private final List<Skill> skillExps = new ArrayList<>();
 	private final List<Spell> freeSpells = new ArrayList<>();
 	private final List<Language> freeLangs = new ArrayList<>();
 	private final List<String> freeRes = new ArrayList<>();
@@ -168,6 +169,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private final List<Skill> profOrExp = new ArrayList<>();
 	private final List<AbilityIncrease> increasesAbilities = new ArrayList<>();
 	private final List<AbilityIncrease> abilityIncreaseOptions = new ArrayList<>();
+	private final List<SpellList> addExtraSpellLists = new ArrayList<>();
 
 	public String getName()
 	{
@@ -370,6 +372,20 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		});
 	}
 
+	public List<Skill> getSkillExpsGranted()
+	{
+		return new ArrayList<>(skillExps);
+	}
+
+	public void setSkillExpsGranted(List<Skill> skills)
+	{
+		updateConfig(skillExps, skills, (v) ->
+		{
+			this.skillExps.clear();
+			this.skillExps.addAll(v);
+		});
+	}
+
 	public List<Spell> getSpellsGranted()
 	{
 		return new ArrayList<>(freeSpells);
@@ -405,7 +421,6 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public void setResistancesGranted(List<String> res)
 	{
-		System.out.println("Setting res " + res + " / " + res.size());
 		updateConfig(freeRes, res, (v) ->
 		{
 			this.freeRes.clear();
@@ -733,6 +748,18 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		});
 	}
 
+	public void setIncreasedAbilityMaxes(int max)
+	{
+		if (!increasesAbilities.isEmpty() && increasesAbilities.get(0).getMax() != max)
+		{
+			for (AbilityIncrease ai : increasesAbilities)
+			{
+				ai.setMax(max);
+			}
+			setCustom(true);
+		}
+	}
+
 	public List<AbilityIncrease> getAbilityIncreaseOptions()
 	{
 		return new ArrayList<>(abilityIncreaseOptions);
@@ -744,6 +771,20 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			abilityIncreaseOptions.clear();
 			abilityIncreaseOptions.addAll(v);
+		});
+	}
+
+	public List<SpellList> getExtraSpellLists()
+	{
+		return new ArrayList<>(addExtraSpellLists);
+	}
+
+	public void setExtraSpellLists(List<SpellList> lists)
+	{
+		updateConfig(addExtraSpellLists, lists, (v) ->
+		{
+			addExtraSpellLists.clear();
+			addExtraSpellLists.addAll(v);
 		});
 	}
 
@@ -767,6 +808,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		json = putList(json, "vehicles", vehicles);
 		json = putList(json, "armor", armorTrains);
 		json = putList(json, "skills", skillProfs);
+		json = putList(json, "skillExps", skillExps);
 		json = putObjList(json, "grantsSpells", freeSpells.stream().map(s -> Spell.saveToJSONObject(s)).toList());
 		json = putList(json, "langs", freeLangs);
 		json = putList(json, "res", freeRes);
@@ -811,6 +853,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		json = putObjList(json, "increasesAbilities", increasesAbilities.stream().map(ia -> ia.saveConfig()).toList());
 		json = putObjList(json, "abilityIncreaseOptions",
 				abilityIncreaseOptions.stream().map(ia -> ia.saveConfig()).toList());
+		json = putList(json, "extraSpellLists", addExtraSpellLists.stream().map(sl -> sl.getName()).toList());
 
 		return json;
 	}
@@ -839,6 +882,8 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		armorTrains.addAll(getList(data, "armor").stream().map(s -> ArmorTraining.valueOf(s)).toList());
 		skillProfs.clear();
 		skillProfs.addAll(getList(data, "skills").stream().map(s -> Skill.skillByName(s)).toList());
+		skillExps.clear();
+		skillExps.addAll(getList(data, "skillExps").stream().map(s -> Skill.skillByName(s)).toList());
 		freeSpells.clear();
 		freeSpells.addAll(getObjList(data, "grantsSpells").stream().map(o -> Spell.getFromJSONObject(o)).toList());
 		freeLangs.clear();
@@ -913,6 +958,9 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		abilityIncreaseOptions.clear();
 		abilityIncreaseOptions.addAll(
 				getObjList(data, "abilityIncreaseOptions").stream().map(ia -> new AbilityIncrease(ia)).toList());
+		addExtraSpellLists.clear();
+		addExtraSpellLists
+				.addAll(getList(data, "extraSpellLists").stream().map(sln -> SpellList.getForClass(sln)).toList());
 	}
 
 	// Used for upgrades, as we want to keep the same state
@@ -1319,6 +1367,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		this.vehicles.addAll(original.vehicles);
 		this.armorTrains.addAll(original.armorTrains);
 		this.skillProfs.addAll(original.skillProfs);
+		this.skillExps.addAll(original.skillExps);
 		this.freeSpells.addAll(original.freeSpells);
 		this.freeLangs.addAll(original.freeLangs);
 		this.freeRes.addAll(original.freeRes);
@@ -1338,6 +1387,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		this.resistanceByHomeworldTrait.putAll(original.resistanceByHomeworldTrait);
 		this.skillsAddExtraAbility.putAll(original.skillsAddExtraAbility);
 		this.spellChoices.putAll(original.spellChoices);
+		this.addExtraSpellLists.addAll(original.addExtraSpellLists);
 		// We, obviously, do not copy upgrades
 	}
 }

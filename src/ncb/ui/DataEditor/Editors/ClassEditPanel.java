@@ -7,9 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
@@ -17,12 +15,9 @@ import javax.swing.JPanel;
 import javax.swing.SpinnerNumberModel;
 
 import ncb.data.ClassEquipment;
-import ncb.data.ClassSpells;
 import ncb.data.Feature;
-import ncb.data.enums.Ability;
 import ncb.data.interfaces.Customizable;
 import ncb.data.loadables.CharacterClass;
-import ncb.ui.CollapsablePanel;
 import ncb.ui.NoHorizontalScrollPanel;
 import ncb.ui.UILib;
 import ncb.ui.DataEditor.EditPanel;
@@ -46,6 +41,7 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 	}
 
 	private final JButton addFeature = new JButton("Add Class Feature");
+	private final ClassSpellcastingEditPanel spellcastingPanel = new ClassSpellcastingEditPanel();
 	private final JPanel featuresPanel = new NoHorizontalScrollPanel();
 
 	public ClassEditPanel()
@@ -95,10 +91,7 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 				() -> getEquipment(), (s) -> updateEquipment(s)));
 		c.gridy++;
 
-		CollapsablePanel spellsPanel = new CollapsablePanel(true);
-		spellsPanel.bodyPanel.setLayout(new GridBagLayout());
-		UILib.addLabel(spellsPanel.headerPanel, "Spellcasting Settings", Color.black);
-		add(spellsPanel, c);
+		add(spellcastingPanel, c);
 		c.gridy++;
 
 		UILib.addLabel(this, "Features:", c, Color.black);
@@ -112,21 +105,6 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 		add(addFeature, c);
 		c.gridy++;
 
-		c.gridy = 0;
-		linkedProperties.add(UILib.addLabeledLinkedDropdown(spellsPanel.bodyPanel,
-				List.of("", Ability.Int.toString(), Ability.Wis.toString(), Ability.Cha.toString(),
-						Ability.Primary.toString()),
-				"Spellcasting Ability: ", c, Color.white, Color.black, () -> getSpellcastingAbility(),
-				(s) -> updateSpellcastingAbility(s)));
-		c.gridy++;
-
-		linkedProperties.add(UILib.addLabeledLinkedTextField(spellsPanel.bodyPanel, "Known Spells/Lvl: ", c,
-				Color.white, Color.black, () -> getKnownSpells(), (s) -> updateKnownSpells(s)));
-		c.gridy++;
-
-		linkedProperties.add(UILib.addLabeledLinkedTextField(spellsPanel.bodyPanel, "Spells Slots/Lvl: ", c,
-				Color.white, Color.black, () -> getSpellSlots(), (s) -> updateSpellSlots(s)));
-
 		setVisible(false);
 	}
 
@@ -138,6 +116,7 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 		linkedProperties.forEach(p -> p.updateValue());
 
 		updateFeaturePanels();
+		spellcastingPanel.updatePanel(cls);
 
 		setVisible(true);
 	}
@@ -319,222 +298,5 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 		}
 		cls.setEquipmentOptions(equips);
 		showErrorMessage(invalid, "equipment options");
-	}
-
-	private String getSpellcastingAbility()
-	{
-		return cls.getSpellcastingAbility() == null ? "" : cls.getSpellcastingAbility().toString();
-	}
-
-	private void updateSpellcastingAbility(String abl)
-	{
-		cls.setSpellcastingAbility(abl.isBlank() ? null : Ability.valueOf(abl));
-	}
-
-	private String getSpellSlots()
-	{
-		List<String> slotStrings = new ArrayList<>();
-		if (cls.getClassSpells() != null)
-		{
-			if (cls.getClassSpells().getSlotsStyle() == ClassSpells.FLAT)
-			{
-				// If we use entryset we get random order, want these ordered for easy reading
-				Map<Integer, Map<Integer, Integer>> fslots = cls.getClassSpells().getAllFlatSlots();
-				List<Integer> orderedSlotClsLvls = new ArrayList<>(fslots.keySet());
-				orderedSlotClsLvls.sort(Integer::compareTo);
-				for (int charLvl : orderedSlotClsLvls)
-				{
-					int spellLvl = 0;
-					int count = 0;
-					for (Map.Entry<Integer, Integer> spellLevelToCount : fslots.get(charLvl).entrySet())
-					{
-						spellLvl = spellLevelToCount.getKey();
-						count = spellLevelToCount.getValue();
-					}
-					slotStrings.add(charLvl + "-" + spellLvl + "-" + count);
-				}
-			}
-			else
-			{
-				// If we use entryset we get random order, want these ordered for easy reading
-				Map<Integer, Map<Integer, Integer>> fslots = cls.getClassSpells().getAllFlatSlots();
-				List<Integer> orderedSlotClsLvls = new ArrayList<>(fslots.keySet());
-				orderedSlotClsLvls.sort(Integer::compareTo);
-				for (int charLvl : orderedSlotClsLvls)
-				{
-					List<String> slots = new ArrayList<>();
-					for (Map.Entry<Integer, Integer> slotsBySpellLvl : fslots.get(charLvl).entrySet())
-					{
-						slots.add(slotsBySpellLvl.getKey() + "-" + slotsBySpellLvl.getValue());
-					}
-					slotStrings.add(charLvl + " [" + String.join(" | ", slots) + "]");
-				}
-			}
-		}
-		return String.join(", ", slotStrings);
-	}
-
-	private void updateSpellSlots(String s)
-	{
-		String[] slotLevels = s.split(",");
-		Map<Integer, Map<Integer, Integer>> slotsByLevel = new HashMap<>();
-		boolean fullStyle = s.contains("[");
-		List<String> invalid = new ArrayList<>();
-		for (String sl : slotLevels)
-		{
-			if (sl.isBlank())
-			{
-				continue;
-			}
-			try
-			{
-				if (fullStyle)
-				{
-					if (!sl.contains("["))
-					{
-						invalid.add(sl);
-						continue;
-					}
-					int clsLvl = Integer.parseInt(sl.substring(0, sl.indexOf('[')).trim());
-
-					Map<Integer, Integer> slots = new HashMap<>();
-					String slotStr = sl.substring(sl.indexOf('[') + 1, sl.indexOf(']'));
-					String[] splitSlots = slotStr.split("\\|");
-
-					for (String slot : splitSlots)
-					{
-						String[] splitSlot = slot.split("-");
-						if (splitSlot.length != 2)
-						{
-							invalid.add(sl);
-							continue;
-						}
-						slots.put(Integer.parseInt(splitSlot[0].trim()), Integer.parseInt(splitSlot[1].trim()));
-					}
-
-					slotsByLevel.put(clsLvl, slots);
-				}
-				else
-				{
-					String[] split = sl.split("-");
-					if (split.length != 3)
-					{
-						invalid.add(sl);
-						continue;
-					}
-					int charLvl = Integer.parseInt(split[0].trim());
-					int spLvl = Integer.parseInt(split[1].trim());
-					int count = Integer.parseInt(split[2].trim());
-					Map<Integer, Integer> spLvlToCount = new HashMap<>();
-					spLvlToCount.put(spLvl, count);
-					slotsByLevel.put(charLvl, spLvlToCount);
-				}
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-				invalid.add(sl);
-			}
-		}
-		if (fullStyle)
-		{
-			cls.getClassSpells().setAllFullSlots(slotsByLevel);
-		}
-		else
-		{
-			cls.getClassSpells().setAllFlatSlots(slotsByLevel);
-		}
-		showErrorMessage(invalid, "spell slots");
-	}
-
-	private String getKnownSpells()
-	{
-		List<String> knownStrings = new ArrayList<>();
-		if (cls.getClassSpells() != null)
-		{
-			if (cls.getClassSpells().getKnownStyle() == ClassSpells.FLAT)
-			{
-				Map<Integer, Integer> cantrips = cls.getClassSpells().getAllFlatCantrips();
-				Map<Integer, Integer> knowns = cls.getClassSpells().getAllFlatKnown();
-				for (int i = 1; i <= 20; i++)
-				{
-					int cCount = cantrips.containsKey(i) ? cantrips.get(i) : 0;
-					int sCount = knowns.containsKey(i) ? knowns.get(i) : 0;
-
-					if (cCount > 0 || sCount > 0)
-					{
-						knownStrings.add(i + "-" + cCount + "-" + sCount);
-					}
-				}
-			}
-			else
-			{
-				Map<Integer, Integer> cantrips = cls.getClassSpells().getAllGainCantrips();
-				Map<Integer, Integer> knowns = cls.getClassSpells().getAllGainKnown();
-				for (int i = 1; i <= 20; i++)
-				{
-					int cCount = cantrips.containsKey(i) ? cantrips.get(i) : 0;
-					int sCount = knowns.containsKey(i) ? knowns.get(i) : 0;
-
-					if (cCount > 0 || sCount > 0)
-					{
-						knownStrings.add(i + "+" + cCount + "+" + sCount);
-					}
-				}
-			}
-		}
-		return String.join(", ", knownStrings);
-	}
-
-	private void updateKnownSpells(String s)
-	{
-		String[] knownLevels = s.split(",");
-		Map<Integer, Integer> cantripsByLvl = new HashMap<>();
-		Map<Integer, Integer> spellsByLvl = new HashMap<>();
-		boolean flatStyle = s.contains("-");
-		List<String> invalid = new ArrayList<>();
-		for (String kl : knownLevels)
-		{
-			if (kl.isBlank())
-			{
-				continue;
-			}
-			try
-			{
-				String[] split = kl.split(flatStyle ? "-" : "\\+");
-				if (split.length != 3)
-				{
-					invalid.add(kl);
-					continue;
-				}
-				int lvl = Integer.parseInt(split[0].trim());
-				int cCount = Integer.parseInt(split[1].trim());
-				int sCount = Integer.parseInt(split[2].trim());
-				if (cCount > 0)
-				{
-					cantripsByLvl.put(lvl, cCount);
-				}
-				if (sCount > 0)
-				{
-					spellsByLvl.put(lvl, sCount);
-				}
-			}
-			catch (Exception e)
-			{
-				e.printStackTrace();
-				invalid.add(kl);
-			}
-		}
-		if (flatStyle)
-		{
-			cls.getClassSpells().setAllFlatCantrips(cantripsByLvl);
-			cls.getClassSpells().setAllFlatKnown(spellsByLvl);
-		}
-		else
-		{
-			cls.getClassSpells().setAllGainCantrips(cantripsByLvl);
-			cls.getClassSpells().setAllGainKnown(spellsByLvl);
-		}
-		showErrorMessage(invalid, "known spells");
 	}
 }

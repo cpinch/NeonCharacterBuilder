@@ -53,13 +53,14 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			OPT_PROF_INIT = "Gives Proficiency to Initiative", OPT_ABL_INIT = "Use other Abilities for Initiative",
 			OPT_C_SKILL_ABL_TO = "Choose Skill Prof and get extra Ability to it.",
 			OPT_G_SKILL_EXP = "Gives Skills or Expertise", OPT_G_ABL = "Gives Ability Score Increases",
-			OPT_C_ABL = "Choose Ability Score Increases";
+			OPT_C_ABL = "Choose Ability Score Increases", OPT_G_EXP = "Gives Skill Expertise",
+			OPT_E_SL = "Add Extra Spell Lists";
 
 	private static final List<String> options = List.of(OPT_TEXT, OPT_G_SKILLS, OPT_C_SKILLS, OPT_G_SAVES, OPT_G_SPELLS,
 			OPT_C_SPELLS, OPT_C_S_SPELLS, OPT_G_ARMOR, OPT_G_LANGS, OPT_C_LANGS, OPT_G_RES, OPT_R_BY_H, OPT_C_RES,
-			OPT_C_EXP, OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP_1, OPT_HP_LVL,
+			OPT_G_EXP, OPT_C_EXP, OPT_G_TOOLS, OPT_G_WEPS, OPT_ABL_AC, OPT_ABL_SKILLS, OPT_SPD, OPT_HP_1, OPT_HP_LVL,
 			OPT_HALFPROF_ALL, OPT_PROF_INIT, OPT_ABL_INIT, OPT_C_SKILL_ABL_TO, OPT_G_SKILL_EXP, OPT_FEAT, OPT_SEL,
-			OPT_G_ABL, OPT_C_ABL, OPT_NOTES);
+			OPT_G_ABL, OPT_C_ABL, OPT_NOTES, OPT_E_SL);
 
 	private final JComboBox<String> optionSel = new JComboBox<>(options.toArray(new String[0]));
 	private final JButton add = new JButton("Add Feature");
@@ -144,6 +145,9 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_RES, c, Color.white, Color.black, () -> getResOptions(),
 				(s) -> updateResOptions(s));
 
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_EXP, c, Color.white, Color.black,
+				() -> getGrantedSkillExperts(), (s) -> updateGrantedSkillExperts(s));
+
 		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_C_EXP, "Count: ", c,
 				new SpinnerNumberModel(0, 0, 5, 1), Color.white, Color.black, () -> getSkillExpertOptions(),
 				(s) -> updateSkillExpertOptions(s), () -> getSkillExpertCount(), (i) -> updateSkillExpertCount(i));
@@ -163,7 +167,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_SPD, new SpinnerNumberModel(0, 0, 50, 5), c, Color.white,
 				Color.black, () -> getSpeed(), (s) -> updateSpeed(s));
 
-		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_HP_1, new SpinnerNumberModel(0, 0, 5, 1), c, Color.white,
+		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_HP_1, new SpinnerNumberModel(0, 0, 50, 1), c, Color.white,
 				Color.black, () -> getLvl1Hp(), (s) -> updateLvl1Hp(s));
 
 		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_HP_LVL, new SpinnerNumberModel(0, 0, 5, 1), c, Color.white,
@@ -197,6 +201,9 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_C_ABL, "Max: ", c,
 				new SpinnerNumberModel(20, 10, 30, 1), Color.white, Color.black, () -> getChooseAblIncreases(),
 				(s) -> updateChooseAblIncreases(s), () -> getChooseAblMax(), (i) -> updateChooseAblMax(i));
+
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_E_SL, c, Color.white, Color.black, () -> getExtraSpellLists(),
+				(s) -> updateExtraSpellLists(s));
 
 		c.weighty = 1;
 		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_TEXT, 3, c, Color.white, Color.black, () -> getText(),
@@ -397,6 +404,16 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 	private void updateSkillOptionsCount(int i)
 	{
 		f.setSkillSelectionCount(i);
+	}
+
+	private String getGrantedSkillExperts()
+	{
+		return String.join(", ", f.getSkillExpsGranted().stream().map(s -> s.toString()).toList());
+	}
+
+	private void updateGrantedSkillExperts(String s)
+	{
+		f.setSkillExpsGranted(parseSkills(s.split(",")));
 	}
 
 	private String getSaveProfs()
@@ -835,14 +852,57 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private String getGrantedAblIncreases()
 	{
-		return String.join(", ", f.getIncreasedAbilities().stream().map(ai -> ai.getAbility().toString()).toList());
+		return String.join(", ", f.getIncreasedAbilities().stream().map(ai ->
+		{
+			if (ai.getAmount() == 1)
+			{
+				return ai.getAbility().toString();
+			}
+			else
+			{
+				return ai.getAbility().toString() + "-" + ai.getAmount();
+			}
+
+		}).toList());
 	}
 
 	private void updateGrantedAblIncreases(String s)
 	{
-		List<Ability> abilities = parseAbilities(s.split(","));
-		int max = getGrantedAblMax();
-		f.setIncreasedAbilities(abilities.stream().map(a -> new AbilityIncrease(a, 1, max)).toList());
+		if (s.contains("-"))
+		{
+			Map<Ability, Integer> ablsAndVals = new HashMap<>();
+			List<String> invalid = new ArrayList<>();
+			final int max = getGrantedAblMax();
+			String[] split = s.split(",");
+			for (String ablAndVal : split)
+			{
+				String[] split2 = ablAndVal.split("-");
+				if (split2.length != 2)
+				{
+					invalid.add(ablAndVal);
+					continue;
+				}
+				try
+				{
+					Ability a = Ability.valueOf(split2[0].trim());
+					int val = Integer.parseInt(split2[1].trim());
+					ablsAndVals.put(a, val);
+				}
+				catch (Exception e)
+				{
+					invalid.add(ablAndVal);
+				}
+			}
+			showErrorMessage(invalid, "(ability)-(increase amount)");
+			f.setIncreasedAbilities(ablsAndVals.entrySet().stream()
+					.map(ave -> new AbilityIncrease(ave.getKey(), ave.getValue(), max)).toList());
+		}
+		else
+		{
+			List<Ability> abilities = parseAbilities(s.split(","));
+			final int max = getGrantedAblMax();
+			f.setIncreasedAbilities(abilities.stream().map(a -> new AbilityIncrease(a, 1, max)).toList());
+		}
 	}
 
 	private int getGrantedAblMax()
@@ -852,8 +912,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private void updateGrantedAblMax(int i)
 	{
-		List<Ability> abilities = f.getIncreasedAbilities().stream().map(ai -> ai.getAbility()).toList();
-		f.setIncreasedAbilities(abilities.stream().map(a -> new AbilityIncrease(a, 1, i)).toList());
+		f.setIncreasedAbilityMaxes(i);
 	}
 
 	private String getChooseAblIncreases()
@@ -877,5 +936,38 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 	{
 		List<Ability> abilities = f.getAbilityIncreaseOptions().stream().map(ai -> ai.getAbility()).toList();
 		f.setAbilityIncreaseOptions(abilities.stream().map(a -> new AbilityIncrease(a, 1, i)).toList());
+	}
+
+	private String getExtraSpellLists()
+	{
+		return String.join(", ", f.getExtraSpellLists().stream().map(sl -> sl.getName()).toList());
+	}
+
+	private void updateExtraSpellLists(String s)
+	{
+		List<SpellList> sls = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String s2 : s.split(","))
+		{
+			if (!s2.isBlank())
+			{
+				try
+				{
+					SpellList sl = SpellList.getForClass(s2.trim());
+					if (sl == null)
+					{
+						invalid.add(s2);
+						continue;
+					}
+					sls.add(sl);
+				}
+				catch (Exception e)
+				{
+					invalid.add(s);
+				}
+			}
+		}
+		showErrorMessage(invalid, "spell list");
+		f.setExtraSpellLists(sls);
 	}
 }

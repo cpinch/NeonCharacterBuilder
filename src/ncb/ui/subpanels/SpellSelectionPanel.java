@@ -37,7 +37,7 @@ public class SpellSelectionPanel extends CollapsablePanel implements ActionListe
 	private final JLabel duration;
 	private final JTextPane text;
 
-	public SpellSelectionPanel(CharacterSheet sheet, SpellChoice sc, int spellLvl)
+	public SpellSelectionPanel(CharacterSheet sheet, SpellChoice sc, int spellLvl, List<SpellList> spellLists)
 	{
 		super(true);
 
@@ -51,19 +51,19 @@ public class SpellSelectionPanel extends CollapsablePanel implements ActionListe
 		bodyPanel.setLayout(new GridBagLayout());
 
 		List<Spell> spellOpts = new ArrayList<>();
-		SpellList list = sc.getSpellList();
 		if (spellLvl > 0)
 		{
 			// Allow selecting spells from lower levels but not cantrips
 			for (int spLvl = spellLvl; spLvl > 0; spLvl--)
 			{
-				list.getSpellsForLevel(spLvl).forEach(s -> spellOpts.add(s));
+				final int lvl = spLvl;
+				spellLists.forEach(sl -> sl.getSpellsForLevel(lvl).forEach(s -> spellOpts.add(s)));
 			}
 		}
 		else
 		{
 			// Cantrps
-			list.getSpellsForLevel(spellLvl).forEach(s -> spellOpts.add(s));
+			spellLists.forEach(sl -> sl.getSpellsForLevel(spellLvl).forEach(s -> spellOpts.add(s)));
 		}
 		spellSelector = UILib.getComboBox(spellOpts.toArray(new Spell[0]), this, VaporwaveColors.DEEP_VIOLET,
 				VaporwaveColors.LASER_YELLOW);

@@ -2,7 +2,6 @@ package ncb.data;
 
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,16 +14,13 @@ import ncb.data.interfaces.HasConfig;
 import ncb.data.interfaces.HasState;
 import ncb.data.loadables.CharacterClass;
 import ncb.data.loadables.Spell;
-import ncb.data.loadables.SpellList;
 import ncb.io.JsonDataLoader;
 import ncb.main.PropertyListener;
 
 public class ClassSpells implements HasConfig, HasState
 {
-	public static final int FLAT = 5, FULL = 6, GAIN = 7;
-
 	private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
-	private Customizable parent;
+	private CharacterClass cls;
 
 	@Override
 	public PropertyChangeSupport getPCS()
@@ -32,27 +28,27 @@ public class ClassSpells implements HasConfig, HasState
 		return pcs;
 	}
 
-	public ClassSpells()
+	public ClassSpells(CharacterClass cls)
 	{
 		super();
+		this.cls = cls;
 		addPropertyChangeListener(PropertyListener.getListener());
 	}
 
 	@Override
 	public Customizable getParent()
 	{
-		return parent;
+		return cls;
 	}
 
 	@Override
 	public void setParent(Customizable p)
 	{
-		this.parent = p;
 	}
 
-	private SpellList getSpellList()
+	private int highestSlot(int charLvl)
 	{
-		return SpellList.getForClass(((CharacterClass) getParent()).getName());
+		return cls.getSpellSlotsForLevel(charLvl).getHighestSlotLevel();
 	}
 
 	@Override
@@ -81,16 +77,16 @@ public class ClassSpells implements HasConfig, HasState
 		{
 			if (spLvl == 0)
 			{
-				if (knownCantrips.containsKey(clvl))
+				if (cantripsByLevel.containsKey(clvl))
 				{
-					return knownCantrips.get(clvl);
+					return cantripsByLevel.get(clvl);
 				}
 			}
 			else
 			{
-				if (highestSlot(charLvl) == spLvl && knownSpells.containsKey(clvl))
+				if (highestSlot(charLvl) == spLvl && spellsByLevel.containsKey(clvl))
 				{
-					return knownSpells.get(clvl);
+					return spellsByLevel.get(clvl);
 				}
 			}
 		}
@@ -106,16 +102,16 @@ public class ClassSpells implements HasConfig, HasState
 		{
 			if (spLvl == 0)
 			{
-				if (knownCantrips.containsKey(clvl))
+				if (cantripsByLevel.containsKey(clvl))
 				{
-					count += knownCantrips.get(clvl);
+					count += cantripsByLevel.get(clvl);
 				}
 			}
 			else
 			{
-				if (highestSlot(clvl) == spLvl && knownSpells.containsKey(clvl))
+				if (highestSlot(clvl) == spLvl && spellsByLevel.containsKey(clvl))
 				{
-					count += knownSpells.get(clvl);
+					count += spellsByLevel.get(clvl);
 				}
 			}
 		}
@@ -125,7 +121,7 @@ public class ClassSpells implements HasConfig, HasState
 	public List<SpellChoice> getSpellChoicesByLevel(int charLvl, int spLvl)
 	{
 		List<SpellChoice> scs = new ArrayList<>();
-		if (knownStyle == FLAT)
+		if (!gainPerLvl)
 		{
 			int count = getCountFlatKnown(charLvl, spLvl);
 
@@ -139,7 +135,7 @@ public class ClassSpells implements HasConfig, HasState
 				{
 					if (cantripBucket.size() <= i)
 					{
-						cantripBucket.add(new SpellChoice(getSpellList(), 0));
+						cantripBucket.add(new SpellChoice(cls.getSpellLists().get(0), 0));
 					}
 					scs.add(cantripBucket.get(i));
 				}
@@ -147,7 +143,7 @@ public class ClassSpells implements HasConfig, HasState
 				{
 					if (spellBucket.size() <= i)
 					{
-						spellBucket.add(new SpellChoice(getSpellList(), spLvl));
+						spellBucket.add(new SpellChoice(cls.getSpellLists().get(0), spLvl));
 					}
 					scs.add(spellBucket.get(i));
 				}
@@ -168,7 +164,7 @@ public class ClassSpells implements HasConfig, HasState
 			{
 				if (spellChoicesByLvl.get(spLvl).size() <= i)
 				{
-					spellChoicesByLvl.get(spLvl).add(new SpellChoice(getSpellList(), spLvl));
+					spellChoicesByLvl.get(spLvl).add(new SpellChoice(cls.getSpellLists().get(0), spLvl));
 				}
 				scs.add(spellChoicesByLvl.get(spLvl).get(i));
 			}
@@ -176,168 +172,66 @@ public class ClassSpells implements HasConfig, HasState
 		return scs;
 	}
 
-	public int getSpellSlots(int charLvl, int spLvl)
-	{
-		if (slotsStyle == FLAT)
-		{
-			// Flat style
-			// We want to go backwards through levels, to handle missing "duplicate" levels
-			// properly
-			// The first time we find a set entry, if it's greater than or less than spLvl
-			// we know we have no slots of this level
-			// If it's exactly spLvl we return it
-			for (int clvl = charLvl; clvl > 0; clvl--)
-			{
-				if (slots.containsKey(clvl) && !slots.get(clvl).isEmpty())
-				{
-					// We have a level with slot information
-					Integer count = slots.get(clvl).get(spLvl);
-					if (count == null)
-					{
-						return 0;
-					}
-					else
-					{
-						return count;
-					}
-				}
-			}
-		}
-		else
-		{
-			// Full style records
-			// We want the highest level entry in slots with this spLvl <= charLvl
-			for (int clvl = charLvl; clvl > 0; clvl--)
-			{
-				if (slots.containsKey(clvl) && slots.get(clvl).containsKey(spLvl))
-				{
-					return slots.get(clvl).get(spLvl);
-				}
-			}
-		}
-		return 0;
-	}
-
-	private int highestSlot(int charLvl)
-	{
-		if (slotsStyle == FLAT)
-		{
-			for (int clvl = charLvl; clvl > 0; clvl--)
-			{
-				if (slots.containsKey(clvl))
-				{
-					// For flat style slots, there is 1 entry in the char level value map and its
-					// key is the spell level of the slots
-					return Collections.max(slots.get(clvl).keySet());
-				}
-			}
-
-		}
-		else
-		{
-			int max = 1;
-			for (int clvl = charLvl; clvl > 0; clvl--)
-			{
-				if (slots.containsKey(clvl))
-				{
-					int m = Collections.max(slots.get(clvl).keySet());
-					if (m > max)
-					{
-						max = m;
-					}
-				}
-			}
-			return max;
-		}
-		return 0;
-	}
-
 	// Configuration
-	private int knownStyle = FLAT, slotsStyle = FLAT;
-	private final Map<Integer, Map<Integer, Integer>> slots = new HashMap<>();
-	private final Map<Integer, Integer> knownCantrips = new HashMap<>();
-	private final Map<Integer, Integer> knownSpells = new HashMap<>();
+	private boolean gainPerLvl = false;
+	private final Map<Integer, Integer> cantripsByLevel = new HashMap<>();
+	private final Map<Integer, Integer> spellsByLevel = new HashMap<>();
 
-	public int getKnownStyle()
+	public boolean isGainPerLvl()
 	{
-		return knownStyle;
+		return gainPerLvl;
 	}
 
-	public Map<Integer, Integer> getAllFlatCantrips()
+	public void setGainPerLvl(boolean b)
 	{
-		return knownCantrips;
+		updateConfig(gainPerLvl, b, (v) ->
+		{
+			gainPerLvl = v;
+		});
 	}
 
-	public void setAllFlatCantrips(Map<Integer, Integer> known)
+	public Map<Integer, Integer> getCantripsByLevel()
 	{
-		this.knownCantrips.clear();
-		this.knownCantrips.putAll(known);
-		knownStyle = FLAT;
+		return cantripsByLevel;
 	}
 
-	public Map<Integer, Integer> getAllFlatKnown()
+	public int getCantripsForLevel(int charLvl)
 	{
-		return knownSpells;
+		if (!cantripsByLevel.containsKey(charLvl))
+		{
+			cantripsByLevel.put(charLvl, 0);
+		}
+		return cantripsByLevel.get(charLvl);
 	}
 
-	public void setAllFlatKnown(Map<Integer, Integer> known)
+	public void setCantripsForLevel(int charLvl, int count)
 	{
-		this.knownSpells.clear();
-		this.knownSpells.putAll(known);
-		knownStyle = FLAT;
+		updateConfig(getCantripsForLevel(charLvl), count, (v) ->
+		{
+			cantripsByLevel.put(charLvl, v);
+		});
 	}
 
-	public Map<Integer, Integer> getAllGainCantrips()
+	public Map<Integer, Integer> getSpellsByLevel()
 	{
-		return knownCantrips;
+		return spellsByLevel;
 	}
 
-	public void setAllGainCantrips(Map<Integer, Integer> known)
+	public int getSpellsForLevel(int charLvl)
 	{
-		this.knownCantrips.clear();
-		this.knownCantrips.putAll(known);
-		knownStyle = GAIN;
+		if (!spellsByLevel.containsKey(charLvl))
+		{
+			spellsByLevel.put(charLvl, 0);
+		}
+		return spellsByLevel.get(charLvl);
 	}
 
-	public Map<Integer, Integer> getAllGainKnown()
+	public void setSpellsForLevel(int charLvl, int count)
 	{
-		return knownSpells;
-	}
-
-	public void setAllGainKnown(Map<Integer, Integer> known)
-	{
-		this.knownSpells.clear();
-		this.knownSpells.putAll(known);
-		knownStyle = GAIN;
-	}
-
-	public int getSlotsStyle()
-	{
-		return slotsStyle;
-	}
-
-	public Map<Integer, Map<Integer, Integer>> getAllFlatSlots()
-	{
-		return slots;
-	}
-
-	public void setAllFlatSlots(Map<Integer, Map<Integer, Integer>> slots)
-	{
-		this.slots.clear();
-		this.slots.putAll(slots);
-		slotsStyle = FLAT;
-	}
-
-	public Map<Integer, Map<Integer, Integer>> getAllFullSlots()
-	{
-		return slots;
-	}
-
-	public void setAllFullSlots(Map<Integer, Map<Integer, Integer>> slots)
-	{
-		this.slots.clear();
-		this.slots.putAll(slots);
-		slotsStyle = FULL;
+		updateConfig(getSpellsForLevel(charLvl), count, (v) ->
+		{
+			spellsByLevel.put(charLvl, v);
+		});
 	}
 
 	@Override
@@ -345,32 +239,9 @@ public class ClassSpells implements HasConfig, HasState
 	{
 		JSONObject json = new JSONObject();
 
-		json = putInt(json, "knownStyle", knownStyle);
-		json = putInt(json, "slotsStyle", slotsStyle);
-		json = putIntMap(json, "knownCantrips", knownCantrips, "charLvl", "count");
-		json = putIntMap(json, "knownSpells", knownSpells, "charLvl", "count");
-
-		// Custom object
-		if (!slots.isEmpty())
-		{
-			JSONArray slotsByCharLvl = new JSONArray();
-			for (Map.Entry<Integer, Map<Integer, Integer>> slotsEntries : slots.entrySet())
-			{
-				JSONObject s = new JSONObject();
-				s.put("charLvl", slotsEntries.getKey());
-				JSONArray slvls = new JSONArray();
-				for (Map.Entry<Integer, Integer> lvlSlotEntries : slotsEntries.getValue().entrySet())
-				{
-					JSONObject s2 = new JSONObject();
-					s2.put("spellLvl", lvlSlotEntries.getKey());
-					s2.put("count", lvlSlotEntries.getValue());
-					slvls.put(s2);
-				}
-				s.put("slotCounts", slvls);
-				slotsByCharLvl.put(s);
-			}
-			json.put("spellSlots", slotsByCharLvl);
-		}
+		json = putBool(json, "gainPerLvl", gainPerLvl);
+		json = putIntMap(json, "knownCantrips", cantripsByLevel, "charLvl", "count");
+		json = putIntMap(json, "knownSpells", spellsByLevel, "charLvl", "count");
 
 		return json;
 	}
@@ -380,25 +251,13 @@ public class ClassSpells implements HasConfig, HasState
 	{
 		if (data != null)
 		{
-			knownStyle = data.optInt("knownStyle", FLAT);
-			slotsStyle = data.optInt("slotsStyle", FLAT);
-			knownCantrips.clear();
+			gainPerLvl = data.optBoolean("gainPerLvl", false);
+			cantripsByLevel.clear();
 			getIntMap(data, "knownCantrips", "charLvl", "count").entrySet()
-					.forEach(e -> knownCantrips.put(e.getKey(), e.getValue()));
-			knownSpells.clear();
+					.forEach(e -> cantripsByLevel.put(e.getKey(), e.getValue()));
+			spellsByLevel.clear();
 			getIntMap(data, "knownSpells", "charLvl", "count").entrySet()
-					.forEach(e -> knownSpells.put(e.getKey(), e.getValue()));
-
-			// Custom object
-			JsonDataLoader.jsonArrayToObjectArray(data.optJSONArray("spellSlots")).forEach(s ->
-			{
-				Map<Integer, Integer> slotsForLvl = new HashMap<>();
-				JsonDataLoader.jsonArrayToObjectArray(s.optJSONArray("slotCounts")).forEach(s2 ->
-				{
-					slotsForLvl.put(s2.getInt("spellLvl"), s2.getInt("count"));
-				});
-				slots.put(s.getInt("charLvl"), slotsForLvl);
-			});
+					.forEach(e -> spellsByLevel.put(e.getKey(), e.getValue()));
 		}
 	}
 

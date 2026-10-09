@@ -100,4 +100,17 @@ public interface GetAll
 
 		return each;
 	}
+
+	default <T, R> List<Map<T, R>> getEachMap(Function<Feature, Map<T, R>> method)
+	{
+		List<Map<T, R>> each = new ArrayList<>();
+
+		if (this instanceof Feature)
+		{
+			each.add(method.apply((Feature) this));
+		}
+		getChildren().forEach(f -> each.addAll(f.getEachMap(method)));
+
+		return each;
+	}
 }

@@ -1,6 +1,7 @@
 package ncb.data.loadables;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -11,6 +12,7 @@ import ncb.data.ClassEquipment;
 import ncb.data.ClassSpells;
 import ncb.data.Feature;
 import ncb.data.SpellChoice;
+import ncb.data.SpellSlots;
 import ncb.data.enums.Ability;
 import ncb.data.interfaces.Customizable;
 import ncb.data.interfaces.GetAll;
@@ -111,6 +113,18 @@ public class CharacterClass extends Feature
 		return classSpells;
 	}
 
+	public List<SpellList> getSpellLists()
+	{
+		List<SpellList> sls = new ArrayList<>();
+		// Always have our class spell list
+		sls.add(SpellList.getForClass(getName()));
+
+		// Add any extra spell lists we can choose from thanks to features
+		sls.addAll(getAll(Feature::getExtraSpellLists));
+
+		return sls;
+	}
+
 	/**
 	 * We need to grab the spell choices from its ClassSkills. This is used by the
 	 * getAll that is called by SpellsPanel, and we want that to keep using the
@@ -121,14 +135,10 @@ public class CharacterClass extends Feature
 		return classSpells.getSpellChoicesByLevel(level, spellLevel);
 	}
 
-	/**
-	 * This is called by the FeaturePanel and FeatureEditPanel, neither of which
-	 * classes uses
-	 */
 	@Override
 	public Map<Integer, List<SpellChoice>> getSpellChoices()
 	{
-		throw new UnsupportedOperationException("CharacterClass must go through the ClassSpells class.");
+		return Collections.emptyMap();
 	}
 
 	public String getEquipmentItems()
@@ -208,6 +218,8 @@ public class CharacterClass extends Feature
 	private final List<Ability> primaryAbilityOptions = new ArrayList<>();
 	private final List<ClassEquipment> equipment = new ArrayList<>();
 	private final List<Feature> classFeatures = new ArrayList<>();
+	private boolean fullSlots = false;
+	private List<SpellSlots> spellSlots = new ArrayList<>();
 
 	public String getDesc()
 	{
@@ -345,6 +357,40 @@ public class CharacterClass extends Feature
 		});
 	}
 
+	public boolean isFullSlots()
+	{
+		return fullSlots;
+	}
+
+	public void setFullSlots(boolean b)
+	{
+		updateConfig(this.fullSlots, b, (v) ->
+		{
+			this.fullSlots = v;
+		});
+	}
+
+	public List<SpellSlots> getAllSpellSlots()
+	{
+		return new ArrayList<>(spellSlots);
+	}
+
+	public SpellSlots getSpellSlots()
+	{
+		return getSpellSlotsForLevel(level);
+	}
+
+	public SpellSlots getSpellSlotsForLevel(int clsLvl)
+	{
+		while (spellSlots.size() < clsLvl)
+		{
+			SpellSlots sp = new SpellSlots();
+			sp.setParent(this);
+			spellSlots.add(sp);
+		}
+		return spellSlots.get(clsLvl - 1);
+	}
+
 	@Override
 	public JSONObject saveConfig()
 	{
@@ -361,6 +407,8 @@ public class CharacterClass extends Feature
 		json = putObjList(json, "equipment", equipment.stream().map(e -> e.saveConfig()).toList());
 		json = putObjList(json, "features", classFeatures.stream().map(f -> f.saveConfig()).toList());
 		json = putObj(json, "classSpells", classSpells.saveConfig());
+		json = putBool(json, "fullSlots", fullSlots);
+		json = putObjList(json, "spellSlots", spellSlots.stream().map(s -> s.saveConfig()).toList());
 
 		return json;
 	}
@@ -401,10 +449,18 @@ public class CharacterClass extends Feature
 			classFeatures.add(fe);
 		});
 		classSpells.loadConfig(data.optJSONObject("classSpells"));
+		fullSlots = data.optBoolean("fullSlots", false);
+		List<JSONObject> slotsList = getObjList(data, "spellSlots");
+		spellSlots.clear();
+		for (JSONObject slot : slotsList)
+		{
+			spellSlots.add(new SpellSlots(slot));
+		}
 	}
 
-	// Class Spells has both config and state
-	private final ClassSpells classSpells = new ClassSpells();
+	// Class Spells has both config (spell option counts) and state (spells
+	// selected)
+	private final ClassSpells classSpells = new ClassSpells(this);
 
 	// State
 	private Ability selectedPrimary = null;

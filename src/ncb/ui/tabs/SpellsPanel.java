@@ -1,7 +1,9 @@
 package ncb.ui.tabs;
 
 import java.awt.BorderLayout;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -10,8 +12,10 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import ncb.data.Feature;
 import ncb.data.SpellChoice;
 import ncb.data.loadables.Spell;
+import ncb.data.loadables.SpellList;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
@@ -79,23 +83,47 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 			grantedSpellsPanel.add(new SpellPanel(s));
 		}
 
+		// Map is spell level -> each spell choice at that level with its spell list and
+		// selection
+		List<Map<Integer, List<SpellChoice>>> miscSpellChoices = sheet.getEachMap(Feature::getSpellChoices);
+
+		List<SpellList> classListOptions = sheet.getCharClass().getSpellLists();
 		spellSelectionPanel.removeAll();
 		for (int lvl = 0; lvl <= 9; lvl++)
 		{
-			List<SpellChoice> spellsByLevel = sheet.getCharClass().getSpellChoicesByLevel(lvl);
+			// Class spells
+			List<SpellChoice> classSpellsForLvl = sheet.getCharClass().getSpellChoicesByLevel(lvl);
+			List<SpellSelectionPanel> panelsToAdd = new ArrayList<>();
 
-			if (spellsByLevel.isEmpty())
+			final int spellLvl = lvl;
+			classSpellsForLvl.forEach(sc ->
+			{
+				panelsToAdd.add(new SpellSelectionPanel(sheet, sc, spellLvl, classListOptions));
+			});
+
+			// Other feature spells
+			for (Map<Integer, List<SpellChoice>> map : miscSpellChoices)
+			{
+				if (map != null && map.containsKey(spellLvl))
+				{
+					map.get(spellLvl).forEach(sc ->
+					{
+						panelsToAdd.add(new SpellSelectionPanel(sheet, sc, spellLvl, List.of(sc.getSpellList())));
+					});
+				}
+			}
+
+			if (panelsToAdd.isEmpty())
 			{
 				continue;
 			}
 
 			UILib.addLabel(spellSelectionPanel, (lvl == 0 ? "Cantrips" : "Level " + lvl), VaporwaveColors.HOT_PINK)
 					.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 0));
-			final int spellLvl = lvl;
-			spellsByLevel.forEach(sc ->
+			for (SpellSelectionPanel panel : panelsToAdd)
 			{
-				spellSelectionPanel.add(new SpellSelectionPanel(sheet, sc, spellLvl));
-			});
+				spellSelectionPanel.add(panel);
+			}
 		}
 
 		revalidate();

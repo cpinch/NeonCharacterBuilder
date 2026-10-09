@@ -1,10 +1,8 @@
 package ncb.ui.DataEditor.Editors;
 
 import java.awt.Color;
-import java.util.List;
 
 import ncb.data.interfaces.Customizable;
-import ncb.data.loadables.Spell;
 import ncb.data.loadables.SpellList;
 import ncb.ui.UILib;
 import ncb.ui.DataEditor.EditPanel;
@@ -36,7 +34,7 @@ public class SpellListEditPanel extends EditPanel
 		{
 			final int spLvl = lvl;
 			linkedProperties
-					.add(UILib.addLabeledLinkedTextField(this, (lvl == 0 ? "Cantrips: " : "Level " + lvl + ": "), c,
+					.add(UILib.addLabeledLinkedTextArea(this, 2, (lvl == 0 ? "Cantrips: " : "Level " + lvl + ": "), c,
 							Color.white, Color.black, () -> getSpells(spLvl), (s) -> updateSpells(spLvl, s)));
 			c.gridy++;
 		}
@@ -56,13 +54,11 @@ public class SpellListEditPanel extends EditPanel
 
 	public String getSpells(int lvl)
 	{
-		return String.join(", ", list.getSpellNamesForLevel(lvl));
+		return String.join(", ", list.getSpellsForLevel(lvl).stream().map(s -> spellToText(s)).toList());
 	}
 
 	private void updateSpells(int lvl, String s)
 	{
-		List<Spell> spells = parseSpells(s.split(","));
-		list.setSpellNamesForLevel(lvl, spells.stream()
-				.map(sp -> sp.getName() + (sp.getBaseName().isBlank() ? "" : " (" + sp.getBaseName() + ")")).toList());
+		list.setSpellsForLevel(lvl, parseSpells(s.split(",")));
 	}
 }

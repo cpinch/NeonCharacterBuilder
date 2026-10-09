@@ -147,6 +147,15 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 					c, VaporwaveColors.HOT_PINK);
 			c.gridy++;
 		}
+		List<Skill> skillExps = feature.getSkillExpsGranted();
+		if (!skillExps.isEmpty())
+		{
+			UILib.addLabel(bodyPanel,
+					"<html>Grants Skill Expertise (if proficient): <i>"
+							+ String.join(", ", skillExps.stream().map(s -> s.toString()).toList()) + "</i></html>",
+					c, VaporwaveColors.HOT_PINK);
+			c.gridy++;
+		}
 		List<Spell> spells = feature.getSpellsGranted();
 		if (!spells.isEmpty())
 		{
@@ -526,18 +535,15 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		if (resLabel != null)
 		{
 			List<String> res = feature.getResistancesGranted();
-			System.out.println("Base res " + res + " / " + res.size());
 			if (!feature.getResistancesByHomeworld().isEmpty() && sheet.getBackground() != null)
 			{
 				String r = CharacterSheet.getResistanceForHomeworld(sheet.getBackground().getHomeworld(),
 						feature.getResistancesByHomeworld());
 				if (!r.isBlank())
 				{
-					System.out.println("Adding " + r + " to " + res + " / " + res.size());
 					res.add(r);
 				}
 			}
-			System.out.println("Updating res " + res + " / " + res.size());
 			if (res.isEmpty())
 			{
 				resLabel.setVisible(false);

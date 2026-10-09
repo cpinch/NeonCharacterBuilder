@@ -11,6 +11,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -96,6 +97,15 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 
 		getContentPane().add(navBar, BorderLayout.SOUTH);
 		getContentPane().setBackground(VaporwaveColors.DARK_PURPLE);
+
+		try
+		{
+			setIconImage(ImageIO.read(BaseCharacterWindow.class.getResource("/NCBIcon-256.png")));
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
 
 		setTitle("Neon Character Builder");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
