@@ -2,6 +2,6 @@
 .project
 .settings
 .m2
-bin
-target
-resources
+/bin
+/target
+/resources
