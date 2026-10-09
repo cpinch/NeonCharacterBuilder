@@ -32,7 +32,7 @@ jobs:
         cache: 'maven' # Automatically caches Maven dependencies to speed up future runs
 
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B clean compile assembly:single --file pom.xml
 
     - name: Run jpackage (Windows)
       run: jpackage --type app-image --name NeonCharacterBuilder --input target --main-jar NeonCharacterBuilder.jar --main-class ncb.main.BaseCharacterWindow --dest dist-win --icon assets/NCBIcon.ico
