@@ -12,8 +12,10 @@ import org.json.JSONObject;
 import ncb.data.AbilityIncrease;
 import ncb.data.AbilityScores;
 import ncb.data.Feature;
+import ncb.data.LeveledText;
 import ncb.data.enums.Ability;
 import ncb.data.enums.ArmorTraining;
+import ncb.data.enums.DamageType;
 import ncb.data.enums.Skill;
 import ncb.data.hardcoded.Proficiency;
 import ncb.data.interfaces.AlertsChanges;
@@ -53,6 +55,14 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		children.add(background);
 
 		return children;
+	}
+
+	// Completely temporary state
+	private int loadedLevel = 0;
+
+	public int getLoadedLevel()
+	{
+		return loadedLevel;
 	}
 
 	// Sub-fields
@@ -178,6 +188,9 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		species.loadState(data.getJSONObject("species"));
 		background.loadState(data.getJSONObject("background"));
 		abilityScores.loadState(data.getJSONObject("abilityScores"));
+
+		// For use in pdf editing
+		this.loadedLevel = getLevel();
 	}
 
 	// Calculated fields
@@ -332,23 +345,30 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public List<String> getAllResistances()
 	{
-		List<String> res = getAll(Feature::getResistancesGranted);
+		List<DamageType> res = getAll(Feature::getResistancesGranted);
 		res.addAll(getAll(Feature::getResistancesSelected));
+
+		List<String> resStr = new ArrayList<>();
+		resStr.addAll(res.stream().map(r -> r.toString()).toList());
+
 		// Homeworld trait resistances are unique and have to be handled accordingly
 		Homeworld h = background.getHomeworld();
-		getAllOf(Feature::getResistancesByHomeworld).forEach(hwRes -> res.add(getResistanceForHomeworld(h, hwRes)));
+		List<String> hwRes = getAllOf(Feature::getResistancesByHomeworld).stream()
+				.map(r -> getResistanceForHomeworld(h, r)).toList();
+		resStr.addAll(hwRes);
 
-		return res;
+		return resStr;
 	}
 
-	public static String getResistanceForHomeworld(Homeworld h, Map<String, String> traitToResistMap)
+	public static String getResistanceForHomeworld(Homeworld h, Map<String, DamageType> traitToResistMap)
 	{
 		if (h != null)
 		{
 			if (h.hasTrait("Any"))
 			{
 				// Extreme edge case, just let the user handle it on the sheet
-				return "Choose 1 (" + String.join(",", traitToResistMap.values()) + ")";
+				return "Choose 1 ("
+						+ String.join(",", traitToResistMap.values().stream().map(r -> r.toString()).toList()) + ")";
 			}
 			else
 			{
@@ -356,7 +376,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 				{
 					if (traitToResistMap.containsKey(trait))
 					{
-						return traitToResistMap.get(trait);
+						return traitToResistMap.get(trait).toString();
 					}
 				}
 			}
@@ -539,14 +559,14 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		return init;
 	}
 
-	public List<String> getSheetNotes()
+	public List<LeveledText> getSheetNotes()
 	{
 		return getAllOf(Feature::getSheetNotes);
 	}
 
-	public List<String> getFeatureStrings()
+	public List<LeveledText> getFeatureStrings()
 	{
-		List<String> fs = new ArrayList<>();
+		List<LeveledText> fs = new ArrayList<>();
 
 		// Iterate through every child feature, stopping when we hit a feat
 		getChildren().forEach(c -> fs.addAll(getFeatureStrings(c)));
@@ -554,15 +574,15 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		return fs;
 	}
 
-	private List<String> getFeatureStrings(GetAll feature)
+	private List<LeveledText> getFeatureStrings(GetAll feature)
 	{
 		if (feature instanceof Feature && !(feature instanceof Feat))
 		{
-			List<String> fs = new ArrayList<>();
+			List<LeveledText> fs = new ArrayList<>();
 			Feature f = (Feature) feature;
 			if (!f.getText().isBlank())
 			{
-				fs.add(f.getName() + " - " + f.getText());
+				fs.add(new LeveledText(f.getLevel(), f.getName(), f.getName() + " - " + f.getText()));
 			}
 			f.getChildren().forEach(c -> fs.addAll(getFeatureStrings(c)));
 			return fs;
@@ -571,15 +591,15 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	}
 
-	public List<String> getFeatStrings()
+	public List<LeveledText> getFeatStrings()
 	{
-		List<String> fs = new ArrayList<>();
+		List<LeveledText> fs = new ArrayList<>();
 
 		List<Feat> feats = getAllOf(Feature::getFeat);
 		for (Feat f : feats)
 		{
 			List<String> allText = f.getAllOf(Feature::getText);
-			fs.add(f.getName() + " - " + String.join(", ", allText));
+			fs.add(new LeveledText(f.getLevel(), f.getName(), f.getName() + " - " + String.join(", ", allText)));
 		}
 
 		return fs;

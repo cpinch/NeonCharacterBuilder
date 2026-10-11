@@ -1,7 +1,6 @@
 package ncb.ui.DataEditor;
 
 import java.awt.CardLayout;
-import java.awt.Color;
 
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
@@ -41,8 +40,7 @@ public class DataObjectSelector extends JPanel
 		setLayout(layout);
 
 		instructions = UILib.getTextDisplay(
-				"<html>Welcome to the Data Editor. This tool is designed to facility entering the data from the Neon Odyssey books in order to get the most value out of the character builder.<br><br>To the left you will find the various types of objects that can be created/updated. Once you select one you will see a list of all objects of that type that exist if you wish to update them and a New button to add more.<br><br>See the DATA EDITOR README doc for specifics on how each object's data is configured.<br><br>Don't forget to Save your changes with the button at the bottom. Any changes you make will persist for the current session but they will only be retained for the future if you save them to a custom nlib file.",
-				Color.black);
+				"<html>Welcome to the Data Editor. This tool is designed to facility entering the data from the Neon Odyssey books in order to get the most value out of the character builder.<br><br>To the left you will find the various types of objects that can be created/updated. Once you select one you will see a list of all objects of that type that exist if you wish to update them and a New button to add more.<br><br>See the DATA EDITOR README doc for specifics on how each object's data is configured.<br><br>Don't forget to Save your changes with the button at the bottom. Any changes you make will persist for the current session but they will only be retained for the future if you save them to a custom nlib file.");
 
 		add(instructions, "Instruction");
 		add(bgSel, DataTypeSelector.bgStr);

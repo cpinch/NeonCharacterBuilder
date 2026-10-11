@@ -1,7 +1,6 @@
 package ncb.main;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -24,11 +23,12 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.formdev.flatlaf.FlatLightLaf;
+
 import ncb.io.JsonDataLoader;
 import ncb.ui.ListensForChanges;
 import ncb.ui.Toast;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 import ncb.ui.DataEditor.DataEditor;
 import ncb.ui.tabs.AbilityPanel;
 import ncb.ui.tabs.BackgroundPanel;
@@ -62,11 +62,11 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 	private final JButton save = new JButton("Save");
 	private final JButton load = new JButton("Load");
 
+	public static File loadedFolder;
+
 	public BaseCharacterWindow()
 	{
 		tabbedPane.setOpaque(false);
-		tabbedPane.setBackground(VaporwaveColors.DEEP_VIOLET);
-		tabbedPane.setForeground(VaporwaveColors.HOT_PINK);
 		tabbedPane.addTab("Details", createCharacterDetailsTab());
 		tabbedPane.addTab("Class", classP);
 		tabbedPane.addTab("Species", speciesP);
@@ -85,18 +85,14 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		// but we repurpose this button for the data editor here
 		back.setEnabled(true);
 		back.setText(dataES);
-		back.setBackground(VaporwaveColors.NEON_BLUE);
 		navBar.add(back);
 		save.addActionListener(this);
 		save.setEnabled(false); // Save is disabled until a character name is entered
-		save.setBackground(VaporwaveColors.NEON_BLUE);
 		navBar.add(save);
 		next.addActionListener(this);
-		next.setBackground(VaporwaveColors.NEON_BLUE);
 		navBar.add(next);
 
 		getContentPane().add(navBar, BorderLayout.SOUTH);
-		getContentPane().setBackground(VaporwaveColors.DARK_PURPLE);
 
 		try
 		{
@@ -111,7 +107,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		pack();
 
-		// Constrain to screen size if unm-aximized
+		// Constrain to screen size if un-maximized
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		if (getWidth() > screenSize.getWidth())
 		{
@@ -132,7 +128,6 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 	{
 		JPanel panel = new JPanel();
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		panel.setBackground(VaporwaveColors.DARK_PURPLE);
 		panel.setLayout(new GridBagLayout());
 		GridBagConstraints c = UILib.getStandardGBC();
 
@@ -142,28 +137,26 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 				+ "Please navigate through each tab, in order, and follow the instructions on that tab.<br>"
 				+ "At the end you will be able to export a form-fillable pdf which will be pre-filled with your character's details.<br><br>"
 				+ "<b><i>To begin, please choose a name for your character (this will also be the name of the exported pdf).</b><i/>",
-				c, VaporwaveColors.HOT_PINK);
+				c);
 		c.gridy++;
 
-		nameF = UILib.getTextField(Color.black);
+		nameF = UILib.getTextField();
 		nameF.setOpaque(true);
 		nameF.getDocument().addDocumentListener(UILib.createDocumentListener(() ->
 		{
 			sheet.setName(nameF.getText());
 			save.setEnabled(!sheet.getName().isBlank());
 		}));
-		UILib.addLabeledComponent(panel, "Character Name: ", nameF, c, VaporwaveColors.HOT_PINK);
+		UILib.addLabeledComponent(panel, "Character Name: ", nameF, c);
 		c.gridy++;
 
 		JPanel filler = new JPanel();
-		filler.setBackground(VaporwaveColors.DARK_PURPLE);
 		c.weighty = 1;
 		panel.add(filler, c);
 		c.gridy++;
 
 		c.weighty = 0;
 		load.addActionListener(this);
-		load.setBackground(VaporwaveColors.NEON_BLUE);
 		panel.add(load, c);
 
 		return panel;
@@ -215,8 +208,10 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 			int result = fileChooser.showOpenDialog(null);
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
-				JsonDataLoader.loadCharacterStateFromFile(sheet, fileChooser.getSelectedFile());
-				new Toast("Loaded character.", 0);
+				File selectedFile = fileChooser.getSelectedFile();
+				loadedFolder = selectedFile.getParentFile();
+				JsonDataLoader.loadCharacterStateFromFile(sheet, selectedFile);
+				new Toast("Loaded character.", Toast.SLOT_1);
 				nameF.setText(sheet.getName());
 			}
 		}
@@ -226,9 +221,25 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 
 	public static void main(String[] args)
 	{
-		// TODO future - figure out a way to only do this on larger screens, checking
-		// screensize with toolkit "locks in" the scaling, so that doesn't work.
-		System.setProperty("sun.java2d.uiScale", "2.0");
+		try
+		{
+			// This should only apply if a system ui scale is not set, so should
+			// theoretically handle different screen sizes better
+			System.setProperty("flatlaf.uiScale", "2x");
+
+			// Don't scale the title bar of the app
+			System.setProperty("flatlaf.useWindowDecorations", "false");
+
+			// Tell flatlaf to load our custom theme
+			com.formdev.flatlaf.FlatLaf.registerCustomDefaultsSource("");
+
+			// Start flatlaf
+			FlatLightLaf.setup();
+		}
+		catch (Exception e)
+		{
+			System.err.println("Failed to initialize flatlaf vaporwave theme.");
+		}
 
 		JsonDataLoader.loadAllFiles();
 

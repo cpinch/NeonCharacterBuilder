@@ -1,7 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
-
 import ncb.data.interfaces.Customizable;
 import ncb.data.loadables.Selectable;
 import ncb.ui.UILib;
@@ -32,8 +30,8 @@ public class SelectableEditPanel extends EditPanel
 	{
 		super();
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Selectable Type: ", c, Color.white, Color.black,
-				() -> select.getType(), (s) -> select.setType(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Selectable Type: ", c, () -> select.getType(),
+				(s) -> select.setType(s)));
 		c.gridy++;
 
 		c.weighty = 1;

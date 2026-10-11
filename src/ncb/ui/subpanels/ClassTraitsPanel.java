@@ -13,7 +13,6 @@ import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class ClassTraitsPanel extends JPanel implements ListensForChanges
 {
@@ -44,28 +43,28 @@ public class ClassTraitsPanel extends JPanel implements ListensForChanges
 		add(primaryAbilityPanel, c);
 		c.gridy++;
 
-		HD = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(this, "Hit Point Die: ", HD, c, VaporwaveColors.HOT_PINK);
+		HD = UILib.getLabel("");
+		UILib.addLabeledComponent(this, "Hit Point Die: ", HD, c);
 		c.gridy++;
 
-		saves = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(this, "Save Proficiencies: ", saves, c, VaporwaveColors.HOT_PINK);
+		saves = UILib.getLabel("");
+		UILib.addLabeledComponent(this, "Save Proficiencies: ", saves, c);
 		c.gridy++;
 
 		skills = new ClassSkillSelector(sheet);
 		add(skills, c);
 		c.gridy++;
 
-		weapons = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(this, "Weapon Proficiencies: ", weapons, c, VaporwaveColors.HOT_PINK);
+		weapons = UILib.getLabel("");
+		UILib.addLabeledComponent(this, "Weapon Proficiencies: ", weapons, c);
 		c.gridy++;
 
-		tools = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(this, "Tool Proficiencies: ", tools, c, VaporwaveColors.HOT_PINK);
+		tools = UILib.getLabel("");
+		UILib.addLabeledComponent(this, "Tool Proficiencies: ", tools, c);
 		c.gridy++;
 
-		armor = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(this, "Armor Training: ", armor, c, VaporwaveColors.HOT_PINK);
+		armor = UILib.getLabel("");
+		UILib.addLabeledComponent(this, "Armor Training: ", armor, c);
 		c.gridy++;
 
 		c.weighty = 1;
@@ -78,7 +77,8 @@ public class ClassTraitsPanel extends JPanel implements ListensForChanges
 	{
 		HD.setText("D" + sheet.getCharClass().getHd());
 		saves.setText(String.join(" and ", sheet.getCharClass().getSaveProfs().stream().map(a -> a.name()).toList()));
-		weapons.setText(String.join(" and ", sheet.getCharClass().getWeaponProfs()));
+		weapons.setText(
+				String.join(" and ", sheet.getCharClass().getWeaponProfs().stream().map(w -> w.toString()).toList()));
 		List<String> toolProfs = sheet.getCharClass().getToolProfs();
 		if (toolProfs.isEmpty())
 		{

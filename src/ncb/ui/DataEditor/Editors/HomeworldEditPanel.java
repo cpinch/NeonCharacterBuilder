@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.util.Arrays;
 
 import ncb.data.interfaces.Customizable;
@@ -31,12 +30,12 @@ public class HomeworldEditPanel extends EditPanel
 		super();
 
 		c.weighty = 0.2;
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Traits: ", c, Color.white, Color.black,
-				() -> getTraits(), (s) -> updateTraits(s)));
+		linkedProperties
+				.add(UILib.addLabeledLinkedTextField(this, "Traits: ", c, () -> getTraits(), (s) -> updateTraits(s)));
 		c.gridy++;
 		c.weighty = 0.8;
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Desc: ", c, Color.white, Color.black,
-				() -> homeworld.getDesc(), (s) -> homeworld.setDesc(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Desc: ", c, () -> homeworld.getDesc(),
+				(s) -> homeworld.setDesc(s)));
 
 		setVisible(false);
 	}

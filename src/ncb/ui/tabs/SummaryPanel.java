@@ -22,7 +22,6 @@ import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
 import ncb.ui.UIPanel;
-import ncb.ui.VaporwaveColors;
 
 public class SummaryPanel extends UIPanel implements ActionListener, ListensForChanges
 {
@@ -35,7 +34,8 @@ public class SummaryPanel extends UIPanel implements ActionListener, ListensForC
 	private JButton export = new JButton("Save and Export Character Sheet");
 
 	private boolean hasEmptyCharName = false, hasInvalidBackgroundIncreases = false, hasDuplicateSkillProfs = false,
-			hasDuplicateSpells = false, hasDuplicateSkillExpertise = false;
+			hasDuplicateSpells = false, hasDuplicateSkillExpertise = false, hasDuplicateWepProfs = false,
+			hasDuplicateToolProfs = false, hasDuplicateVehProfs = false;
 
 	public SummaryPanel(CharacterSheet sheet)
 	{
@@ -63,12 +63,11 @@ public class SummaryPanel extends UIPanel implements ActionListener, ListensForC
 
 		setLayout(new BorderLayout());
 
-		summaryText = UILib.getTextDisplay("", VaporwaveColors.HOT_PINK);
+		summaryText = UILib.getTextDisplay("");
 		add(UILib.getScrollPaneFor(summaryText), BorderLayout.CENTER);
 
 		add(export, BorderLayout.SOUTH);
 		export.addActionListener(this);
-		export.setBackground(VaporwaveColors.NEON_BLUE);
 
 		updateProperty(PropertyListener.CLASS);
 	}
@@ -107,6 +106,12 @@ public class SummaryPanel extends UIPanel implements ActionListener, ListensForC
 		List<Skill> skillExperts = sheet.getAllSkillExperts();
 		skillExperts.sort((a, b) -> a.toString().compareTo(b.toString()));
 		checkForDuplicateSkillExpertise(skillExperts);
+		List<String> wepProfs = sheet.getAllWeaponProfs();
+		checkForDuplicateWeps(wepProfs);
+		List<String> toolProfs = sheet.getAllToolProfs();
+		checkForDuplicateTools(toolProfs);
+		List<String> vehProfs = sheet.getAllVehicleProfs();
+		checkForDuplicateVehicles(vehProfs);
 
 		if (hasEmptyCharName)
 		{
@@ -223,13 +228,25 @@ public class SummaryPanel extends UIPanel implements ActionListener, ListensForC
 			text.append("<br>");
 		}
 		text.append("Weapon Proficiencies: ");
-		text.append(String.join(", ", sheet.getAllWeaponProfs()));
+		text.append(String.join(", ", wepProfs.stream().map(w -> w.toString()).toList()));
+		if (hasDuplicateWepProfs)
+		{
+			text.append(" <i>(Duplicate weapon proficiencies)</i></span>");
+		}
 		text.append("<br>");
 		text.append("Tool Proficiencies: ");
-		text.append(String.join(", ", sheet.getAllToolProfs()));
+		text.append(String.join(", ", toolProfs));
+		if (hasDuplicateToolProfs)
+		{
+			text.append(" <i>(Duplicate tool proficiencies)</i></span>");
+		}
 		text.append("<br>");
 		text.append("Vehicle Proficiencies: ");
-		text.append(sheet.getAllVehicleProfs());
+		text.append(String.join(", ", vehProfs));
+		if (hasDuplicateVehProfs)
+		{
+			text.append(" <i>(Duplicate vehicle proficiencies)</i></span>");
+		}
 		text.append("<br>");
 		text.append("Armor Proficiencies: ");
 		text.append(String.join(", ", sheet.getAllArmorProfs().stream().map(ap -> ap.toString()).toList()));
@@ -292,6 +309,21 @@ public class SummaryPanel extends UIPanel implements ActionListener, ListensForC
 	private void checkForDuplicateSkillExpertise(List<Skill> skills)
 	{
 		hasDuplicateSkillExpertise = new HashSet<>(skills).size() < skills.size();
+	}
+
+	private void checkForDuplicateWeps(List<String> weps)
+	{
+		hasDuplicateWepProfs = new HashSet<>(weps).size() < weps.size();
+	}
+
+	private void checkForDuplicateTools(List<String> tools)
+	{
+		hasDuplicateToolProfs = new HashSet<>(tools).size() < tools.size();
+	}
+
+	private void checkForDuplicateVehicles(List<String> vehicles)
+	{
+		hasDuplicateVehProfs = new HashSet<>(vehicles).size() < vehicles.size();
 	}
 
 	private void checkForInvalidBackgroundAbilityIncreases(Map<Ability, Integer> bgIncreases)

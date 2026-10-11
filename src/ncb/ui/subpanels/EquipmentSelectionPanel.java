@@ -14,7 +14,6 @@ import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class EquipmentSelectionPanel extends JPanel implements ActionListener, ListensForChanges
 {
@@ -38,12 +37,12 @@ public class EquipmentSelectionPanel extends JPanel implements ActionListener, L
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.insets = new Insets(0, 0, 0, 0);
 
-		selector = UILib.getComboBox(new Character[0], this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
-		UILib.addLabeledComponent(this, "Equipment: ", selector, c, VaporwaveColors.HOT_PINK);
+		selector = UILib.getComboBox(new Character[0], this);
+		UILib.addLabeledComponent(this, "Equipment: ", selector, c);
 		c.gridy++;
 
 		c.weighty = 1;
-		label = UILib.addTextDisplay(this, "", c, VaporwaveColors.HOT_PINK);
+		label = UILib.addTextDisplay(this, "", c);
 	}
 
 	@Override

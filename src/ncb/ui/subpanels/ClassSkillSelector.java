@@ -11,12 +11,13 @@ import java.util.List;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.enums.Skill;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class ClassSkillSelector extends JPanel implements ActionListener, ListensForChanges
 {
@@ -40,12 +41,11 @@ public class ClassSkillSelector extends JPanel implements ActionListener, Listen
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.insets = new Insets(0, 0, 0, 0);
 
-		UILib.addLabel(this, "Skill Proficiencies: ", c, VaporwaveColors.HOT_PINK).setFont(UILib.boldFont);
+		UILib.addLabel(this, "Skill Proficiencies: ", c).putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		c.gridx++;
 		for (int i = 0; i < maxSkills; i++)
 		{
-			JComboBox<Skill> selector = UILib.getComboBox(new Skill[0], this, VaporwaveColors.DEEP_VIOLET,
-					VaporwaveColors.LASER_YELLOW);
+			JComboBox<Skill> selector = UILib.getComboBox(new Skill[0], this);
 			add(selector, c);
 			c.gridx++;
 			selectors.add(selector);

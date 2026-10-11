@@ -13,7 +13,6 @@ import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
 import ncb.ui.UIPanel;
-import ncb.ui.VaporwaveColors;
 import ncb.ui.subpanels.SubclassFeaturesPanel;
 
 public class SubclassPanel extends UIPanel implements ActionListener, ListensForChanges
@@ -35,15 +34,12 @@ public class SubclassPanel extends UIPanel implements ActionListener, ListensFor
 
 		GridBagConstraints c = UILib.getStandardGBC();
 
-		subclassNameSelector = UILib
-				.getComboBox(
-						Subclass.getForClassName(sheet.getCharClass().getName()).stream().map(sc -> sc.getName())
-								.toList().toArray(new String[0]),
-						this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
-		UILib.addLabeledComponent(this, "Subclass: ", subclassNameSelector, c, VaporwaveColors.HOT_PINK);
+		subclassNameSelector = UILib.getComboBox(Subclass.getForClassName(sheet.getCharClass().getName()).stream()
+				.map(sc -> sc.getName()).toList().toArray(new String[0]), this);
+		UILib.addLabeledComponent(this, "Subclass: ", subclassNameSelector, c);
 		c.gridy++;
 
-		subclassDesc = UILib.addLabel(this, "", c, VaporwaveColors.HOT_PINK);
+		subclassDesc = UILib.addLabel(this, "", c);
 		c.gridy++;
 
 		c.weighty = 1;

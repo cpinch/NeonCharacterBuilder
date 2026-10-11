@@ -1,7 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
-
 import ncb.data.interfaces.Customizable;
 import ncb.data.loadables.SpellList;
 import ncb.ui.UILib;
@@ -35,7 +33,7 @@ public class SpellListEditPanel extends EditPanel
 			final int spLvl = lvl;
 			linkedProperties
 					.add(UILib.addLabeledLinkedTextArea(this, 2, (lvl == 0 ? "Cantrips: " : "Level " + lvl + ": "), c,
-							Color.white, Color.black, () -> getSpells(spLvl), (s) -> updateSpells(spLvl, s)));
+							() -> getSpells(spLvl), (s) -> updateSpells(spLvl, s)));
 			c.gridy++;
 		}
 

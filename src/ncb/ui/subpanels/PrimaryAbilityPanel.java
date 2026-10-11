@@ -8,12 +8,13 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.enums.Ability;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class PrimaryAbilityPanel extends JPanel implements ActionListener, ListensForChanges
 {
@@ -31,9 +32,10 @@ public class PrimaryAbilityPanel extends JPanel implements ActionListener, Liste
 		setOpaque(false);
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 
-		label = UILib.addLabel(this, "Primary Ability:", VaporwaveColors.HOT_PINK);
+		label = UILib.addLabel(this, "Primary Ability:");
+		label.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 
-		selector = UILib.getComboBox(new Ability[0], this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		selector = UILib.getComboBox(new Ability[0], this);
 		add(selector);
 	}
 

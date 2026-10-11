@@ -58,7 +58,7 @@ public class DocExporter
 			out.write(new FileOutputStream(new File(c.getName() + " Spells.docx")));
 			out.close();
 
-			new Toast("Successfully Exported Spells Doc", 50);
+			new Toast("Successfully Exported Spells Doc", Toast.SLOT_3);
 		}
 		catch (Exception e)
 		{

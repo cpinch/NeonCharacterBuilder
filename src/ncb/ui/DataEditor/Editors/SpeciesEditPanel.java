@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -46,25 +45,25 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener
 		super();
 
 		c.weighty = 1;
-		linkedProperties.add(UILib.addLabeledLinkedTextArea(this, 5, "Desc: ", c, Color.white, Color.black,
-				() -> species.getDesc(), (s) -> species.setDesc(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextArea(this, 5, "Desc: ", c, () -> species.getDesc(),
+				(s) -> species.setDesc(s)));
 		c.gridy++;
 		c.weighty = 0;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Type: ", c, Color.white, Color.black,
-				() -> species.getType(), (s) -> species.setType(s)));
+		linkedProperties.add(
+				UILib.addLabeledLinkedTextField(this, "Type: ", c, () -> species.getType(), (s) -> species.setType(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedDropdown(this, List.of("M", "M or S", "S"), "Size: ", c, Color.white,
-				Color.black, () -> getSpeciesSize(), (s) -> updateSpeciesSize(s)));
+		linkedProperties.add(UILib.addLabeledLinkedDropdown(this, List.of("M", "M or S", "S"), "Size: ", c,
+				() -> getSpeciesSize(), (s) -> updateSpeciesSize(s)));
 		c.gridy++;
 
 		linkedProperties.add(UILib.addLabeledLinkedSpinner(this, "Speed: ", c, new SpinnerNumberModel(30, 0, 50, 5),
-				Color.white, Color.black, () -> species.getSpeedMod(), (i) -> species.setSpeedMod(i)));
+				() -> species.getSpeedMod(), (i) -> species.setSpeedMod(i)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Homeworld: ", c, Color.white, Color.black,
-				() -> getHomeworld(), (s) -> updateHomeworld(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Homeworld: ", c, () -> getHomeworld(),
+				(s) -> updateHomeworld(s)));
 		c.gridy++;
 
 		addTrait.addActionListener(this);
@@ -94,10 +93,9 @@ public class SpeciesEditPanel extends EditPanel implements ActionListener
 	{
 		if (e.getSource().equals(addTrait))
 		{
-			String name = JOptionPane.showInputDialog(null, "Name?:", "New Species Trait",
-					JOptionPane.QUESTION_MESSAGE);
+			String name = JOptionPane.showInputDialog(null, "Name?", "New Species Trait", JOptionPane.QUESTION_MESSAGE);
 
-			if (!name.isBlank())
+			if (name != null && !name.isBlank())
 			{
 				species.addNewTrait(name);
 				updateTraitPanels();

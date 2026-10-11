@@ -1,33 +1,65 @@
 package ncb.ui;
 
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
-import java.awt.Toolkit;
+import java.awt.Graphics2D;
+import java.awt.GraphicsEnvironment;
+import java.awt.GridBagLayout;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
+import java.awt.geom.RoundRectangle2D;
 
+import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JWindow;
 
-/**
- * This class was started from
- * https://www.geeksforgeeks.org/java/java-swing-creating-toast-message/ then
- * heavily modified and rewritten for this use case. Still want to give credit
- * for the starting point.
- */
-public class Toast implements Runnable
+public class Toast extends JWindow implements Runnable
 {
-	private final JWindow win;
+	private static final long serialVersionUID = -797652304202788608L;
+	public static final Point SLOT_1 = new Point(20, 160), SLOT_2 = new Point(20, 90), SLOT_3 = new Point(20, 20);
+	private static final int DISPLAYTIME = 3000, FADEOUTTIME = 100;
 
-	public Toast(String text, int offset)
+	private float opacity = 0.0f;
+
+	public Toast(String text, Point slot)
 	{
-		Dimension screensize = Toolkit.getDefaultToolkit().getScreenSize();
+		setAlwaysOnTop(true);
+		setOpacity(opacity);
+		setBackground(new Color(0, 0, 0, 0)); // Transparent background
 
-		win = new JWindow();
+		JPanel toastPanel = new JPanel()
+		{
+			private static final long serialVersionUID = 1L;
 
-		win.setBackground(new Color(0, 0, 0, 0));
-		win.add(new ToastPanel(text));
-		win.setLocation(screensize.width - 300, screensize.height - 100 - offset);
-		win.setSize(300, 100);
+			@Override
+			public void paintComponent(Graphics g)
+			{
+				Graphics2D g2 = (Graphics2D) g.create();
+				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+				g2.setColor(new Color(50, 50, 50, 230)); // Dark grey with slight transparency
+				g2.fill(new RoundRectangle2D.Float(0, 0, getWidth(), getHeight(), 20, 20));
+				g2.dispose();
+				super.paintComponent(g);
+
+			}
+		};
+		toastPanel.setOpaque(false);
+		toastPanel.setLayout(new GridBagLayout());
+
+		JLabel textLabel = new JLabel(text);
+		textLabel.setForeground(Color.white);
+		textLabel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+		toastPanel.add(textLabel);
+
+		add(toastPanel);
+		pack();
+
+		Rectangle screenBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
+		int x = screenBounds.x + screenBounds.width - getWidth() - slot.x;
+		int y = screenBounds.y + screenBounds.height - getHeight() - slot.y;
+		setLocation(x, y);
 
 		new Thread(this).start();
 	}
@@ -37,63 +69,23 @@ public class Toast implements Runnable
 	{
 		try
 		{
-			win.setOpacity(1);
-			win.setVisible(true);
+			setOpacity(1);
+			setVisible(true);
 
-			// wait for some time
-			Thread.sleep(2000);
+			Thread.sleep(DISPLAYTIME);
 
 			// make the message disappear slowly
 			for (double d = 1.0; d > 0.2; d -= 0.1)
 			{
-				Thread.sleep(100);
-				win.setOpacity((float) d);
+				Thread.sleep(FADEOUTTIME);
+				setOpacity((float) d);
 			}
 
-			// set the visibility to false
-			win.setVisible(false);
+			setVisible(false);
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
-		}
-	}
-
-	private class ToastPanel extends JPanel
-	{
-		private static final long serialVersionUID = 8946647606850709510L;
-
-		private final String text;
-
-		public ToastPanel(String text)
-		{
-			this.text = text;
-		}
-
-		@Override
-		public void paintComponent(Graphics g)
-		{
-			int wid = g.getFontMetrics().stringWidth(text);
-			int hei = g.getFontMetrics().getHeight();
-
-			// draw the boundary of the toast and fill it
-			g.setColor(Color.black);
-			g.fillRect(10, 10, wid + 30, hei + 10);
-			g.setColor(Color.black);
-			g.drawRect(10, 10, wid + 30, hei + 10);
-
-			// set the color of text
-			g.setColor(new Color(255, 255, 255, 240));
-			g.drawString(text, 25, 27);
-			int t = 250;
-
-			// draw the shadow of the toast
-			for (int i = 0; i < 4; i++)
-			{
-				t -= 60;
-				g.setColor(new Color(0, 0, 0, t));
-				g.drawRect(10 - i, 10 - i, wid + 30 + i * 2, hei + 10 + i * 2);
-			}
 		}
 	}
 }

@@ -12,6 +12,8 @@ import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import com.formdev.flatlaf.ui.FlatBorder;
+
 public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 {
 	private static final long serialVersionUID = 2652970109248517759L;
@@ -25,7 +27,7 @@ public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 	public CollapsablePanel(boolean startCollapsed)
 	{
 		setLayout(new GridBagLayout());
-		setBorder(BorderFactory.createEtchedBorder());
+		setBorder(new FlatBorder());
 		setOpaque(false);
 
 		JPanel headerArea = new JPanel();
@@ -52,7 +54,7 @@ public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 
 		setToggleState(startCollapsed);
 
-		toggleBtn.setBackground(VaporwaveColors.NEON_BLUE);
+		// toggleBtn.setBackground(VaporwaveColors.NEON_BLUE);
 		toggleBtn.addActionListener(new ActionListener()
 		{
 			@Override

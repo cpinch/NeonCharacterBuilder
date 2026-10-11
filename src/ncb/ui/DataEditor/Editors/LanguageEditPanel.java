@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.util.Arrays;
 
 import ncb.data.interfaces.Customizable;
@@ -30,8 +29,7 @@ public class LanguageEditPanel extends EditPanel
 	{
 		super();
 
-		UILib.addLabeledLinkedTextField(this, "Spoken Locations: ", c, Color.white, Color.black, () -> getSpokenAt(),
-				(s) -> updateSpokenAt(s));
+		UILib.addLabeledLinkedTextField(this, "Spoken Locations: ", c, () -> getSpokenAt(), (s) -> updateSpokenAt(s));
 
 		setVisible(false);
 	}

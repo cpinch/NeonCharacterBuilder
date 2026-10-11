@@ -213,7 +213,7 @@ public class JsonDataLoader
 		{
 			out.write(data.toString(4));
 			out.flush();
-			new Toast("Saved character succcessfully", -30);
+			new Toast("Saved character succcessfully", Toast.SLOT_1);
 		}
 		catch (IOException e)
 		{

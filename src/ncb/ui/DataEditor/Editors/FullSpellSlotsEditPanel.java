@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +31,7 @@ public class FullSpellSlotsEditPanel extends NoHorizontalScrollPanel
 		fullLabelPanel.add(new JLabel());
 		for (int i = 1; i <= 9; i++)
 		{
-			UILib.addLabel(fullLabelPanel, "Lvl " + i, Color.black);
+			UILib.addLabel(fullLabelPanel, "Lvl " + i);
 		}
 		add(fullLabelPanel);
 		for (int lvl = 1; lvl <= 20; lvl++)

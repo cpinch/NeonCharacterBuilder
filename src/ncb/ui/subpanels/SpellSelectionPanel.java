@@ -13,13 +13,14 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextPane;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.SpellChoice;
 import ncb.data.loadables.Spell;
 import ncb.data.loadables.SpellList;
 import ncb.main.CharacterSheet;
 import ncb.ui.CollapsablePanel;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class SpellSelectionPanel extends CollapsablePanel implements ActionListener
 {
@@ -65,38 +66,37 @@ public class SpellSelectionPanel extends CollapsablePanel implements ActionListe
 			// Cantrps
 			spellLists.forEach(sl -> sl.getSpellsForLevel(spellLvl).forEach(s -> spellOpts.add(s)));
 		}
-		spellSelector = UILib.getComboBox(spellOpts.toArray(new Spell[0]), this, VaporwaveColors.DEEP_VIOLET,
-				VaporwaveColors.LASER_YELLOW);
+		spellSelector = UILib.getComboBox(spellOpts.toArray(new Spell[0]), this);
 		headerPanel.add(spellSelector);
 
-		basicInfo = UILib.addLabel(headerPanel, "", VaporwaveColors.ELECTRIC_TEAL);
+		basicInfo = UILib.addLabel(headerPanel, "");
 
-		castTime = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(bodyPanel, "Casting Time: ", castTime, c, VaporwaveColors.HOT_PINK);
+		castTime = UILib.getLabel("");
+		UILib.addLabeledComponent(bodyPanel, "Casting Time: ", castTime, c);
 		c.gridy++;
 
-		trigger = UILib.addLabel(bodyPanel, "Trigger: ", c, VaporwaveColors.HOT_PINK);
-		trigger.setFont(UILib.italicFont);
+		trigger = UILib.addLabel(bodyPanel, "Trigger: ", c);
+		trigger.putClientProperty(FlatClientProperties.STYLE, "font: italic");
 		c.gridy++;
 
-		range = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(bodyPanel, "Range: ", range, c, VaporwaveColors.HOT_PINK);
+		range = UILib.getLabel("");
+		UILib.addLabeledComponent(bodyPanel, "Range: ", range, c);
 		c.gridy++;
 
-		components = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(bodyPanel, "Components: ", components, c, VaporwaveColors.HOT_PINK);
+		components = UILib.getLabel("");
+		UILib.addLabeledComponent(bodyPanel, "Components: ", components, c);
 		c.gridy++;
 
-		materials = UILib.addLabel(bodyPanel, "Materials: ", c, VaporwaveColors.HOT_PINK);
-		materials.setFont(UILib.italicFont);
+		materials = UILib.addLabel(bodyPanel, "Materials: ", c);
+		materials.putClientProperty(FlatClientProperties.STYLE, "font: italic");
 		c.gridy++;
 
-		duration = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(bodyPanel, "Duration: ", duration, c, VaporwaveColors.HOT_PINK);
+		duration = UILib.getLabel("");
+		UILib.addLabeledComponent(bodyPanel, "Duration: ", duration, c);
 		c.gridy++;
 
 		c.weighty = 1;
-		text = UILib.addTextDisplay(bodyPanel, "", c, VaporwaveColors.HOT_PINK);
+		text = UILib.addTextDisplay(bodyPanel, "", c);
 		c.gridy++;
 		c.weighty = 0;
 

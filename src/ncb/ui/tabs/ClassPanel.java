@@ -11,13 +11,14 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.loadables.CharacterClass;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
 import ncb.ui.UIPanel;
-import ncb.ui.VaporwaveColors;
 import ncb.ui.subpanels.ClassFeaturesPanel;
 import ncb.ui.subpanels.ClassTraitsPanel;
 
@@ -41,14 +42,14 @@ public class ClassPanel extends UIPanel implements ActionListener, ListensForCha
 		GridBagConstraints c = UILib.getStandardGBC();
 
 		classNameSelector = UILib.getComboBox(
-				CharacterClass.getAllClasses().stream().map(cls -> cls.getName()).toList().toArray(new String[0]), this,
-				VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
-		UILib.addLabeledComponent(this, "Class: ", classNameSelector, c, VaporwaveColors.HOT_PINK);
+				CharacterClass.getAllClasses().stream().map(cls -> cls.getName()).toList().toArray(new String[0]),
+				this);
+		UILib.addLabeledComponent(this, "Class: ", classNameSelector, c);
 		c.gridx++;
 		c.weightx = 0;
-		classLevelLabel = UILib.addLabel(this, "Level 1", c, VaporwaveColors.ELECTRIC_TEAL);
+		classLevelLabel = UILib.addLabel(this, "Level 1", c);
+		classLevelLabel.putClientProperty(FlatClientProperties.STYLE, "foreground: $suggestion");
 		classLevelLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10));
-		classLevelLabel.setFont(UILib.boldFont);
 		c.gridx = 0;
 		c.gridy++;
 		c.weightx = 1;

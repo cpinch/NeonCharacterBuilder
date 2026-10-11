@@ -1,7 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
-
 import javax.swing.BoxLayout;
 import javax.swing.SpinnerNumberModel;
 
@@ -23,11 +21,10 @@ public class GainedSpellsEditPanel extends NoHorizontalScrollPanel
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 
 		lvl1 = UILib.addLabeledLinkedSpinner(this, "Spells Gained at Level 1: ", new SpinnerNumberModel(0, 0, 10, 1),
-				Color.white, Color.black, () -> getLevel1Spells(), (i) -> updateLevel1Spells(i));
+				() -> getLevel1Spells(), (i) -> updateLevel1Spells(i));
 
 		otherLevels = UILib.addLabeledLinkedSpinner(this, "Spells Gained each level after 1: ",
-				new SpinnerNumberModel(0, 0, 5, 1), Color.white, Color.black, () -> getOtherLevelSpells(),
-				(i) -> updateOtherLevelSpells(i));
+				new SpinnerNumberModel(0, 0, 5, 1), () -> getOtherLevelSpells(), (i) -> updateOtherLevelSpells(i));
 	}
 
 	public void updateClass(CharacterClass cls)

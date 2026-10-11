@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -43,13 +42,13 @@ public class SubclassEditPanel extends EditPanel implements ActionListener
 	{
 		super();
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Associated Class: ", c, Color.white, Color.black,
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Associated Class: ", c,
 				() -> sc.getAssociatedClassName(), (s) -> sc.setAssociatedClass(s)));
 		c.gridy++;
 
 		c.weighty = 1;
-		linkedProperties.add(UILib.addLabeledLinkedTextArea(this, 2, "Desc: ", c, Color.white, Color.black,
-				() -> sc.getDesc(), (s) -> sc.setDesc(s)));
+		linkedProperties
+				.add(UILib.addLabeledLinkedTextArea(this, 2, "Desc: ", c, () -> sc.getDesc(), (s) -> sc.setDesc(s)));
 		c.gridy++;
 		c.weighty = 0;
 
@@ -80,10 +79,10 @@ public class SubclassEditPanel extends EditPanel implements ActionListener
 	{
 		if (e.getSource().equals(addFeature))
 		{
-			String name = JOptionPane.showInputDialog(null, "Name?:", "New Subclass Feature",
+			String name = JOptionPane.showInputDialog(null, "Name?", "New Subclass Feature",
 					JOptionPane.QUESTION_MESSAGE);
 
-			if (!name.isBlank())
+			if (name != null && !name.isBlank())
 			{
 				sc.addSubclassFeature(name);
 				updateFeaturePanels();

@@ -6,12 +6,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.loadables.Background;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class BackgroundToolsPanel extends JPanel implements ListensForChanges
 {
@@ -31,10 +32,10 @@ public class BackgroundToolsPanel extends JPanel implements ListensForChanges
 		setOpaque(false);
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
 
-		label = UILib.addLabel(this, "Tool Proficiencies:  ", VaporwaveColors.HOT_PINK);
-		label.setFont(UILib.boldFont);
+		label = UILib.addLabel(this, "Tool Proficiencies: ");
+		label.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 
-		text = UILib.getTextField(VaporwaveColors.HOT_PINK);
+		text = UILib.getTextField();
 		add(text);
 		// TODO Future - Tool Proficiency Selection
 		text.setEditable(false);

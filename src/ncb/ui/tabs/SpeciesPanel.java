@@ -15,7 +15,6 @@ import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
 import ncb.ui.UIPanel;
-import ncb.ui.VaporwaveColors;
 import ncb.ui.subpanels.SpeciesFeaturesPanel;
 import ncb.ui.subpanels.SpeciesTraitsPanel;
 
@@ -37,9 +36,8 @@ public class SpeciesPanel extends UIPanel implements ActionListener, ListensForC
 		PropertyListener.listenForChanges(PropertyListener.SPECIES, this);
 
 		speciesName = UILib.getComboBox(
-				Species.getAllSpecies().stream().map(s -> s.getName()).toList().toArray(new String[0]), this,
-				VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
-		UILib.addLabeledComponent(this, "Select Species: ", speciesName, c, VaporwaveColors.HOT_PINK);
+				Species.getAllSpecies().stream().map(s -> s.getName()).toList().toArray(new String[0]), this);
+		UILib.addLabeledComponent(this, "Select Species: ", speciesName, c);
 		c.gridy++;
 		c.weighty = 1;
 

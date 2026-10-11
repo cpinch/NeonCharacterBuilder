@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.util.ArrayList;
@@ -10,6 +9,7 @@ import javax.swing.JOptionPane;
 
 import ncb.data.enums.Ability;
 import ncb.data.enums.ArmorTraining;
+import ncb.data.enums.DamageType;
 import ncb.data.enums.Skill;
 import ncb.data.interfaces.Customizable;
 import ncb.data.loadables.Language;
@@ -36,8 +36,8 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 	{
 		setLayout(new GridBagLayout());
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Name: ", c, Color.white, Color.black,
-				() -> getItemName(), (s) -> setItemName(s)));
+		linkedProperties
+				.add(UILib.addLabeledLinkedTextField(this, "Name: ", c, () -> getItemName(), (s) -> setItemName(s)));
 		c.gridy++;
 	}
 
@@ -47,8 +47,8 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 
 		collapse = new CollapsablePanel(startCollapsed);
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(collapse.headerPanel, "Name: ", c, Color.white,
-				Color.black, () -> getItemName(), (s) -> setItemName(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(collapse.headerPanel, "Name: ", c, () -> getItemName(),
+				(s) -> setItemName(s)));
 
 		collapse.bodyPanel.setLayout(new GridBagLayout());
 
@@ -97,6 +97,28 @@ public abstract class EditPanel extends NoHorizontalScrollPanel
 		}
 		showErrorMessage(invalid, "ability");
 		return abilities;
+	}
+
+	protected List<DamageType> parseDamageTypes(String[] strings)
+	{
+		List<DamageType> dmgTypes = new ArrayList<>();
+		List<String> invalid = new ArrayList<>();
+		for (String s : strings)
+		{
+			if (!s.isBlank())
+			{
+				try
+				{
+					dmgTypes.add(DamageType.valueOf(s.trim()));
+				}
+				catch (Exception e)
+				{
+					invalid.add(s);
+				}
+			}
+		}
+		showErrorMessage(invalid, "damage type");
+		return dmgTypes;
 	}
 
 	protected List<Skill> parseSkills(String[] strings)

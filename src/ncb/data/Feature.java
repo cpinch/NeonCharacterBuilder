@@ -12,6 +12,7 @@ import org.json.JSONObject;
 
 import ncb.data.enums.Ability;
 import ncb.data.enums.ArmorTraining;
+import ncb.data.enums.DamageType;
 import ncb.data.enums.Skill;
 import ncb.data.interfaces.AlertsChanges;
 import ncb.data.interfaces.Customizable;
@@ -47,13 +48,27 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	@Override
 	public Customizable getParent()
 	{
-		return parent;
+		if (isCopy)
+		{
+			return original.parent;
+		}
+		else
+		{
+			return parent;
+		}
 	}
 
 	@Override
 	public void setParent(Customizable p)
 	{
-		this.parent = p;
+		if (isCopy)
+		{
+			original.setParent(p);
+		}
+		else
+		{
+			this.parent = p;
+		}
 	}
 
 	public int getTopLevel()
@@ -145,9 +160,9 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private final List<Skill> skillExps = new ArrayList<>();
 	private final List<Spell> freeSpells = new ArrayList<>();
 	private final List<Language> freeLangs = new ArrayList<>();
-	private final List<String> freeRes = new ArrayList<>();
+	private final List<DamageType> freeRes = new ArrayList<>();
 	private final List<Ability> ACAbilities = new ArrayList<>();
-	private final List<String> optResistances = new ArrayList<>();
+	private final List<DamageType> optResistances = new ArrayList<>();
 	private int optResistancesCount = 0;
 	private final List<Skill> skillOptions = new ArrayList<>();
 	private int skillCount = 0;
@@ -159,7 +174,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private String optSelectableType = "";
 	private String featTrait = "";
 	private boolean optFeatIgnoreReqs = false;
-	private final Map<String, String> resistanceByHomeworldTrait = new HashMap<>();
+	private final Map<String, DamageType> resistanceByHomeworldTrait = new HashMap<>();
 	private final Map<Skill, Ability> skillsAddExtraAbility = new HashMap<>();
 	private final Map<Integer, List<SpellChoice>> spellChoices = new HashMap<>();
 	private final List<Feature> upgrades = new ArrayList<>();
@@ -210,9 +225,9 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		});
 	}
 
-	public String getSheetNotes()
+	public LeveledText getSheetNotes()
 	{
-		return sheetNotes;
+		return new LeveledText(level, getName(), sheetNotes);
 	}
 
 	public void setSheetNotes(String notes)
@@ -414,12 +429,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		});
 	}
 
-	public List<String> getResistancesGranted()
+	public List<DamageType> getResistancesGranted()
 	{
 		return new ArrayList<>(freeRes);
 	}
 
-	public void setResistancesGranted(List<String> res)
+	public void setResistancesGranted(List<DamageType> res)
 	{
 		updateConfig(freeRes, res, (v) ->
 		{
@@ -442,12 +457,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		});
 	}
 
-	public List<String> getResistanceOptions()
+	public List<DamageType> getResistanceOptions()
 	{
 		return new ArrayList<>(optResistances);
 	}
 
-	public void setResistanceOptions(List<String> res)
+	public void setResistanceOptions(List<DamageType> res)
 	{
 		updateConfig(optResistances, res, (v) ->
 		{
@@ -604,12 +619,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		});
 	}
 
-	public Map<String, String> getResistancesByHomeworld()
+	public Map<String, DamageType> getResistancesByHomeworld()
 	{
 		return new HashMap<>(resistanceByHomeworldTrait);
 	}
 
-	public void setResistancesByHomeworld(Map<String, String> resByHome)
+	public void setResistancesByHomeworld(Map<String, DamageType> resByHome)
 	{
 		updateMapConfig(resistanceByHomeworldTrait, resByHome, (v) ->
 		{
@@ -803,7 +818,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		json = putBool(json, "halfProfAll", halfProfAll);
 		json = putBool(json, "profInit", initProf);
 		json = putList(json, "saves", saveProfs);
-		json = putList(json, "weapons", weaponProfs);
+		json = putList(json, "weapons", weaponProfs.stream().map(w -> w.toString()).toList());
 		json = putList(json, "tools", tools);
 		json = putList(json, "vehicles", vehicles);
 		json = putList(json, "armor", armorTrains);
@@ -811,7 +826,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		json = putList(json, "skillExps", skillExps);
 		json = putObjList(json, "grantsSpells", freeSpells.stream().map(s -> Spell.saveToJSONObject(s)).toList());
 		json = putList(json, "langs", freeLangs);
-		json = putList(json, "res", freeRes);
+		json = putList(json, "res", freeRes.stream().map(r -> r.toString()).toList());
 		json = putList(json, "acAbilities", ACAbilities);
 		json = putList(json, "resOptions", optResistances);
 		json = putList(json, "skillOptions", skillOptions);
@@ -825,7 +840,8 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		json = putBool(json, "featIgnores", optFeatIgnoreReqs);
 		json = putObjList(json, "specificSpells",
 				optSpellChoices.stream().map(s -> Spell.saveToJSONObject(s)).toList());
-		json = putMap(json, "resHome", resistanceByHomeworldTrait, "trait", "res");
+		json = putMap(json, "resHome", resistanceByHomeworldTrait.entrySet().stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toString())), "trait", "res");
 		// Custom object shape
 		if (!spellChoices.isEmpty())
 		{
@@ -889,11 +905,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		freeLangs.clear();
 		freeLangs.addAll(getList(data, "langs").stream().map(l -> Language.getByName(l)).toList());
 		freeRes.clear();
-		freeRes.addAll(getList(data, "res"));
+		freeRes.addAll(getList(data, "res").stream().map(r -> DamageType.typeFromStr(r)).toList());
 		ACAbilities.clear();
 		ACAbilities.addAll(getList(data, "acAbilities").stream().map(s -> Ability.valueOf(s)).toList());
 		optResistances.clear();
-		optResistances.addAll(getList(data, "resOptions"));
+		optResistances.addAll(getList(data, "resOptions").stream().map(r -> DamageType.typeFromStr(r)).toList());
 		skillOptions.clear();
 		skillOptions.addAll(getList(data, "skillOptions").stream().map(s -> Skill.skillByName(s)).toList());
 		skillCount = data.optInt("skillCount", 0);
@@ -910,7 +926,8 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		optSpellChoices
 				.addAll(getObjList(data, "specificSpells").stream().map(o -> Spell.getFromJSONObject(o)).toList());
 		resistanceByHomeworldTrait.clear();
-		resistanceByHomeworldTrait.putAll(getMap(data, "resHome", "trait", "res"));
+		resistanceByHomeworldTrait.putAll(getMap(data, "resHome", "trait", "res").entrySet().stream()
+				.collect(Collectors.toMap(Map.Entry::getKey, e -> DamageType.typeFromStr(e.getValue()))));
 		JSONArray scArr = data.optJSONArray("spellChoices");
 		if (scArr != null)
 		{
@@ -973,7 +990,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	}
 
 	// State
-	private final List<String> resistancesSelected = new ArrayList<>();
+	private final List<DamageType> resistancesSelected = new ArrayList<>();
 	private final List<Skill> skillsSelected = new ArrayList<>();
 	private final List<Skill> skillExpertsSelected = new ArrayList<>();
 	private final List<Language> languagesSelected = new ArrayList<>();
@@ -983,7 +1000,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	private Skill skillWAblSelected = null;
 	private final List<AbilityIncrease> abilityIncreasesSelected = new ArrayList<>();
 
-	public List<String> getResistancesSelected()
+	public List<DamageType> getResistancesSelected()
 	{
 		if (isCopy)
 		{
@@ -995,7 +1012,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		}
 	}
 
-	public void setResistancesSelected(List<String> res)
+	public void setResistancesSelected(List<DamageType> res)
 	{
 		if (isCopy)
 		{
@@ -1261,7 +1278,7 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		}
 		JSONObject json = new JSONObject();
 
-		json = putList(json, "resistanceSelected", resistancesSelected);
+		json = putList(json, "resistanceSelected", resistancesSelected.stream().map(r -> r.toString()).toList());
 		json = putList(json, "skillsSelected", skillsSelected);
 		json = putList(json, "skillExpertSelected", skillExpertsSelected);
 		json = putList(json, "languagesSelected", languagesSelected);
@@ -1301,7 +1318,8 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	@Override
 	public void loadState(JSONObject data)
 	{
-		setResistancesSelected(getList(data, "resistanceSelected"));
+		setResistancesSelected(
+				getList(data, "resistanceSelected").stream().map(r -> DamageType.typeFromStr(r)).toList());
 		setSkillsSelected(getList(data, "skillsSelected").stream().map(s -> Skill.skillByName(s)).toList());
 		setSkillExpertsSelected(getList(data, "skillExpertSelected").stream().map(s -> Skill.skillByName(s)).toList());
 		setLanguagesSelected(getList(data, "languagesSelected").stream().map(l -> Language.getByName(l)).toList());

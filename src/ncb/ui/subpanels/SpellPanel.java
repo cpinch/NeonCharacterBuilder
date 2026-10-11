@@ -5,10 +5,11 @@ import java.awt.GridBagLayout;
 
 import javax.swing.BorderFactory;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.loadables.Spell;
 import ncb.ui.CollapsablePanel;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class SpellPanel extends CollapsablePanel
 {
@@ -25,44 +26,43 @@ public class SpellPanel extends CollapsablePanel
 		c.anchor = GridBagConstraints.WEST;
 		bodyPanel.setLayout(new GridBagLayout());
 
-		UILib.addLabel(headerPanel, getNameLabel(s), VaporwaveColors.HOT_PINK);
+		UILib.addLabel(headerPanel, getNameLabel(s));
 
-		UILib.addLabel(bodyPanel, "<html><b>Casting Time</b>: " + getCastTimeString(s.getCastTime()) + "</html>", c,
-				VaporwaveColors.HOT_PINK);
+		UILib.addLabel(bodyPanel, "<html><b>Casting Time</b>: " + getCastTimeString(s.getCastTime()) + "</html>", c);
 		c.gridy++;
 
 		if (!s.getTrigger().isBlank())
 		{
-			UILib.addLabel(bodyPanel, "Trigger: " + s.getTrigger(), c, VaporwaveColors.HOT_PINK)
-					.setFont(UILib.italicFont);
+			UILib.addLabel(bodyPanel, "Trigger: " + s.getTrigger(), c).putClientProperty(FlatClientProperties.STYLE,
+					"font: italic");
 			c.gridy++;
 		}
 
-		UILib.addLabel(bodyPanel, "<html><b>Range</b>: " + s.getRange() + "</html>", c, VaporwaveColors.HOT_PINK);
+		UILib.addLabel(bodyPanel, "<html><b>Range</b>: " + s.getRange() + "</html>", c);
 		c.gridy++;
 
-		UILib.addLabel(bodyPanel, "<html><b>Components</b>: " + s.getComponents() + "</html>", c,
-				VaporwaveColors.HOT_PINK);
+		UILib.addLabel(bodyPanel, "<html><b>Components</b>: " + s.getComponents() + "</html>", c);
 		c.gridy++;
 
 		if (!s.getMaterials().isBlank())
 		{
-			UILib.addLabel(bodyPanel, "Materials: " + s.getMaterials(), c, VaporwaveColors.HOT_PINK)
-					.setFont(UILib.italicFont);
+			UILib.addLabel(bodyPanel, "Materials: " + s.getMaterials(), c).putClientProperty(FlatClientProperties.STYLE,
+					"font: italic");
 			c.gridy++;
 		}
 
-		UILib.addLabel(bodyPanel, "<html><b>Duration</b>: " + s.getDuration() + "</html>", c, VaporwaveColors.HOT_PINK);
+		UILib.addLabel(bodyPanel, "<html><b>Duration</b>: " + s.getDuration() + "</html>", c);
 		c.gridy++;
 
 		c.weighty = 1;
-		UILib.addTextDisplay(bodyPanel, s.getText(), c, VaporwaveColors.HOT_PINK);
+		UILib.addTextDisplay(bodyPanel, s.getText(), c);
 		c.gridy++;
 		c.weighty = 0;
 
 		if (!s.getNotes().isBlank())
 		{
-			UILib.addLabel(bodyPanel, "Notes: " + s.getNotes(), c, VaporwaveColors.HOT_PINK).setFont(UILib.italicFont);
+			UILib.addLabel(bodyPanel, "Notes: " + s.getNotes(), c).putClientProperty(FlatClientProperties.STYLE,
+					"font: italic");
 		}
 	}
 
