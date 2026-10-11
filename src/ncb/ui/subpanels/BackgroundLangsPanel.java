@@ -13,6 +13,8 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.loadables.Background;
 import ncb.data.loadables.Homeworld;
 import ncb.data.loadables.Language;
@@ -21,7 +23,6 @@ import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class BackgroundLangsPanel extends JPanel implements ActionListener, ListensForChanges
 {
@@ -45,28 +46,27 @@ public class BackgroundLangsPanel extends JPanel implements ActionListener, List
 		GridBagConstraints c = UILib.getStandardGBC();
 		c.insets = new Insets(0, 0, 0, 0);
 
-		label = UILib.addLabel(this, "Languages: ", c, VaporwaveColors.HOT_PINK);
-		label.setFont(UILib.boldFont);
+		label = UILib.addLabel(this, "Languages: ", c);
+		label.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		c.gridx++;
 
 		// Custom backgrounds have Common and 2 of any languages
 		// TODO Background loading
 		lang1 = UILib.getComboBox(new Language[]
-		{ Language.getByName("Common") }, this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		{ Language.getByName("Common") }, this);
 		add(lang1, c);
 		c.gridx++;
-		lang2 = UILib.getComboBox(Language.getAllLanguages().toArray(new Language[0]), this,
-				VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		lang2 = UILib.getComboBox(Language.getAllLanguages().toArray(new Language[0]), this);
 		add(lang2, c);
 		c.gridx++;
-		lang3 = UILib.getComboBox(Language.getAllLanguages().toArray(new Language[0]), this,
-				VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		lang3 = UILib.getComboBox(Language.getAllLanguages().toArray(new Language[0]), this);
 		add(lang3, c);
 		c.gridx = 1;
 		c.gridy++;
 
 		c.gridwidth = 3;
-		suggestions = UILib.addLabel(this, "", c, VaporwaveColors.ELECTRIC_TEAL);
+		suggestions = UILib.addLabel(this, "", c);
+		suggestions.putClientProperty(FlatClientProperties.STYLE, "foreground: $suggestion");
 	}
 
 	@Override

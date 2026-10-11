@@ -21,15 +21,16 @@ import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.text.NumberFormatter;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class AbilityScorePanel extends JPanel implements ActionListener, PropertyChangeListener
 {
 	private static final long serialVersionUID = 2221665837843285640L;
 
 	// For consistency across all ability score panels
-	private static final Dimension labelDim = new Dimension(100, 15);
+	private static final Dimension labelDim = new Dimension(250, 50);
 
 	private final JLabel label;
 	private final JFormattedTextField input;
@@ -51,7 +52,7 @@ public class AbilityScorePanel extends JPanel implements ActionListener, Propert
 		setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
 		setOpaque(false);
 
-		label = UILib.addLabel(this, text, VaporwaveColors.HOT_PINK);
+		label = UILib.addLabel(this, text);
 		label.setPreferredSize(labelDim);
 		label.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
 
@@ -65,19 +66,19 @@ public class AbilityScorePanel extends JPanel implements ActionListener, Propert
 		input.setValue(8);
 		input.setColumns(5);
 		input.setHorizontalAlignment(JTextField.CENTER);
-		input.setFont(UILib.boldFont.deriveFont(20f));
+		input.putClientProperty(FlatClientProperties.STYLE, "font: $h1.font");
 		input.addPropertyChangeListener("value", this);
 		UILib.selectAllOnFocus(input);
 		add(input);
 
-		bgCheckbox1 = UILib.addCheckbox(this, "+1", this, VaporwaveColors.HOT_PINK);
+		bgCheckbox1 = UILib.addCheckbox(this, "+1", this);
 		bgCheckbox1.setBorder(BorderFactory.createEmptyBorder(0, 15, 0, 0));
-		bgCheckbox2 = UILib.addCheckbox(this, "+2", this, VaporwaveColors.HOT_PINK);
+		bgCheckbox2 = UILib.addCheckbox(this, "+2", this);
 		ButtonGroup bg = new NoneSelectedButtonGroup();
 		bg.add(bgCheckbox1);
 		bg.add(bgCheckbox2);
 
-		spellRadio = UILib.addRadioBtn(this, "Spellcasting Ability", this, VaporwaveColors.HOT_PINK);
+		spellRadio = UILib.addRadioBtn(this, "Spellcasting Ability", this);
 	}
 
 	public void setScore(int score)
@@ -87,7 +88,7 @@ public class AbilityScorePanel extends JPanel implements ActionListener, Propert
 
 	public void setLabelBoldState(boolean bold)
 	{
-		label.setFont(bold ? UILib.boldFont : UILib.standardFont);
+		label.putClientProperty(FlatClientProperties.STYLE, "font: $h3.font" + (bold ? "; font-weight: bold" : ""));
 	}
 
 	public void clearCheckboxes()

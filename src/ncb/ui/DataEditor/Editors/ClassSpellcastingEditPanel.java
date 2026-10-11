@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -34,7 +33,7 @@ public class ClassSpellcastingEditPanel extends CollapsablePanel implements Acti
 	{
 		super(true);
 
-		UILib.addLabel(headerPanel, "Spellcasting Settings", Color.black).setFont(UILib.boldFont);
+		UILib.addLabel(headerPanel, "Spellcasting Settings");
 
 		bodyPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = UILib.getStandardGBC();
@@ -43,24 +42,23 @@ public class ClassSpellcastingEditPanel extends CollapsablePanel implements Acti
 		spellcastingDropdown = UILib.addLabeledLinkedDropdown(bodyPanel,
 				List.of("", Ability.Int.toString(), Ability.Wis.toString(), Ability.Cha.toString(),
 						Ability.Primary.toString()),
-				"Spellcasting Ability: ", c, Color.white, Color.black, () -> getSpellcastingAbility(),
-				(s) -> updateSpellcastingAbility(s));
+				"Spellcasting Ability: ", c, () -> getSpellcastingAbility(), (s) -> updateSpellcastingAbility(s));
 		c.gridy++;
 
-		UILib.addLabel(bodyPanel, "Cantrips per Class Level", c, Color.black);
+		UILib.addLabel(bodyPanel, "Cantrips per Class Level", c);
 		c.gridy++;
 		bodyPanel.add(cantripsTable, c);
 		c.gridy++;
 
 		UILib.addLabel(bodyPanel,
 				"Does this class have its own list of known spells or pull from its full spell list when selecting prepared spells?",
-				c, Color.black);
+				c);
 		c.gridy++;
 
 		c.gridwidth = 1;
-		knownSpellsBtn = UILib.addRadioBtn(bodyPanel, "Personal Spell List", this, c, Color.black);
+		knownSpellsBtn = UILib.addRadioBtn(bodyPanel, "Personal Spell List", this, c);
 		c.gridx++;
-		preparedSpellsBtn = UILib.addRadioBtn(bodyPanel, "Full Spell List", this, c, Color.black);
+		preparedSpellsBtn = UILib.addRadioBtn(bodyPanel, "Full Spell List", this, c);
 		c.gridx = 0;
 		c.gridy++;
 
@@ -76,14 +74,13 @@ public class ClassSpellcastingEditPanel extends CollapsablePanel implements Acti
 		c.gridy++;
 
 		UILib.addLabel(bodyPanel,
-				"Does this class have one set of spell slots of the same level or spell slots per spell level?", c,
-				Color.black);
+				"Does this class have one set of spell slots of the same level or spell slots per spell level?", c);
 		c.gridy++;
 
 		c.gridwidth = 1;
-		singleSlotsBtn = UILib.addRadioBtn(bodyPanel, "One set of Slots", this, c, Color.black);
+		singleSlotsBtn = UILib.addRadioBtn(bodyPanel, "One set of Slots", this, c);
 		c.gridx++;
-		multiSlotsBtn = UILib.addRadioBtn(bodyPanel, "Spell Slots per Level", this, c, Color.black);
+		multiSlotsBtn = UILib.addRadioBtn(bodyPanel, "Spell Slots per Level", this, c);
 		c.gridx = 0;
 		c.gridy++;
 

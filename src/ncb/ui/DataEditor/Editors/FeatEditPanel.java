@@ -1,7 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
-
 import ncb.data.interfaces.Customizable;
 import ncb.data.loadables.Feat;
 import ncb.ui.UILib;
@@ -32,8 +30,8 @@ public class FeatEditPanel extends EditPanel
 	{
 		super();
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Feat Type: ", c, Color.white, Color.black,
-				() -> feat.getFeatType(), (s) -> feat.setFeatType(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Feat Type: ", c, () -> feat.getFeatType(),
+				(s) -> feat.setFeatType(s)));
 		c.gridy++;
 
 		c.weighty = 1;

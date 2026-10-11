@@ -12,6 +12,8 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.Feature;
 import ncb.data.SpellChoice;
 import ncb.data.loadables.Spell;
@@ -22,7 +24,6 @@ import ncb.ui.ListensForChanges;
 import ncb.ui.NoHorizontalScrollPanel;
 import ncb.ui.UILib;
 import ncb.ui.UIPanel;
-import ncb.ui.VaporwaveColors;
 import ncb.ui.subpanels.SpellPanel;
 import ncb.ui.subpanels.SpellSelectionPanel;
 
@@ -58,10 +59,10 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 		content.setAlignmentX(JComponent.LEFT_ALIGNMENT);
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
 
-		UILib.addLabel(content, "Granted Spells:", VaporwaveColors.HOT_PINK).setFont(UILib.boldFont);
+		UILib.addLabel(content, "Granted Spells:").putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		content.add(grantedSpellsPanel);
 
-		UILib.addLabel(content, "Spell Selections:", VaporwaveColors.HOT_PINK).setFont(UILib.boldFont);
+		UILib.addLabel(content, "Spell Selections:").putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		content.add(spellSelectionPanel);
 
 		// Dump any extra space at the bottom
@@ -118,7 +119,7 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 				continue;
 			}
 
-			UILib.addLabel(spellSelectionPanel, (lvl == 0 ? "Cantrips" : "Level " + lvl), VaporwaveColors.HOT_PINK)
+			UILib.addLabel(spellSelectionPanel, (lvl == 0 ? "Cantrips" : "Level " + lvl))
 					.setBorder(BorderFactory.createEmptyBorder(5, 10, 0, 0));
 			for (SpellSelectionPanel panel : panelsToAdd)
 			{

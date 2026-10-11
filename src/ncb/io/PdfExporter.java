@@ -5,6 +5,7 @@ import static java.util.Map.entry;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -19,16 +20,19 @@ import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.form.PDField;
 import org.apache.pdfbox.pdmodel.interactive.form.PDTextField;
 
+import ncb.data.LeveledText;
 import ncb.data.enums.Ability;
 import ncb.data.enums.ArmorTraining;
 import ncb.data.enums.Skill;
 import ncb.data.loadables.Spell;
+import ncb.main.BaseCharacterWindow;
 import ncb.main.CharacterSheet;
 import ncb.ui.Toast;
 
 public class PdfExporter
 {
 	private static File TEMPLATE = new File("./resources/Neon-Odyssey-Character-Sheet.pdf");
+
 	private static final String NAME_F = "Character Name", CLASS_F = "Class", SPECIES_F = "Species",
 			SUBCLASS_F = "Subclass", FEATURES_F = "Features and Traits", HOMEWORLD_F = "Homeworld", LEVEL_F = "Level",
 			AC_F = "Armor", INITIATIVE_F = "Initiative", SPEED_F = "Speed", SIZE_F = "Size", HPCUR_F = "Speed 1",
@@ -81,6 +85,9 @@ public class PdfExporter
 			17, 21, 19, 23, 18, 22, 20, 24, 25, 29, 27, 31, 26, 30, 28, 32);
 	private static final int spellListStart = 1, spellListEnd = 32;
 
+	private static boolean editing = false;
+	private static int loadedLevel = 0;
+
 	public static boolean exportCharacterSheet(CharacterSheet c)
 	{
 		if (c.getName().isBlank())
@@ -88,8 +95,16 @@ public class PdfExporter
 			System.err.println("Cannot export character with a blank name.");
 			return false;
 		}
-		// TODO 1.5+ - Existing file editing
-		try (PDDocument pdf = Loader.loadPDF(new RandomAccessReadBufferedFile(TEMPLATE)))
+
+		File folder = BaseCharacterWindow.loadedFolder != null ? BaseCharacterWindow.loadedFolder : new File(".");
+		File pdfFile = new File(folder, c.getName() + ".pdf");
+		if (pdfFile.exists())
+		{
+			editing = true;
+			loadedLevel = c.getLoadedLevel();
+		}
+
+		try (PDDocument pdf = Loader.loadPDF(new RandomAccessReadBufferedFile(editing ? pdfFile : TEMPLATE)))
 		{
 			PDDocumentCatalog docCatalog = pdf.getDocumentCatalog();
 			PDAcroForm acroForm = docCatalog.getAcroForm();
@@ -117,9 +132,10 @@ public class PdfExporter
 				fillNotes(acroForm, c);
 			}
 
-			pdf.save(c.getName() + ".pdf");
+			// Can't save to the same file we're editing
+			pdf.save(c.getName() + (editing ? "-new" : "") + ".pdf");
 			pdf.close();
-			new Toast("Successfully Exported Character Sheet", 0);
+			new Toast("Successfully Exported Character Sheet", Toast.SLOT_2);
 		}
 		catch (IOException e)
 		{
@@ -142,16 +158,30 @@ public class PdfExporter
 		fillField(acroForm, HOMEWORLD_F, c.getBackground().getHomeworld().getName());
 		fillField(acroForm, LEVEL_F, c.getLevel());
 
-		fillField(acroForm, AC_F, c.getAC());
+		if (!editing)
+		{ // Don't override AC on edit because armor
+			fillField(acroForm, AC_F, c.getAC());
+		}
 		fillField(acroForm, SIZE_F, c.getSpecies().getSize());
 		fillField(acroForm, SPEED_F, c.getSpeed());
 		fillField(acroForm, INITIATIVE_F, c.getInitiative());
 
-		fillField(acroForm, HPCUR_F, c.getMaxHP());
+		if (!editing)
+		{ // Don't override current HP, it's probably safe, but just in case
+			fillField(acroForm, HPCUR_F, c.getMaxHP());
+		}
 		fillField(acroForm, HPMAX_F, c.getMaxHP());
 		fillField(acroForm, HDMAX_F, c.getHitDice());
 
-		fillField(acroForm, RESISTANCES_F, String.join(", ", c.getAllResistances()));
+		List<String> resStrs = c.getAllResistances();
+		if (editing)
+		{
+			appendNonDupes(acroForm, RESISTANCES_F, resStrs, ", ");
+		}
+		else
+		{
+			fillField(acroForm, RESISTANCES_F, String.join(", ", resStrs));
+		}
 	}
 
 	private static void fillAbilityScores(PDAcroForm acroForm, CharacterSheet c) throws IOException
@@ -165,6 +195,7 @@ public class PdfExporter
 		}
 
 		fillField(acroForm, PROF_F, c.getProficiency());
+		fillField(acroForm, PASSPERC_F, 10 + c.getSkillTotal(Skill.Perception));
 	}
 
 	private static void fillSkills(PDAcroForm acroForm, CharacterSheet c) throws IOException
@@ -174,20 +205,39 @@ public class PdfExporter
 			checkField(acroForm, SKILL_PROFS_FS.get(s), c.skillProficient(s));
 			fillField(acroForm, SKILLS_FS.get(s), c.getSkillTotal(s));
 		}
-		fillField(acroForm, PASSPERC_F, 10 + c.getSkillTotal(Skill.Perception));
 	}
 
 	private static void fillFeatures(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
-		List<String> featureStrings = c.getFeatureStrings();
-		fillField(acroForm, FEATURES_F, String.join(System.lineSeparator(), featureStrings));
+		List<LeveledText> featureStrings = c.getFeatureStrings();
+		if (editing)
+		{
+			appendNotPresentOrNew(acroForm, FEATURES_F, featureStrings, System.lineSeparator());
+		}
+		else
+		{
+			fillField(acroForm, FEATURES_F,
+					String.join(System.lineSeparator(), featureStrings.stream().map(fs -> fs.getText()).toList()));
+		}
 	}
 
 	private static void fillProfsAndEquipment(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
-		fillField(acroForm, WPROFS_F, String.join(", ", c.getAllWeaponProfs()));
-		fillField(acroForm, TPROFS_F, String.join(", ", c.getAllToolProfs()));
-		fillField(acroForm, VPROFS_F, String.join(", ", c.getAllVehicleProfs()));
+		List<String> wepStrs = c.getAllWeaponProfs().stream().map(w -> w.toString()).toList();
+		List<String> toolStrs = c.getAllToolProfs();
+		List<String> vehStrs = c.getAllVehicleProfs();
+		if (editing)
+		{
+			appendNonDupes(acroForm, WPROFS_F, wepStrs, ", ");
+			appendNonDupes(acroForm, TPROFS_F, toolStrs, ", ");
+			appendNonDupes(acroForm, VPROFS_F, vehStrs, ", ");
+		}
+		else
+		{
+			fillField(acroForm, WPROFS_F, String.join(", ", wepStrs));
+			fillField(acroForm, TPROFS_F, String.join(", ", toolStrs));
+			fillField(acroForm, VPROFS_F, String.join(", ", vehStrs));
+		}
 
 		List<ArmorTraining> armorProfs = c.getAllArmorProfs();
 		if (armorProfs.contains(ArmorTraining.Light))
@@ -207,20 +257,43 @@ public class PdfExporter
 			checkField(acroForm, APSHIELD_F, true);
 		}
 
-		fillField(acroForm, EQUIPMENT_F, c.getEquipmentItems());
+		if (!editing)
+		{
+			fillField(acroForm, EQUIPMENT_F, c.getEquipmentItems());
+		}
 	}
 
 	private static void fillFeats(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
-		fillField(acroForm, FEATS_F, String.join(System.lineSeparator(), c.getFeatStrings()));
+		List<LeveledText> featStrs = c.getFeatStrings();
+
+		if (editing)
+		{
+			appendNotPresentOrNew(acroForm, FEATS_F, featStrs, System.lineSeparator());
+		}
+		else
+		{
+			fillField(acroForm, FEATS_F,
+					String.join(System.lineSeparator(), featStrs.stream().map(ft -> ft.getText()).toList()));
+		}
 	}
 
 	private static void fillCurrencyAndLanguages(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
-		fillField(acroForm, NOTES_F, c.getAllNotes());
+		if (!editing)
+		{
+			fillField(acroForm, NOTES_F, c.getAllNotes());
+		}
 
-		fillField(acroForm, LANGUAGES_F,
-				String.join(System.lineSeparator(), c.getAllLanguages().stream().map(l -> l.toString()).toList()));
+		List<String> langStrs = c.getAllLanguages().stream().map(l -> l.toString()).toList();
+		if (editing)
+		{
+			appendNonDupes(acroForm, LANGUAGES_F, langStrs, System.lineSeparator());
+		}
+		else
+		{
+			fillField(acroForm, LANGUAGES_F, String.join(System.lineSeparator(), langStrs));
+		}
 	}
 
 	private static void fillSpellcastingDetails(PDAcroForm acroForm, CharacterSheet c) throws IOException
@@ -304,13 +377,27 @@ public class PdfExporter
 
 	private static void fillNotes(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
-		// For some reason the notes field in the sheet uses a non-standard font so we
-		// have to override it
-		PDField field = acroForm.getField(SHEETNOTES_F);
-		if (field instanceof PDTextField)
+		List<LeveledText> notes = c.getSheetNotes();
+
+		if (!notes.isEmpty())
 		{
-			((PDTextField) field).setDefaultAppearance("/Helv 12 Tf 0 g");
-			fillField(acroForm, SHEETNOTES_F, String.join(", ", c.getSheetNotes()));
+			// For some reason the notes field in the sheet uses a non-standard font so we
+			// have to override it
+			PDField field = acroForm.getField(SHEETNOTES_F);
+			if (field instanceof PDTextField)
+			{
+				if (editing)
+				{
+					// If editing, only append notes gained since the loaded level
+					appendField(acroForm, SHEETNOTES_F, String.join(", ",
+							notes.stream().filter(n -> n.getLvl() > loadedLevel).map(n -> n.getText()).toList()));
+				}
+				else
+				{
+					((PDTextField) field).setDefaultAppearance("/Helv 12 Tf 0 g");
+					fillField(acroForm, SHEETNOTES_F, String.join(", ", notes.stream().map(n -> n.getText()).toList()));
+				}
+			}
 		}
 	}
 
@@ -324,6 +411,92 @@ public class PdfExporter
 		if (value != null && !value.isBlank())
 		{
 			form.getField(fieldName).setValue(value);
+		}
+	}
+
+	private static void appendNonDupes(PDAcroForm form, String fieldName, List<String> values, String joiner)
+			throws IOException
+	{
+		if (values != null && !values.isEmpty())
+		{
+			try
+			{
+				PDField field = form.getField(fieldName);
+				String cur = field.getValueAsString();
+				if (cur == null)
+				{
+					cur = "";
+				}
+				List<String> vals = new ArrayList<>();
+				vals.addAll(Arrays.asList(cur.split(joiner)).stream().map(s -> s.trim()).toList());
+				values.forEach(v ->
+				{
+					if (!v.isBlank() && !vals.contains(v))
+					{
+						vals.add(v);
+					}
+				});
+				field.setValue(cur + String.join(joiner, vals));
+			}
+			catch (Exception e)
+			{
+				System.err.println("Got an error while appending: ");
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private static void appendNotPresentOrNew(PDAcroForm form, String fieldName, List<LeveledText> values,
+			String joiner) throws IOException
+	{
+		if (values != null && !values.isEmpty())
+		{
+			try
+			{
+				PDField field = form.getField(fieldName);
+				String cur = field.getValueAsString();
+				if (cur == null)
+				{
+					cur = "";
+				}
+				List<String> vals = new ArrayList<>();
+				vals.addAll(Arrays.asList(cur.split(joiner)).stream().map(s -> s.trim()).toList());
+				values.forEach(v ->
+				{
+					if (!vals.stream().anyMatch(val -> val.contains(v.getName())) || v.getLvl() > loadedLevel)
+					{
+						vals.add(v.getText());
+					}
+				});
+				field.setValue(cur + String.join(joiner, vals));
+			}
+			catch (Exception e)
+			{
+				System.err.println("Got an error while appending: ");
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private static void appendField(PDAcroForm form, String fieldName, String value) throws IOException
+	{
+		if (value != null && !value.isBlank())
+		{
+			try
+			{
+				PDField field = form.getField(fieldName);
+				String cur = field.getValueAsString();
+				if (cur == null)
+				{
+					cur = "";
+				}
+				field.setValue(cur + value);
+			}
+			catch (Exception e)
+			{
+				System.err.println("Got an error while appending: ");
+				e.printStackTrace();
+			}
 		}
 	}
 

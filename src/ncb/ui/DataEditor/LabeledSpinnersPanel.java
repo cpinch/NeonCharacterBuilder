@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor;
 
-import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +20,12 @@ public class LabeledSpinnersPanel extends NoHorizontalScrollPanel
 	{
 		setLayout(new GridLayout(1, models.length + 1));
 
-		UILib.addLabel(this, label, Color.black);
+		UILib.addLabel(this, label);
 
 		for (int i = 0; i < models.length; i++)
 		{
 			final int index = i;
-			PropertyLinkedSpinner s = UILib.getLinkedSpinner(models[i], Color.white, Color.black, () -> getVal(index),
+			PropertyLinkedSpinner s = UILib.getLinkedSpinner(models[i], () -> getVal(index),
 					(v) -> callback.accept(index, v));
 			spinners.add(s);
 			add(s);

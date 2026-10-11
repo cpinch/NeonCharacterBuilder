@@ -11,13 +11,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.enums.Skill;
 import ncb.data.loadables.Background;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class BackgroundSkillsPanel extends JPanel implements ActionListener, ListensForChanges
 {
@@ -38,17 +39,17 @@ public class BackgroundSkillsPanel extends JPanel implements ActionListener, Lis
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
 		PropertyListener.listenForChanges(PropertyListener.SKILLPROFS, this);
 
-		label = UILib.addLabel(this, "Skill Proficiencies: ", VaporwaveColors.HOT_PINK);
-		label.setFont(UILib.boldFont);
+		label = UILib.addLabel(this, "Skill Proficiencies: ");
+		label.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 
 		// Custom backgrounds have 2 of any skill + 1 of Computers/Technology
 		// TODO Background loading
-		skill1 = UILib.getComboBox(Skill.realValues(), this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		skill1 = UILib.getComboBox(Skill.realValues(), this);
 		add(skill1);
-		skill2 = UILib.getComboBox(Skill.realValues(), this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		skill2 = UILib.getComboBox(Skill.realValues(), this);
 		add(skill2);
 		skill3 = UILib.getComboBox(new Skill[]
-		{ Skill.Computers, Skill.Technology }, this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		{ Skill.Computers, Skill.Technology }, this);
 		add(skill3);
 	}
 

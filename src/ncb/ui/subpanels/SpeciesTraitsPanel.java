@@ -11,12 +11,13 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.loadables.Species;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class SpeciesTraitsPanel extends JPanel implements ActionListener, ListensForChanges
 {
@@ -42,27 +43,26 @@ public class SpeciesTraitsPanel extends JPanel implements ActionListener, Listen
 		PropertyListener.listenForChanges(PropertyListener.SIZE, this);
 
 		c.gridwidth = 2;
-		type = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(this, "Type: ", type, c, VaporwaveColors.HOT_PINK);
+		type = UILib.getLabel("");
+		UILib.addLabeledComponent(this, "Type: ", type, c);
 		c.gridy++;
 
 		c.gridwidth = 1;
-		sizeLabel = UILib.addLabel(this, "Size: ", c, VaporwaveColors.HOT_PINK);
-		sizeLabel.setFont(UILib.boldFont);
+		sizeLabel = UILib.addLabel(this, "Size: ", c);
+		sizeLabel.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		c.gridx++;
-		sizeSelector = UILib.getComboBox(new String[0], this, VaporwaveColors.DEEP_VIOLET,
-				VaporwaveColors.LASER_YELLOW);
+		sizeSelector = UILib.getComboBox(new String[0], this);
 		add(sizeSelector, c);
 		c.gridx = 0;
 		c.gridy++;
 		c.gridwidth = 2;
 
-		speed = UILib.getLabel("", VaporwaveColors.HOT_PINK);
-		UILib.addLabeledComponent(this, "Speed: ", speed, c, VaporwaveColors.HOT_PINK);
+		speed = UILib.getLabel("");
+		UILib.addLabeledComponent(this, "Speed: ", speed, c);
 		c.gridy++;
 
 		c.weighty = 1;
-		desc = UILib.addTextDisplay(this, "", c, VaporwaveColors.HOT_PINK);
+		desc = UILib.addTextDisplay(this, "", c);
 	}
 
 	@Override

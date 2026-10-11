@@ -12,7 +12,6 @@ import ncb.data.loadables.Background;
 import ncb.main.CharacterSheet;
 import ncb.ui.UILib;
 import ncb.ui.UIPanel;
-import ncb.ui.VaporwaveColors;
 import ncb.ui.subpanels.BackgroundAbilitiesPanel;
 import ncb.ui.subpanels.BackgroundFeatPanel;
 import ncb.ui.subpanels.BackgroundHomeworldPanel;
@@ -37,7 +36,7 @@ public class BackgroundPanel extends UIPanel implements ActionListener
 	private final BackgroundHomeworldPanel homeworld;
 	private final BackgroundFeatPanel feat;
 
-	private final JLabel notes = UILib.getLabel("0", VaporwaveColors.HOT_PINK);
+	private final JLabel notes = UILib.getLabel("0");
 
 	public BackgroundPanel(CharacterSheet sheet)
 	{
@@ -48,9 +47,8 @@ public class BackgroundPanel extends UIPanel implements ActionListener
 		c.gridwidth = 2;
 		List<Background> allBg = Background.getAllBackgrounds();
 		allBg.add(Background.getCustom()); // TODO Background Loading
-		backgroundName = UILib.getComboBox(allBg.toArray(new Background[0]), this, VaporwaveColors.DEEP_VIOLET,
-				VaporwaveColors.LASER_YELLOW);
-		UILib.addLabeledComponent(this, "Background: ", backgroundName, c, VaporwaveColors.HOT_PINK);
+		backgroundName = UILib.getComboBox(allBg.toArray(new Background[0]), this);
+		UILib.addLabeledComponent(this, "Background: ", backgroundName, c);
 		c.gridy++;
 
 		skills = new BackgroundSkillsPanel(sheet);
@@ -75,7 +73,7 @@ public class BackgroundPanel extends UIPanel implements ActionListener
 		add(abilities, c);
 		c.gridy++;
 
-		UILib.addLabeledComponent(this, "Notes: ", notes, c, VaporwaveColors.HOT_PINK);
+		UILib.addLabeledComponent(this, "Notes: ", notes, c);
 		c.gridy++;
 
 		c.gridwidth = 1;

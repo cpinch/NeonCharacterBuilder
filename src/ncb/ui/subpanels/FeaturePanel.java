@@ -9,16 +9,18 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import com.formdev.flatlaf.FlatClientProperties;
 
 import ncb.data.AbilityIncrease;
 import ncb.data.Feature;
 import ncb.data.SpellChoice;
 import ncb.data.enums.Ability;
 import ncb.data.enums.ArmorTraining;
+import ncb.data.enums.DamageType;
 import ncb.data.enums.Skill;
 import ncb.data.loadables.Feat;
 import ncb.data.loadables.Language;
@@ -29,7 +31,6 @@ import ncb.main.PropertyListener;
 import ncb.ui.CollapsablePanel;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class FeaturePanel extends CollapsablePanel implements ActionListener, ListensForChanges
 {
@@ -41,7 +42,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 	private final Feature feature;
 
 	private JComboBox<Skill> skillOptions;
-	private JComboBox<String> resistanceOptions;
+	private JComboBox<DamageType> resistanceOptions;
 	private final List<JComboBox<Skill>> skillExpertOptions = new ArrayList<>();
 	private JComboBox<Language> langOptions;
 	private JComboBox<Selectable> selectableOptions;
@@ -61,7 +62,8 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		bodyPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = UILib.getStandardGBC();
 
-		UILib.addLabel(headerPanel, feature.getName(), c, VaporwaveColors.HOT_PINK).setFont(UILib.boldFont);
+		UILib.addLabel(headerPanel, feature.getName(), c).putClientProperty(FlatClientProperties.STYLE, "font: bold");
+		;
 		c.gridy++;
 
 		// Basic
@@ -69,38 +71,33 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		{
 			c.weighty = 1;
 			// We don't want this to scroll
-			bodyPanel.add(UILib.getTextDisplay(feature.getText(), VaporwaveColors.HOT_PINK), c);
+			bodyPanel.add(UILib.getTextDisplay(feature.getText()), c);
 			c.gridy++;
 			c.weighty = 0;
 		}
 		if (feature.getSpeedMod() > 0)
 		{
-			UILib.addLabel(bodyPanel, "<html>Speed + " + feature.getSpeedMod() + "</html>", c,
-					VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "Speed + " + feature.getSpeedMod(), c);
 			c.gridy++;
 		}
 		if (feature.getExtraHPLvl1() > 0)
 		{
-			UILib.addLabel(bodyPanel, "<html>Extra HP " + feature.getExtraHPLvl1() + "</html>", c,
-					VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "Extra HP " + feature.getExtraHPLvl1(), c);
 			c.gridy++;
 		}
 		if (feature.getExtraHPPerLevel() > 0)
 		{
-			UILib.addLabel(bodyPanel, "<html>Extra HP per Level " + feature.getExtraHPPerLevel() + "</html>", c,
-					VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "Extra HP per Level " + feature.getExtraHPPerLevel(), c);
 			c.gridy++;
 		}
 		if (feature.givesHalfProfAll())
 		{
-			UILib.addLabel(bodyPanel, "<html>Gives Half Proficiency to all non-proficient skills.</html>", c,
-					VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "Gives Half Proficiency to all non-proficient skills.", c);
 			c.gridy++;
 		}
 		if (feature.givesProfToInit())
 		{
-			UILib.addLabel(bodyPanel, "<html>Gives Proficincy Bonus to Initiative</html>.", c,
-					VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "Gives Proficincy Bonus to Initiative.", c);
 			c.gridy++;
 		}
 
@@ -108,52 +105,43 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		List<Ability> saves = feature.getSaveProfs();
 		if (!saves.isEmpty())
 		{
-			UILib.addLabel(bodyPanel,
-					"<html>Grants Save Proficiencies: <i>"
-							+ String.join(", ", saves.stream().map(a -> a.toString()).toList()) + "</i></html>",
-					c, VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "<html>Grants Save Proficiencies: <i>"
+					+ String.join(", ", saves.stream().map(a -> a.toString()).toList()) + "</i></html>", c);
 			c.gridy++;
 		}
 		List<String> weps = feature.getWeaponProfs();
 		if (!weps.isEmpty())
 		{
 			UILib.addLabel(bodyPanel,
-					"<html>Grants Weapon Proficiencies: <i>" + String.join(", ", weps) + "</i></html>", c,
-					VaporwaveColors.HOT_PINK);
+					"<html>Grants Weapon Proficiencies: <i>" + String.join(", ", weps) + "</i></html>", c);
 			c.gridy++;
 		}
 		List<String> tools = feature.getToolProfs();
 		if (!tools.isEmpty())
 		{
 			UILib.addLabel(bodyPanel, "<html>Grants Tool Proficiencies: <i>" + String.join(", ", tools) + "</i></html>",
-					c, VaporwaveColors.HOT_PINK);
+					c);
 			c.gridy++;
 		}
 		List<ArmorTraining> armor = feature.getArmorProfs();
 		if (!armor.isEmpty())
 		{
-			UILib.addLabel(bodyPanel,
-					"<html>Grants Armor Trainings: <i>"
-							+ String.join(", ", armor.stream().map(a -> a.toString()).toList()) + "</i></html>",
-					c, VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "<html>Grants Armor Trainings: <i>"
+					+ String.join(", ", armor.stream().map(a -> a.toString()).toList()) + "</i></html>", c);
 			c.gridy++;
 		}
 		List<Skill> skills = feature.getSkillsGranted();
 		if (!skills.isEmpty())
 		{
-			UILib.addLabel(
-					bodyPanel, "<html>Grants Skills: <i>"
-							+ String.join(", ", skills.stream().map(s -> s.toString()).toList()) + "</i></html>",
-					c, VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "<html>Grants Skills: <i>"
+					+ String.join(", ", skills.stream().map(s -> s.toString()).toList()) + "</i></html>", c);
 			c.gridy++;
 		}
 		List<Skill> skillExps = feature.getSkillExpsGranted();
 		if (!skillExps.isEmpty())
 		{
-			UILib.addLabel(bodyPanel,
-					"<html>Grants Skill Expertise (if proficient): <i>"
-							+ String.join(", ", skillExps.stream().map(s -> s.toString()).toList()) + "</i></html>",
-					c, VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "<html>Grants Skill Expertise (if proficient): <i>"
+					+ String.join(", ", skillExps.stream().map(s -> s.toString()).toList()) + "</i></html>", c);
 			c.gridy++;
 		}
 		List<Spell> spells = feature.getSpellsGranted();
@@ -165,33 +153,32 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 									.map(s -> "<b>" + s.getName() + "</b>"
 											+ (s.getNotes().isBlank() ? "" : " <i>(" + s.getNotes() + ")<i>"))
 									.toList())
-					+ "</html>", c, VaporwaveColors.HOT_PINK);
+					+ "</html>", c);
 			c.gridy++;
 		}
 		List<Language> freeLangs = feature.getLanguagesGranted();
 		if (!freeLangs.isEmpty())
 		{
 			UILib.addLabel(bodyPanel,
-					"Languages: " + String.join(", ", freeLangs.stream().map(la -> la.toString()).toList()), c,
-					VaporwaveColors.HOT_PINK);
+					"Languages: " + String.join(", ", freeLangs.stream().map(la -> la.toString()).toList()), c);
 			c.gridy++;
 		}
-		List<String> res = feature.getResistancesGranted();
+		List<String> resStr = new ArrayList<>();
+		resStr.addAll(feature.getResistancesGranted().stream().map(r -> r.toString()).toList());
 		if (!feature.getResistancesByHomeworld().isEmpty() && sheet.getBackground() != null)
 		{
 			String r = CharacterSheet.getResistanceForHomeworld(sheet.getBackground().getHomeworld(),
 					feature.getResistancesByHomeworld());
 			if (!r.isBlank())
 			{
-				res.add(r);
+				resStr.add(r);
 			}
 		}
-		if (!res.isEmpty())
+		if (!resStr.isEmpty())
 		{
 			PropertyListener.listenForChanges(PropertyListener.HOMEWORLD, this);
 			resLabel = UILib.addLabel(bodyPanel,
-					"<html>Grants Resistance: <i>" + String.join(", ", res) + "</i></html>", c,
-					VaporwaveColors.HOT_PINK);
+					"<html>Grants Resistance: <i>" + String.join(", ", resStr) + "</i></html>", c);
 			c.gridy++;
 		}
 		if (!feature.getSpellChoices().isEmpty())
@@ -203,8 +190,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 						+ (lvlChoices.getKey() == 0 ? " cantrip" + (lvlChoices.getValue().size() > 1 ? "s" : "")
 								: " level " + lvlChoices.getKey()));
 			}
-			UILib.addLabel(bodyPanel, "Grants extra known spells: " + String.join(", ", levelCount), c,
-					VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, "Grants extra known spells: " + String.join(", ", levelCount), c);
 			c.gridy++;
 		}
 		if (!feature.getAbilitiesAddToSkills().isEmpty())
@@ -214,7 +200,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 			{
 				adds.add("Adds " + abilitiesToSkills.getValue() + " to " + abilitiesToSkills.getKey());
 			}
-			UILib.addLabel(bodyPanel, String.join(", ", adds), c, VaporwaveColors.HOT_PINK);
+			UILib.addLabel(bodyPanel, String.join(", ", adds), c);
 			c.gridy++;
 		}
 		if (!feature.getInitAbilities().isEmpty())
@@ -223,7 +209,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 					"<html><i>May use "
 							+ String.join(", ", feature.getInitAbilities().stream().map(a -> a.toString()).toList())
 							+ " for initiative.</i></html>",
-					c, VaporwaveColors.HOT_PINK);
+					c);
 			c.gridy++;
 		}
 		if (!feature.getSkillProfOrExpertise().isEmpty())
@@ -232,29 +218,30 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 					"<html><i>Gives proficiency in "
 							+ String.join(", ",
 									feature.getSkillProfOrExpertise().stream().map(s -> s.toString()).toList())
-							+ " or expertise if you already have proficiency.",
-					c, VaporwaveColors.HOT_PINK);
+							+ " or expertise if you already have proficiency.</html>",
+					c);
 			c.gridy++;
 		}
 		if (!feature.getIncreasedAbilities().isEmpty())
 		{
 			UILib.addLabel(bodyPanel,
-					"<html><i>Increases " + String.join(", ",
-							feature.getIncreasedAbilities().stream().map(s -> s.toString()).toList()) + ".",
-					c, VaporwaveColors.HOT_PINK);
+					"<html><i>Increases "
+							+ String.join(", ",
+									feature.getIncreasedAbilities().stream().map(s -> s.toString()).toList())
+							+ ".</html>",
+					c);
 			c.gridy++;
 		}
 		// abilitiesToAC always has accompanying text, so we don't show it
 
 		// Selections
-		List<String> resOpts = feature.getResistanceOptions();
+		List<DamageType> resOpts = feature.getResistanceOptions();
 		if (!resOpts.isEmpty())
 		{
-			resistanceOptions = UILib.getComboBox(resOpts.toArray(new String[0]), this, VaporwaveColors.DEEP_VIOLET,
-					VaporwaveColors.LASER_YELLOW);
-			UILib.addLabeledComponent(bodyPanel, "Resistance: ", resistanceOptions, c, VaporwaveColors.HOT_PINK);
+			resistanceOptions = UILib.getComboBox(resOpts.toArray(new DamageType[0]), this);
+			UILib.addLabeledComponent(bodyPanel, "Resistance: ", resistanceOptions, c);
 			c.gridy++;
-			if (feature.getResistancesSelected().isEmpty() || feature.getResistancesSelected().get(0).isBlank())
+			if (feature.getResistancesSelected().isEmpty() || feature.getResistancesSelected().get(0) != null)
 			{
 				resistanceOptions.setSelectedIndex(0);
 			}
@@ -273,9 +260,8 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 				skillOpts.clear();
 				skillOpts.addAll(Arrays.asList(Skill.realValues()));
 			}
-			skillOptions = UILib.getComboBox(skillOpts.toArray(new Skill[0]), this, VaporwaveColors.DEEP_VIOLET,
-					VaporwaveColors.LASER_YELLOW);
-			UILib.addLabeledComponent(bodyPanel, "Skill Proficiency: ", skillOptions, c, VaporwaveColors.HOT_PINK);
+			skillOptions = UILib.getComboBox(skillOpts.toArray(new Skill[0]), this);
+			UILib.addLabeledComponent(bodyPanel, "Skill Proficiency: ", skillOptions, c);
 			c.gridy++;
 			if (feature.getSkillsSelected().isEmpty())
 			{
@@ -294,23 +280,21 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 			skillEPanel.setOpaque(false);
 			for (int i = 0; i < feature.getSkillExpertCount(); i++)
 			{
-				JComboBox<Skill> skillE = UILib.getComboBox(new Skill[0], this, VaporwaveColors.DEEP_VIOLET,
-						VaporwaveColors.LASER_YELLOW);
+				JComboBox<Skill> skillE = UILib.getComboBox(new Skill[0], this);
 				skillEPanel.add(skillE);
 				skillE.setActionCommand(skillExpertAC);
 				skillEPanel.add(skillE);
 				skillExpertOptions.add(skillE);
 			}
 			updateSkillExpertiseLists();
-			UILib.addLabeledComponent(bodyPanel, "Select Expertise:", skillEPanel, c, VaporwaveColors.HOT_PINK);
+			UILib.addLabeledComponent(bodyPanel, "Select Expertise:", skillEPanel, c);
 			c.gridy++;
 		}
 		if (feature.getLanguageSelectionCount() > 0) // TODO future - handle multiple or remove option to set multiple
 														// if no feature uses it
 		{
-			langOptions = UILib.getComboBox(feature.getLanguageSelectionOptions().toArray(new Language[0]), this,
-					VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
-			UILib.addLabeledComponent(bodyPanel, "Select Language:", langOptions, c, VaporwaveColors.HOT_PINK);
+			langOptions = UILib.getComboBox(feature.getLanguageSelectionOptions().toArray(new Language[0]), this);
+			UILib.addLabeledComponent(bodyPanel, "Select Language:", langOptions, c);
 			c.gridy++;
 			if (feature.getLanguagesSelected().isEmpty())
 			{
@@ -325,13 +309,11 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		{
 			PropertyListener.listenForChanges(PropertyListener.SELECTED, this);
 			selectablePanel = new SelectablePanel(sheet);
-			selectableOptions = UILib.getComboBox(new Selectable[0], this, VaporwaveColors.DEEP_VIOLET,
-					VaporwaveColors.LASER_YELLOW);
+			selectableOptions = UILib.getComboBox(new Selectable[0], this);
 			String label = (feature.getSelectableName().isBlank() ? feature.getFeatTraitName()
 					: feature.getSelectableName()) + ": ";
 			updateSelectables();
-			UILib.addLabeledComponent(bodyPanel, label, selectableOptions, c, VaporwaveColors.HOT_PINK)
-					.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+			UILib.addLabeledComponent(bodyPanel, label, selectableOptions, c);
 			c.gridy++;
 			c.weighty = 1;
 			bodyPanel.add(selectablePanel, c);
@@ -339,9 +321,8 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		}
 		if (!feature.getSpecificSpellChoices().isEmpty())
 		{
-			specificSpellOptions = UILib.getComboBox(feature.getSpecificSpellChoices().toArray(new Spell[0]), this,
-					VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
-			UILib.addLabeledComponent(bodyPanel, "Select Spell:", specificSpellOptions, c, VaporwaveColors.HOT_PINK);
+			specificSpellOptions = UILib.getComboBox(feature.getSpecificSpellChoices().toArray(new Spell[0]), this);
+			UILib.addLabeledComponent(bodyPanel, "Select Spell:", specificSpellOptions, c);
 			c.gridy++;
 			if (feature.getLanguagesSelected().isEmpty())
 			{
@@ -361,10 +342,9 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 				skillOpts.clear();
 				skillOpts.addAll(Arrays.asList(Skill.realValues()));
 			}
-			skillWAbilityOptions = UILib.getComboBox(skillOpts.toArray(new Skill[0]), this, VaporwaveColors.DEEP_VIOLET,
-					VaporwaveColors.LASER_YELLOW);
+			skillWAbilityOptions = UILib.getComboBox(skillOpts.toArray(new Skill[0]), this);
 			UILib.addLabeledComponent(bodyPanel, "Skill Prof + Add " + abl.toString() + " mod: ", skillWAbilityOptions,
-					c, VaporwaveColors.HOT_PINK);
+					c);
 			c.gridy++;
 			if (feature.getSkillWAbilitySelected() == null)
 			{
@@ -378,9 +358,9 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		if (!feature.getAbilityIncreaseOptions().isEmpty())
 		{
 			PropertyListener.listenForChanges(PropertyListener.ABILITYSCOREINC, this);
-			ablIncOptions = UILib.getComboBox(feature.getAbilityIncreaseOptions().toArray(new AbilityIncrease[0]), this,
-					VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
-			UILib.addLabeledComponent(bodyPanel, "Increase Ability: ", ablIncOptions, c, VaporwaveColors.HOT_PINK);
+			ablIncOptions = UILib.getComboBox(feature.getAbilityIncreaseOptions().toArray(new AbilityIncrease[0]),
+					this);
+			UILib.addLabeledComponent(bodyPanel, "Increase Ability: ", ablIncOptions, c);
 			c.gridy++;
 			if (feature.getAbilityIncreasesSelected().isEmpty())
 			{
@@ -423,7 +403,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		}
 		else if (e.getSource().equals(resistanceOptions))
 		{
-			feature.setResistancesSelected(List.of((String) resistanceOptions.getSelectedItem()));
+			feature.setResistancesSelected(List.of((DamageType) resistanceOptions.getSelectedItem()));
 		}
 		else if (e.getSource().equals(selectableOptions))
 		{
@@ -534,23 +514,25 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 	{
 		if (resLabel != null)
 		{
-			List<String> res = feature.getResistancesGranted();
+			List<String> resStr = new ArrayList<>();
+			resStr.addAll(feature.getResistancesGranted().stream().map(r -> r.toString()).toList());
 			if (!feature.getResistancesByHomeworld().isEmpty() && sheet.getBackground() != null)
 			{
 				String r = CharacterSheet.getResistanceForHomeworld(sheet.getBackground().getHomeworld(),
 						feature.getResistancesByHomeworld());
 				if (!r.isBlank())
 				{
-					res.add(r);
+					resStr.add(r);
 				}
 			}
-			if (res.isEmpty())
+			if (resStr.isEmpty())
 			{
 				resLabel.setVisible(false);
 			}
+			else
 			{
 				resLabel.setVisible(true);
-				resLabel.setText("<html>Grants Resistance: <i>" + String.join(", ", res) + "</i></html>");
+				resLabel.setText("<html>Grants Resistance: <i>" + String.join(", ", resStr) + "</i></html>");
 			}
 		}
 	}

@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -29,6 +28,7 @@ import ncb.data.AbilityIncrease;
 import ncb.data.Feature;
 import ncb.data.SpellChoice;
 import ncb.data.enums.Ability;
+import ncb.data.enums.DamageType;
 import ncb.data.enums.Skill;
 import ncb.data.interfaces.Customizable;
 import ncb.data.loadables.SpellList;
@@ -90,9 +90,8 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 		this.f = f;
 
-		linkedProperties
-				.add(UILib.addLabeledLinkedSpinner(collapse.headerPanel, "Level: ", new SpinnerNumberModel(1, 1, 20, 1),
-						Color.white, Color.black, () -> f.getLevel(), (i) -> f.setLevel(i)));
+		linkedProperties.add(UILib.addLabeledLinkedSpinner(collapse.headerPanel, "Level: ",
+				new SpinnerNumberModel(1, 1, 20, 1), () -> f.getLevel(), (i) -> f.setLevel(i)));
 
 		if (delListener != null)
 		{
@@ -107,109 +106,99 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 		collapse.bodyPanel.add(getOptionSelectPanel(), c);
 		c.gridy++;
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_SKILLS, c, Color.white, Color.black, () -> getSkillProfs(),
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_SKILLS, c, () -> getSkillProfs(),
 				(s) -> updateSkillProfs(s));
 
 		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_C_SKILLS, "Count: ", c,
-				new SpinnerNumberModel(0, 0, 5, 1), Color.white, Color.black, () -> getSkillOptions(),
-				(s) -> updateSkillOptions(s), () -> getSkillOptionsCount(), (i) -> updateSkillOptionsCount(i));
+				new SpinnerNumberModel(0, 0, 5, 1), () -> getSkillOptions(), (s) -> updateSkillOptions(s),
+				() -> getSkillOptionsCount(), (i) -> updateSkillOptionsCount(i));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_SAVES, c, Color.white, Color.black, () -> getSaveProfs(),
-				(s) -> updateSaveProfs(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_SAVES, c, () -> getSaveProfs(), (s) -> updateSaveProfs(s));
 
-		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_G_SPELLS, 2, c, Color.white, Color.black,
-				() -> getSpellsGranted(), (s) -> updateSpellsGranted(s));
+		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_G_SPELLS, 2, c, () -> getSpellsGranted(),
+				(s) -> updateSpellsGranted(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_SPELLS, c, Color.white, Color.black,
-				() -> getSpellOptions(), (s) -> updateSpellOptions(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_SPELLS, c, () -> getSpellOptions(),
+				(s) -> updateSpellOptions(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_S_SPELLS, c, Color.white, Color.black,
-				() -> getSpecificSpells(), (s) -> updateSpecificSpells(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_S_SPELLS, c, () -> getSpecificSpells(),
+				(s) -> updateSpecificSpells(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_ARMOR, c, Color.white, Color.black, () -> getArmor(),
-				(s) -> updateArmor(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_ARMOR, c, () -> getArmor(), (s) -> updateArmor(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_LANGS, c, Color.white, Color.black, () -> getLangs(),
-				(s) -> updateLangs(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_LANGS, c, () -> getLangs(), (s) -> updateLangs(s));
 
 		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_C_LANGS, "Count: ", c,
-				new SpinnerNumberModel(0, 0, 5, 1), Color.white, Color.black, () -> getLangOptions(),
-				(s) -> updateLangOptions(s), () -> getLangOptionsCount(), (i) -> updateLangOptionsCount(i));
+				new SpinnerNumberModel(0, 0, 5, 1), () -> getLangOptions(), (s) -> updateLangOptions(s),
+				() -> getLangOptionsCount(), (i) -> updateLangOptionsCount(i));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_RES, c, Color.white, Color.black,
-				() -> getResistancesGranted(), (s) -> updateResistancesGranted(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_RES, c, () -> getResistancesGranted(),
+				(s) -> updateResistancesGranted(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_R_BY_H, c, Color.white, Color.black, () -> getResByHome(),
-				(s) -> updateResByHome(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_R_BY_H, c, () -> getResByHome(), (s) -> updateResByHome(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_RES, c, Color.white, Color.black, () -> getResOptions(),
-				(s) -> updateResOptions(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_RES, c, () -> getResOptions(), (s) -> updateResOptions(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_EXP, c, Color.white, Color.black,
-				() -> getGrantedSkillExperts(), (s) -> updateGrantedSkillExperts(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_EXP, c, () -> getGrantedSkillExperts(),
+				(s) -> updateGrantedSkillExperts(s));
 
 		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_C_EXP, "Count: ", c,
-				new SpinnerNumberModel(0, 0, 5, 1), Color.white, Color.black, () -> getSkillExpertOptions(),
-				(s) -> updateSkillExpertOptions(s), () -> getSkillExpertCount(), (i) -> updateSkillExpertCount(i));
+				new SpinnerNumberModel(0, 0, 5, 1), () -> getSkillExpertOptions(), (s) -> updateSkillExpertOptions(s),
+				() -> getSkillExpertCount(), (i) -> updateSkillExpertCount(i));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_TOOLS, c, Color.white, Color.black, () -> getToolProfs(),
-				(s) -> updateToolProfs(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_TOOLS, c, () -> getToolProfs(), (s) -> updateToolProfs(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_WEPS, c, Color.white, Color.black, () -> getWeaponProfs(),
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_WEPS, c, () -> getWeaponProfs(),
 				(s) -> updateWeaponProfs(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_ABL_AC, c, Color.white, Color.black, () -> getAblToAC(),
-				(s) -> updateAblToAC(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_ABL_AC, c, () -> getAblToAC(), (s) -> updateAblToAC(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_ABL_SKILLS, c, Color.white, Color.black,
-				() -> getAblToSkills(), (s) -> updateAblToSkills(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_ABL_SKILLS, c, () -> getAblToSkills(),
+				(s) -> updateAblToSkills(s));
 
-		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_SPD, new SpinnerNumberModel(0, 0, 50, 5), c, Color.white,
-				Color.black, () -> getSpeed(), (s) -> updateSpeed(s));
+		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_SPD, new SpinnerNumberModel(0, 0, 50, 5), c, () -> getSpeed(),
+				(s) -> updateSpeed(s));
 
-		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_HP_1, new SpinnerNumberModel(0, 0, 50, 1), c, Color.white,
-				Color.black, () -> getLvl1Hp(), (s) -> updateLvl1Hp(s));
+		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_HP_1, new SpinnerNumberModel(0, 0, 50, 1), c, () -> getLvl1Hp(),
+				(s) -> updateLvl1Hp(s));
 
-		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_HP_LVL, new SpinnerNumberModel(0, 0, 5, 1), c, Color.white,
-				Color.black, () -> getAllLvlHp(), (s) -> updateAllLvlHp(s));
+		addLabeledLinkedSpinner(collapse.bodyPanel, OPT_HP_LVL, new SpinnerNumberModel(0, 0, 5, 1), c,
+				() -> getAllLvlHp(), (s) -> updateAllLvlHp(s));
 
-		addLabeledLinkedCheckbox(collapse.bodyPanel, OPT_HALFPROF_ALL, Color.black, c, () -> getHalfProf(),
+		addLabeledLinkedCheckbox(collapse.bodyPanel, OPT_HALFPROF_ALL, c, () -> getHalfProf(),
 				(b) -> updateHalfProf(b));
 
-		addLabeledLinkedCheckbox(collapse.bodyPanel, OPT_PROF_INIT, Color.black, c, () -> getProfInit(),
-				(b) -> updateProfInit(b));
+		addLabeledLinkedCheckbox(collapse.bodyPanel, OPT_PROF_INIT, c, () -> getProfInit(), (b) -> updateProfInit(b));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_ABL_INIT, c, Color.white, Color.black, () -> getAblsToInit(),
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_ABL_INIT, c, () -> getAblsToInit(),
 				(s) -> updateAblsToInit(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_FEAT, c, Color.white, Color.black, () -> getFeatTrait(),
-				(s) -> updateFeatTrait(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_FEAT, c, () -> getFeatTrait(), (s) -> updateFeatTrait(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_SEL, c, Color.white, Color.black, () -> getSelectableType(),
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_SEL, c, () -> getSelectableType(),
 				(s) -> updateSelectableType(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_SKILL_ABL_TO, c, Color.white, Color.black,
-				() -> getSkillChoiceWithAbilityAdd(), (s) -> updateSkillChoiceWithAbilityAdd(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_C_SKILL_ABL_TO, c, () -> getSkillChoiceWithAbilityAdd(),
+				(s) -> updateSkillChoiceWithAbilityAdd(s));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_SKILL_EXP, c, Color.white, Color.black,
-				() -> getSkillProfExp(), (s) -> updateSkillProfExp(s));
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_G_SKILL_EXP, c, () -> getSkillProfExp(),
+				(s) -> updateSkillProfExp(s));
 
 		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_G_ABL, "Max: ", c,
-				new SpinnerNumberModel(20, 10, 30, 1), Color.white, Color.black, () -> getGrantedAblIncreases(),
+				new SpinnerNumberModel(20, 10, 30, 1), () -> getGrantedAblIncreases(),
 				(s) -> updateGrantedAblIncreases(s), () -> getGrantedAblMax(), (i) -> updateGrantedAblMax(i));
 
 		addLabeledLinkedTextFieldAndSpinner(collapse.bodyPanel, OPT_C_ABL, "Max: ", c,
-				new SpinnerNumberModel(20, 10, 30, 1), Color.white, Color.black, () -> getChooseAblIncreases(),
+				new SpinnerNumberModel(20, 10, 30, 1), () -> getChooseAblIncreases(),
 				(s) -> updateChooseAblIncreases(s), () -> getChooseAblMax(), (i) -> updateChooseAblMax(i));
 
-		addLabeledLinkedTextField(collapse.bodyPanel, OPT_E_SL, c, Color.white, Color.black, () -> getExtraSpellLists(),
+		addLabeledLinkedTextField(collapse.bodyPanel, OPT_E_SL, c, () -> getExtraSpellLists(),
 				(s) -> updateExtraSpellLists(s));
 
 		c.weighty = 1;
-		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_TEXT, 3, c, Color.white, Color.black, () -> getText(),
-				(s) -> updateText(s));
+		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_TEXT, 3, c, () -> getText(), (s) -> updateText(s));
 
-		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_NOTES, 4, c, Color.white, Color.black, () -> getSheetNotes(),
+		addLabeledLinkedTextArea(collapse.bodyPanel, OPT_NOTES, 4, c, () -> getSheetNotes(),
 				(s) -> updateSheetNotes(s));
 
 		if (!f.isCopy())
@@ -263,7 +252,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private static final GridBagConstraints STANDARDC = UILib.getStandardGBC();
 
-	private void addLabeledLinkedTextField(JComponent parent, String label, GridBagConstraints c, Color bg, Color fg,
+	private void addLabeledLinkedTextField(JComponent parent, String label, GridBagConstraints c,
 			Supplier<String> getter, Consumer<String> setter)
 	{
 		JPanel panel = new NoHorizontalScrollPanel();
@@ -276,11 +265,11 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			c.gridy++;
 		}
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(panel, label + ": ", c, bg, fg, getter, setter));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(panel, label + ": ", c, getter, setter));
 	}
 
-	private void addLabeledLinkedTextArea(JComponent parent, String label, int rows, GridBagConstraints c, Color bg,
-			Color fg, Supplier<String> getter, Consumer<String> setter)
+	private void addLabeledLinkedTextArea(JComponent parent, String label, int rows, GridBagConstraints c,
+			Supplier<String> getter, Consumer<String> setter)
 	{
 		JPanel panel = new NoHorizontalScrollPanel();
 		panel.setLayout(new GridBagLayout());
@@ -292,12 +281,12 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			c.gridy++;
 		}
 
-		linkedProperties.add(UILib.addLabeledLinkedTextArea(panel, rows, label + ": ", c, bg, fg, getter, setter));
+		linkedProperties.add(UILib.addLabeledLinkedTextArea(panel, rows, label + ": ", c, getter, setter));
 	}
 
 	private void addLabeledLinkedTextFieldAndSpinner(JComponent parent, String txtLabel, String spLabel,
-			GridBagConstraints c, SpinnerNumberModel model, Color bg, Color fg, Supplier<String> txtGetter,
-			Consumer<String> txtSetter, IntSupplier spGetter, IntConsumer spSetter)
+			GridBagConstraints c, SpinnerNumberModel model, Supplier<String> txtGetter, Consumer<String> txtSetter,
+			IntSupplier spGetter, IntConsumer spSetter)
 	{
 		JPanel panel = new NoHorizontalScrollPanel();
 		panel.setLayout(new GridBagLayout());
@@ -309,16 +298,15 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			c.gridy++;
 		}
 
-		linkedProperties
-				.add(UILib.addLabeledLinkedTextField(panel, txtLabel + ": ", STANDARDC, bg, fg, txtGetter, txtSetter));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(panel, txtLabel + ": ", STANDARDC, txtGetter, txtSetter));
 		STANDARDC.gridx = 1;
-		linkedProperties.add(
-				UILib.addLabeledLinkedSpinner(panel, spLabel + ": ", STANDARDC, model, bg, fg, spGetter, spSetter));
+		linkedProperties
+				.add(UILib.addLabeledLinkedSpinner(panel, spLabel + ": ", STANDARDC, model, spGetter, spSetter));
 		STANDARDC.gridx = 0;
 	}
 
 	private void addLabeledLinkedSpinner(JComponent parent, String label, SpinnerNumberModel model,
-			GridBagConstraints c, Color bg, Color fg, IntSupplier getter, IntConsumer setter)
+			GridBagConstraints c, IntSupplier getter, IntConsumer setter)
 	{
 		JPanel panel = new NoHorizontalScrollPanel();
 		panel.setLayout(new GridBagLayout());
@@ -330,11 +318,11 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			c.gridy++;
 		}
 
-		linkedProperties.add(UILib.addLabeledLinkedSpinner(panel, label + ": ", c, model, bg, fg, getter, setter));
+		linkedProperties.add(UILib.addLabeledLinkedSpinner(panel, label + ": ", c, model, getter, setter));
 	}
 
-	private void addLabeledLinkedCheckbox(JComponent parent, String label, Color fg, GridBagConstraints c,
-			BooleanSupplier getter, BooleanConsumer setter)
+	private void addLabeledLinkedCheckbox(JComponent parent, String label, GridBagConstraints c, BooleanSupplier getter,
+			BooleanConsumer setter)
 	{
 		JPanel panel = new NoHorizontalScrollPanel();
 		panel.setLayout(new GridBagLayout());
@@ -346,7 +334,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 			c.gridy++;
 		}
 
-		linkedProperties.add(UILib.addLabeledLinkedCheckbox(panel, label + ": ", c, fg, getter, setter));
+		linkedProperties.add(UILib.addLabeledLinkedCheckbox(panel, label + ": ", c, getter, setter));
 	}
 
 	@Override
@@ -547,28 +535,21 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private String getResistancesGranted()
 	{
-		return String.join(",", f.getResistancesGranted());
+		return String.join(",", f.getResistancesGranted().stream().map(r -> r.toString()).toList());
 	}
 
 	private void updateResistancesGranted(String s)
 	{
-		List<String> res = new ArrayList<>();
-		for (String r : s.split(","))
-		{
-			if (!r.trim().isBlank())
-			{
-				res.add(r.trim());
-			}
-		}
+		List<DamageType> res = parseDamageTypes(s.split(","));
 		f.setResistancesGranted(res);
 	}
 
 	private String getResByHome()
 	{
 		List<String> resByH = new ArrayList<>();
-		for (Map.Entry<String, String> rH : f.getResistancesByHomeworld().entrySet())
+		for (Map.Entry<String, DamageType> rH : f.getResistancesByHomeworld().entrySet())
 		{
-			resByH.add(rH.getKey() + "-" + rH.getValue());
+			resByH.add(rH.getKey() + "-" + rH.getValue().toString());
 		}
 		return String.join(", ", resByH);
 	}
@@ -576,7 +557,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 	private void updateResByHome(String s)
 	{
 		String[] resOptions = s.split(",");
-		Map<String, String> resByHome = new HashMap<>();
+		Map<String, DamageType> resByHome = new HashMap<>();
 		List<String> invalid = new ArrayList<>();
 		for (String ro : resOptions)
 		{
@@ -586,7 +567,14 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 				invalid.add(ro);
 				continue;
 			}
-			resByHome.put(split[0], split[1]);
+			try
+			{
+				resByHome.put(split[0], DamageType.typeFromStr(split[1]));
+			}
+			catch (Exception e)
+			{
+				invalid.add(ro);
+			}
 		}
 		f.setResistancesByHomeworld(resByHome);
 		showErrorMessage(invalid, "homeworld trait-resistance mapping");
@@ -619,14 +607,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private void updateResOptions(String s)
 	{
-		List<String> res = new ArrayList<>();
-		for (String r : s.split(","))
-		{
-			if (!r.trim().isBlank())
-			{
-				res.add(r.trim());
-			}
-		}
+		List<DamageType> res = parseDamageTypes(s.split(","));
 		f.setResistanceOptions(res);
 	}
 
@@ -647,7 +628,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private void updateWeaponProfs(String s)
 	{
-		f.setWeaponProfs(Arrays.asList(s.split(",")).stream().map(s2 -> s2.trim()).toList());
+		f.setWeaponProfs(Arrays.asList(s.split(",")).stream().map(w -> w.trim()).toList());
 	}
 
 	private String getAblToAC()
@@ -842,7 +823,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private String getSheetNotes()
 	{
-		return f.getSheetNotes();
+		return f.getSheetNotes().getText();
 	}
 
 	private void updateSheetNotes(String s)

@@ -13,6 +13,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.loadables.Background;
 import ncb.data.loadables.Homeworld;
 import ncb.data.loadables.Species;
@@ -20,7 +22,6 @@ import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class BackgroundHomeworldPanel extends JPanel implements ActionListener, ListensForChanges
 {
@@ -43,20 +44,21 @@ public class BackgroundHomeworldPanel extends JPanel implements ActionListener, 
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
 		PropertyListener.listenForChanges(PropertyListener.HOMEWORLD, this);
 
-		label = UILib.addLabel(this, "Homeworld: ", c, VaporwaveColors.HOT_PINK);
+		label = UILib.addLabel(this, "Homeworld: ", c);
+		label.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		c.gridx++;
-		home = UILib.getComboBox(Homeworld.getAllHomeworlds().toArray(new Homeworld[0]), this,
-				VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		home = UILib.getComboBox(Homeworld.getAllHomeworlds().toArray(new Homeworld[0]), this);
 		add(home, c);
 		c.gridx = 0;
 		c.gridy++;
 
-		suggestions = UILib.addLabel(this, "", c, VaporwaveColors.ELECTRIC_TEAL);
+		suggestions = UILib.addLabel(this, "", c);
+		suggestions.putClientProperty(FlatClientProperties.STYLE, "foreground: $suggestion");
 		c.gridy++;
 
 		c.weighty = 1;
 		c.gridwidth = 2;
-		desc = UILib.addTextDisplay(this, "", c, VaporwaveColors.HOT_PINK);
+		desc = UILib.addTextDisplay(this, "", c);
 
 		updateProperty(PropertyListener.BACKGROUND);
 	}

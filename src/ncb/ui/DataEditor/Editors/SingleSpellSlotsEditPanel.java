@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.awt.GridLayout;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,8 +30,8 @@ public class SingleSpellSlotsEditPanel extends NoHorizontalScrollPanel
 		JPanel singleLabelPanel = new NoHorizontalScrollPanel();
 		singleLabelPanel.setLayout(new GridLayout(1, 3));
 		singleLabelPanel.add(new JLabel());
-		UILib.addLabel(singleLabelPanel, "Spell Slots", Color.black);
-		UILib.addLabel(singleLabelPanel, "Slots Level", Color.black);
+		UILib.addLabel(singleLabelPanel, "Spell Slots");
+		UILib.addLabel(singleLabelPanel, "Slots Level");
 		add(singleLabelPanel);
 		for (int lvl = 1; lvl <= 20; lvl++)
 		{

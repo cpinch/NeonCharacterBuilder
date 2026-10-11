@@ -11,13 +11,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.loadables.Background;
 import ncb.data.loadables.Feat;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class BackgroundFeatPanel extends JPanel implements ActionListener, ListensForChanges
 {
@@ -40,9 +41,10 @@ public class BackgroundFeatPanel extends JPanel implements ActionListener, Liste
 		setOpaque(false);
 		GridBagConstraints c = UILib.getStandardGBC();
 
-		label = UILib.addLabel(this, "Feat: ", VaporwaveColors.HOT_PINK);
+		label = UILib.addLabel(this, "Feat: ");
+		label.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		c.gridx++;
-		feats = UILib.getComboBox(new Feat[0], this, VaporwaveColors.DEEP_VIOLET, VaporwaveColors.LASER_YELLOW);
+		feats = UILib.getComboBox(new Feat[0], this);
 		add(feats, c);
 		c.gridx = 0;
 		c.gridy++;

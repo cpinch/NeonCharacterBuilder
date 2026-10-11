@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.util.Arrays;
 
 import javax.swing.SpinnerNumberModel;
@@ -33,43 +32,39 @@ public class SelectablePrereqEditPanel extends EditPanel
 		linkedProperties.clear();
 		c.weightx = 0;
 
-		typeSel = UILib.getLinkedDropdown(Prereq.prereqTypes, Color.white, Color.black, () -> sp.getType(),
-				(s) -> updateType(s));
+		typeSel = UILib.getLinkedDropdown(Prereq.prereqTypes, () -> sp.getType(), (s) -> updateType(s));
 		add(typeSel, c);
 		c.gridx++;
 		c.weightx = 1;
 
 		clsName = UILib.getLinkedDropdown(CharacterClass.getAllClasses().stream().map(cls -> cls.getName()).toList(),
-				Color.white, Color.black, () -> sp.getReqClassName(), (s) -> sp.setReqClassName(s));
+				() -> sp.getReqClassName(), (s) -> sp.setReqClassName(s));
 		add(clsName, c);
 		c.gridx++;
 
 		armor = UILib.getLinkedDropdown(
-				Arrays.asList(ArmorTraining.values()).stream().map(at -> at.toString()).toList(), Color.white,
-				Color.black,
+				Arrays.asList(ArmorTraining.values()).stream().map(at -> at.toString()).toList(),
 				() -> sp.getReqArmor() == null ? ArmorTraining.Light.toString() : sp.getReqArmor().toString(),
 				(s) -> sp.setReqArmor(ArmorTraining.valueOf(s)));
 		add(armor, c);
 		c.gridx++;
 
-		hwTraits = UILib.getLinkedTextField(Color.white, Color.black, () -> String.join(", ", sp.getReqHwTraits()),
+		hwTraits = UILib.getLinkedTextField(() -> String.join(", ", sp.getReqHwTraits()),
 				(s) -> Arrays.asList(s.split(",")).stream().map(s2 -> s2.trim()).toList());
 		add(hwTraits, c);
 		c.gridx++;
 
-		abls = UILib.getLinkedTextField(Color.white, Color.black,
+		abls = UILib.getLinkedTextField(
 				() -> String.join(", ", sp.getReqAbilities().stream().map(a -> a.toString()).toList()),
 				(s) -> sp.setReqAbilities(parseAbilities(s.split(","))));
 		add(abls, c);
 		c.gridx++;
 
-		fName = UILib.getLinkedTextField(Color.white, Color.black, () -> sp.getReqFeatureName(),
-				(s) -> sp.setReqFeatureName(s));
+		fName = UILib.getLinkedTextField(() -> sp.getReqFeatureName(), (s) -> sp.setReqFeatureName(s));
 		add(fName, c);
 		c.gridx++;
 
-		val = UILib.getLinkedSpinner(new SpinnerNumberModel(0, 0, 30, 1), Color.white, Color.black,
-				() -> sp.getReqVal(), (i) -> sp.setReqVal(i));
+		val = UILib.getLinkedSpinner(new SpinnerNumberModel(0, 0, 30, 1), () -> sp.getReqVal(), (i) -> sp.setReqVal(i));
 		add(val, c);
 		c.gridx++;
 

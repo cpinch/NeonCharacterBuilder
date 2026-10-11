@@ -12,7 +12,6 @@ import ncb.data.loadables.Selectable;
 import ncb.main.CharacterSheet;
 import ncb.ui.NoHorizontalScrollPanel;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class SelectablePanel extends NoHorizontalScrollPanel
 {
@@ -30,7 +29,7 @@ public class SelectablePanel extends NoHorizontalScrollPanel
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setOpaque(false);
 
-		prereqs = UILib.addLabel(this, "", VaporwaveColors.ELECTRIC_TEAL);
+		prereqs = UILib.addLabel(this, "");
 	}
 
 	public void setSelected(Selectable f)

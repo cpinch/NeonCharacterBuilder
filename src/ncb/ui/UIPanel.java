@@ -13,6 +13,5 @@ public abstract class UIPanel extends JPanel
 	{
 		setBorder(BorderFactory.createEtchedBorder());
 		setLayout(new GridBagLayout());
-		setBackground(VaporwaveColors.DARK_PURPLE);
 	}
 }

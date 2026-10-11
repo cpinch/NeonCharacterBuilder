@@ -15,7 +15,6 @@ import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
 import ncb.ui.UIPanel;
-import ncb.ui.VaporwaveColors;
 import ncb.ui.subpanels.AbilityScorePanel;
 
 public class AbilityPanel extends UIPanel implements ListensForChanges
@@ -43,7 +42,7 @@ public class AbilityPanel extends UIPanel implements ListensForChanges
 
 		UILib.addTextDisplay(this,
 				"<html>Ability Generation should be done however your GM specifies. Once you have generated your ability scores:<br><b>Fill in the generated values in the boxes below and selected your background ability increases (+2/+1 or +1/+1/+1)</b>.<br><i>Bold indicates the ability is one of your class's primary abilities.</i></html>",
-				c, VaporwaveColors.HOT_PINK);
+				c);
 		c.gridy++;
 
 		add(getAbilitiesPanel(), c);
@@ -53,7 +52,7 @@ public class AbilityPanel extends UIPanel implements ListensForChanges
 		UILib.addTextDisplay(this,
 				"<html>Typically you will use one of these methods for generation:<br><br><b>Standard Array</b>: Use the following 6 scores: 15, 14, 13, 12, 10, 8.<br><b>Random Generation</b>: Roll 4d6 and drop 1 six times then assign each number to an ability.<br><b>Point Buy</b>: Start with each ability at 8. Spend 27 points across all abilities.<br>"
 						+ getPBTable() + "</html>",
-				c, VaporwaveColors.HOT_PINK);
+				c);
 
 		updatePrimaryAbilities();
 		updateSpellcastingAbilities();

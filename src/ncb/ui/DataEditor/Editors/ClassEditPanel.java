@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -49,52 +48,52 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 		super();
 
 		c.weighty = 1;
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Desc: ", c, Color.white, Color.black,
-				() -> cls.getDesc(), (s) -> cls.setDesc(s)));
+		linkedProperties
+				.add(UILib.addLabeledLinkedTextField(this, "Desc: ", c, () -> cls.getDesc(), (s) -> cls.setDesc(s)));
 		c.gridy++;
 		c.weighty = 0;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Primary Ability: ", c, Color.white, Color.black,
-				() -> getPrimary(), (s) -> updatePrimary(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Primary Ability: ", c, () -> getPrimary(),
+				(s) -> updatePrimary(s)));
 		c.gridy++;
 
 		linkedProperties.add(UILib.addLabeledLinkedSpinner(this, "HD: ", c, new SpinnerNumberModel(8, 4, 12, 2),
-				Color.white, Color.black, () -> cls.getHd(), (i) -> cls.setHd(i)));
+				() -> cls.getHd(), (i) -> cls.setHd(i)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Save Profs: ", c, Color.white, Color.black,
-				() -> getSaves(), (s) -> updateSaves(s)));
+		linkedProperties
+				.add(UILib.addLabeledLinkedTextField(this, "Save Profs: ", c, () -> getSaves(), (s) -> updateSaves(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Skill Options: ", c, Color.white, Color.black,
-				() -> getSkillOpts(), (s) -> updateSkillOpts(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Skill Options: ", c, () -> getSkillOpts(),
+				(s) -> updateSkillOpts(s)));
 		c.gridy++;
 
 		linkedProperties.add(UILib.addLabeledLinkedSpinner(this, "Skill Count: ", c, new SpinnerNumberModel(2, 1, 4, 1),
-				Color.white, Color.black, () -> cls.getSkillSelectionCount(), (i) -> cls.setSkillSelectionCount(i)));
+				() -> cls.getSkillSelectionCount(), (i) -> cls.setSkillSelectionCount(i)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Weapon Profs: ", c, Color.white, Color.black,
-				() -> getWeapons(), (s) -> updateWeapons(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Weapon Profs: ", c, () -> getWeapons(),
+				(s) -> updateWeapons(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Tool Profs: ", c, Color.white, Color.black,
-				() -> getTools(), (s) -> updateTools(s)));
+		linkedProperties
+				.add(UILib.addLabeledLinkedTextField(this, "Tool Profs: ", c, () -> getTools(), (s) -> updateTools(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Armor Training: ", c, Color.white, Color.black,
-				() -> getArmor(), (s) -> updateArmor(s)));
+		linkedProperties.add(
+				UILib.addLabeledLinkedTextField(this, "Armor Training: ", c, () -> getArmor(), (s) -> updateArmor(s)));
 		c.gridy++;
 
 		c.weighty = 1;
-		linkedProperties.add(UILib.addLabeledLinkedTextArea(this, 2, "Equipment: ", c, Color.white, Color.black,
-				() -> getEquipment(), (s) -> updateEquipment(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextArea(this, 2, "Equipment: ", c, () -> getEquipment(),
+				(s) -> updateEquipment(s)));
 		c.gridy++;
 
 		add(spellcastingPanel, c);
 		c.gridy++;
 
-		UILib.addLabel(this, "Features:", c, Color.black);
+		UILib.addLabel(this, "Features:", c);
 		c.gridy++;
 
 		featuresPanel.setLayout(new GridBagLayout());
@@ -126,10 +125,9 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 	{
 		if (e.getSource().equals(addFeature))
 		{
-			String name = JOptionPane.showInputDialog(null, "Name?:", "New Class Feature",
-					JOptionPane.QUESTION_MESSAGE);
+			String name = JOptionPane.showInputDialog(null, "Name?", "New Class Feature", JOptionPane.QUESTION_MESSAGE);
 
-			if (!name.isBlank())
+			if (name != null && !name.isBlank())
 			{
 				cls.addClassFeature(name);
 				updateFeaturePanels();
@@ -199,12 +197,12 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 
 	private String getWeapons()
 	{
-		return String.join(", ", cls.getWeaponProfs());
+		return String.join(", ", cls.getWeaponProfs().stream().map(w -> w.toString()).toList());
 	}
 
 	private void updateWeapons(String s)
 	{
-		cls.setWeaponProfs(Arrays.asList(s.split(",")).stream().map(s2 -> s2.trim()).toList());
+		cls.setWeaponProfs(Arrays.asList(s.split(",")).stream().map(w -> w.trim()).toList());
 	}
 
 	private String getTools()

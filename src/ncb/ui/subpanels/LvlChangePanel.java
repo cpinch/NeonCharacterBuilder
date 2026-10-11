@@ -8,7 +8,6 @@ import java.util.List;
 import ncb.main.CharacterSheet;
 import ncb.ui.CollapsablePanel;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class LvlChangePanel extends CollapsablePanel
 {
@@ -21,7 +20,7 @@ public class LvlChangePanel extends CollapsablePanel
 		bodyPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = UILib.getStandardGBC();
 
-		UILib.addLabel(headerPanel, "Level " + lvl, c, VaporwaveColors.HOT_PINK);
+		UILib.addLabel(headerPanel, "Level " + lvl, c);
 		c.gridy++;
 
 		List<String> changes = new ArrayList<>();
@@ -44,7 +43,6 @@ public class LvlChangePanel extends CollapsablePanel
 			changes.add("New Spell Options");
 		}
 
-		UILib.addTextDisplay(bodyPanel, "<html>" + String.join("<br>", changes) + "</html>", c,
-				VaporwaveColors.HOT_PINK);
+		UILib.addTextDisplay(bodyPanel, "<html>" + String.join("<br>", changes) + "</html>", c);
 	}
 }

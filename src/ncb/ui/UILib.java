@@ -1,6 +1,5 @@
 package ncb.ui;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -38,6 +37,8 @@ import javax.swing.text.JTextComponent;
 
 import org.apache.commons.lang3.function.BooleanConsumer;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.ui.DataEditor.PropertyLinkedCheckbox;
 import ncb.ui.DataEditor.PropertyLinkedComboBox;
 import ncb.ui.DataEditor.PropertyLinkedSpinner;
@@ -46,6 +47,7 @@ import ncb.ui.DataEditor.PropertyLinkedTextField;
 
 public class UILib
 {
+	@Deprecated
 	public static Font standardFont = new Font(Font.DIALOG, Font.PLAIN, 12);
 	public static Font boldFont = standardFont.deriveFont(Font.BOLD);
 	public static Font italicFont = standardFont.deriveFont(Font.ITALIC);
@@ -61,27 +63,25 @@ public class UILib
 		return c;
 	}
 
-	public static JLabel addLabel(JComponent parent, String label, Color fg)
+	public static JLabel addLabel(JComponent parent, String label)
 	{
-		JLabel l = getLabel(label, fg);
+		JLabel l = getLabel(label);
 		parent.add(l);
 		return l;
 	}
 
-	public static JLabel addLabel(JComponent parent, String label, GridBagConstraints c, Color fg)
+	public static JLabel addLabel(JComponent parent, String label, GridBagConstraints c)
 	{
-		JLabel l = getLabel(label, fg);
+		JLabel l = getLabel(label);
 		parent.add(l, c);
 		return l;
 	}
 
-	public static JLabel getLabel(String label, Color fg)
+	public static JLabel getLabel(String label)
 	{
 		JLabel l = new JLabel(label);
 		l.setAlignmentX(Component.LEFT_ALIGNMENT);
-		l.setFont(standardFont);
 		l.setOpaque(false);
-		l.setForeground(fg);
 		return l;
 	}
 
@@ -108,111 +108,97 @@ public class UILib
 		return scroll;
 	}
 
-	public static JTextPane addTextDisplay(JComponent parent, String text, Color fg)
+	public static JTextPane addTextDisplay(JComponent parent, String text, GridBagConstraints c)
 	{
-		JTextPane textPane = getTextDisplay(text, fg);
-		addScrollPaneFor(parent, textPane);
-		return textPane;
-	}
-
-	public static JTextPane addTextDisplay(JComponent parent, String text, GridBagConstraints c, Color fg)
-	{
-		JTextPane textPane = getTextDisplay(text, fg);
+		JTextPane textPane = getTextDisplay(text);
 		addScrollPaneFor(parent, textPane, c);
 		return textPane;
 	}
 
-	public static JTextPane getTextDisplay(String text, Color fg)
+	public static JTextPane getTextDisplay(String text)
 	{
 		JTextPane textPane = new JTextPane();
 		textPane.setContentType("text/html");
 		textPane.setEditable(false);
 		textPane.setOpaque(false);
 		textPane.putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
-		textPane.setForeground(fg);
 		textPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 		textPane.setText(text);
 		return textPane;
 	}
 
-	public static JTextField addTextField(JComponent parent, Color fg)
+	public static JTextField addTextField(JComponent parent)
 	{
-		JTextField textPane = getTextField(fg);
+		JTextField textPane = getTextField();
 		parent.add(textPane);
 		return textPane;
 	}
 
-	public static JTextField addTextField(JComponent parent, GridBagConstraints c, Color fg)
+	public static JTextField addTextField(JComponent parent, GridBagConstraints c)
 	{
-		JTextField textPane = getTextField(fg);
+		JTextField textPane = getTextField();
 		parent.add(textPane, c);
 		return textPane;
 	}
 
-	public static JTextField getTextField(Color fg)
+	public static JTextField getTextField()
 	{
 		JTextField textPane = new JTextField(20);
 		textPane.setOpaque(false);
-		textPane.setForeground(fg);
 		return textPane;
 	}
 
-	public static JCheckBox addCheckbox(JComponent parent, String label, ActionListener listener, Color fg)
+	public static JCheckBox addCheckbox(JComponent parent, String label, ActionListener listener)
 	{
-		JCheckBox box = getCheckbox(label, listener, fg);
+		JCheckBox box = getCheckbox(label, listener);
 		parent.add(box);
 		return box;
 	}
 
-	public static JCheckBox getCheckbox(JComponent parent, String label, ActionListener listener, GridBagConstraints c,
-			Color fg)
+	public static JCheckBox getCheckbox(JComponent parent, String label, ActionListener listener, GridBagConstraints c)
 	{
-		JCheckBox box = getCheckbox(label, listener, fg);
+		JCheckBox box = getCheckbox(label, listener);
 		parent.add(box, c);
 		return box;
 	}
 
-	public static JCheckBox getCheckbox(String label, ActionListener listener, Color fg)
+	public static JCheckBox getCheckbox(String label, ActionListener listener)
 	{
 		JCheckBox box = new JCheckBox(label);
 		box.addActionListener(listener);
 		box.setAlignmentX(Component.LEFT_ALIGNMENT);
 		box.setOpaque(false);
-		box.setForeground(fg);
 		return box;
 	}
 
-	public static JRadioButton addRadioBtn(JComponent parent, String label, ActionListener listener, Color fg)
+	public static JRadioButton addRadioBtn(JComponent parent, String label, ActionListener listener)
 	{
-		JRadioButton btn = getRadioBtn(label, listener, fg);
+		JRadioButton btn = getRadioBtn(label, listener);
 		parent.add(btn);
 		return btn;
 	}
 
 	public static JRadioButton addRadioBtn(JComponent parent, String label, ActionListener listener,
-			GridBagConstraints c, Color fg)
+			GridBagConstraints c)
 	{
-		JRadioButton btn = getRadioBtn(label, listener, fg);
+		JRadioButton btn = getRadioBtn(label, listener);
 		parent.add(btn, c);
 		return btn;
 	}
 
-	public static JRadioButton getRadioBtn(String label, ActionListener listener, Color fg)
+	public static JRadioButton getRadioBtn(String label, ActionListener listener)
 	{
 		JRadioButton btn = new JRadioButton(label);
 		btn.addActionListener(listener);
 		btn.setAlignmentX(Component.LEFT_ALIGNMENT);
 		btn.setOpaque(false);
-		btn.setForeground(fg);
 		return btn;
 	}
 
-	public static <T> JComboBox<T> getComboBox(T[] items, ActionListener listener, Color bg, Color fg)
+	public static <T> JComboBox<T> getComboBox(T[] items, ActionListener listener)
 	{
 		JComboBox<T> combo = new JComboBox<T>(items);
 		combo.addActionListener(listener);
-		combo.setBackground(bg);
-		combo.setForeground(fg);
 		return combo;
 	}
 
@@ -230,13 +216,13 @@ public class UILib
 		});
 	}
 
-	public static JLabel addLabeledComponent(JComponent parent, String label, JComponent comp, Color fg)
+	public static JLabel addLabeledComponent(JComponent parent, String label, JComponent comp)
 	{
 		JPanel panel = new JPanel();
 		panel.setOpaque(false);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-		JLabel l = getLabel(label, fg);
-		l.setFont(boldFont);
+		JLabel l = getLabel(label);
+		l.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 20));
 		panel.add(l);
 		panel.add(comp);
@@ -244,14 +230,13 @@ public class UILib
 		return l;
 	}
 
-	public static JLabel addLabeledComponent(JComponent parent, String label, JComponent comp, GridBagConstraints c,
-			Color fg)
+	public static JLabel addLabeledComponent(JComponent parent, String label, JComponent comp, GridBagConstraints c)
 	{
 		JPanel panel = new JPanel();
 		panel.setOpaque(false);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-		JLabel l = getLabel(label, fg);
-		l.setFont(boldFont);
+		JLabel l = getLabel(label);
+		l.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 		panel.setBorder(BorderFactory.createEmptyBorder(5, 0, 0, 0));
 		panel.add(l);
 		panel.add(comp);
@@ -259,80 +244,70 @@ public class UILib
 		return l;
 	}
 
-	public static PropertyLinkedTextField getLinkedTextField(Color bg, Color fg, Supplier<String> getter,
-			Consumer<String> setter)
+	public static PropertyLinkedTextField getLinkedTextField(Supplier<String> getter, Consumer<String> setter)
 	{
 		PropertyLinkedTextField textPane = new PropertyLinkedTextField(getter, setter);
-		textPane.setBackground(bg);
-		textPane.setForeground(fg);
 		return textPane;
 	}
 
 	public static PropertyLinkedTextField addLabeledLinkedTextField(JComponent parent, String label,
-			GridBagConstraints c, Color bg, Color fg, Supplier<String> getter, Consumer<String> setter)
+			GridBagConstraints c, Supplier<String> getter, Consumer<String> setter)
 	{
-		PropertyLinkedTextField field = getLinkedTextField(bg, fg, getter, setter);
-		addLabeledComponent(parent, label, field, c, fg);
+		PropertyLinkedTextField field = getLinkedTextField(getter, setter);
+		addLabeledComponent(parent, label, field, c);
 		return field;
 	}
 
-	public static PropertyLinkedSpinner getLinkedSpinner(SpinnerNumberModel model, Color bg, Color fg,
-			IntSupplier getter, IntConsumer setter)
+	public static PropertyLinkedSpinner getLinkedSpinner(SpinnerNumberModel model, IntSupplier getter,
+			IntConsumer setter)
 	{
 		PropertyLinkedSpinner spinner = new PropertyLinkedSpinner(model, getter, setter);
 		((JSpinner.DefaultEditor) spinner.getEditor()).getTextField().setHorizontalAlignment(JTextField.LEFT);
-		spinner.setBackground(bg);
-		spinner.setForeground(fg);
 		return spinner;
 	}
 
 	public static PropertyLinkedSpinner addLabeledLinkedSpinner(JComponent parent, String label,
-			SpinnerNumberModel model, Color bg, Color fg, IntSupplier getter, IntConsumer setter)
+			SpinnerNumberModel model, IntSupplier getter, IntConsumer setter)
 	{
-		PropertyLinkedSpinner spinner = getLinkedSpinner(model, bg, fg, getter, setter);
-		addLabeledComponent(parent, label, spinner, fg);
+		PropertyLinkedSpinner spinner = getLinkedSpinner(model, getter, setter);
+		addLabeledComponent(parent, label, spinner);
 		return spinner;
 	}
 
 	public static PropertyLinkedSpinner addLabeledLinkedSpinner(JComponent parent, String label, GridBagConstraints c,
-			SpinnerNumberModel model, Color bg, Color fg, IntSupplier getter, IntConsumer setter)
+			SpinnerNumberModel model, IntSupplier getter, IntConsumer setter)
 	{
-		PropertyLinkedSpinner spinner = getLinkedSpinner(model, bg, fg, getter, setter);
-		addLabeledComponent(parent, label, spinner, c, fg);
+		PropertyLinkedSpinner spinner = getLinkedSpinner(model, getter, setter);
+		addLabeledComponent(parent, label, spinner, c);
 		return spinner;
 	}
 
-	public static PropertyLinkedTextArea getLinkedTextArea(int rows, Color bg, Color fg, Supplier<String> getter,
-			Consumer<String> setter)
+	public static PropertyLinkedTextArea getLinkedTextArea(int rows, Supplier<String> getter, Consumer<String> setter)
 	{
 		PropertyLinkedTextArea textArea = new PropertyLinkedTextArea(rows, getter, setter);
-		textArea.setBackground(bg);
-		textArea.setForeground(fg);
 		return textArea;
 	}
 
 	public static PropertyLinkedTextArea addLabeledLinkedTextArea(JComponent parent, int rows, String label,
-			GridBagConstraints c, Color bg, Color fg, Supplier<String> getter, Consumer<String> setter)
+			GridBagConstraints c, Supplier<String> getter, Consumer<String> setter)
 	{
-		PropertyLinkedTextArea field = getLinkedTextArea(rows, bg, fg, getter, setter);
-		addLabeledComponent(parent, label, field, c, fg);
+		PropertyLinkedTextArea field = getLinkedTextArea(rows, getter, setter);
+		addLabeledComponent(parent, label, field, c);
 		return field;
 	}
 
-	public static PropertyLinkedComboBox getLinkedDropdown(List<String> opts, Color bg, Color fg,
-			Supplier<String> getter, Consumer<String> setter)
+	public static PropertyLinkedComboBox getLinkedDropdown(List<String> opts, Supplier<String> getter,
+			Consumer<String> setter)
 	{
 		PropertyLinkedComboBox dropdown = new PropertyLinkedComboBox(opts, getter, setter);
-		dropdown.setBackground(bg);
-		dropdown.setForeground(fg);
 		return dropdown;
 	}
 
 	public static PropertyLinkedComboBox addLabeledLinkedDropdown(JComponent parent, List<String> ops, String label,
-			GridBagConstraints c, Color bg, Color fg, Supplier<String> getter, Consumer<String> setter)
+			GridBagConstraints c, Supplier<String> getter, Consumer<String> setter)
 	{
-		PropertyLinkedComboBox field = getLinkedDropdown(ops, bg, fg, getter, setter);
-		addLabeledComponent(parent, label, field, c, fg);
+		PropertyLinkedComboBox field = getLinkedDropdown(ops, getter, setter);
+		addLabeledComponent(parent, label, field, c);
 		return field;
 	}
 
@@ -343,10 +318,10 @@ public class UILib
 	}
 
 	public static PropertyLinkedCheckbox addLabeledLinkedCheckbox(JComponent parent, String label, GridBagConstraints c,
-			Color fg, BooleanSupplier getter, BooleanConsumer setter)
+			BooleanSupplier getter, BooleanConsumer setter)
 	{
 		PropertyLinkedCheckbox field = getLinkedCheckbox(getter, setter);
-		addLabeledComponent(parent, label, field, c, fg);
+		addLabeledComponent(parent, label, field, c);
 		return field;
 	}
 

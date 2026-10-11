@@ -11,13 +11,14 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import com.formdev.flatlaf.FlatClientProperties;
+
 import ncb.data.enums.Ability;
 import ncb.data.loadables.Background;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
-import ncb.ui.VaporwaveColors;
 
 public class BackgroundAbilitiesPanel extends JPanel implements ActionListener, ListensForChanges
 {
@@ -37,17 +38,14 @@ public class BackgroundAbilitiesPanel extends JPanel implements ActionListener, 
 		PropertyListener.listenForChanges(PropertyListener.BACKGROUND, this);
 		PropertyListener.listenForChanges(PropertyListener.BGABILITYOPTIONS, this);
 
-		label = UILib.addLabel(this, "Ability Options: ", VaporwaveColors.HOT_PINK);
-		label.setFont(UILib.boldFont);
+		label = UILib.addLabel(this, "Ability Options: ");
+		label.putClientProperty(FlatClientProperties.STYLE, "font: bold");
 
-		ability1 = UILib.getComboBox(Ability.realValues(), this, VaporwaveColors.DEEP_VIOLET,
-				VaporwaveColors.LASER_YELLOW);
+		ability1 = UILib.getComboBox(Ability.realValues(), this);
 		add(ability1);
-		ability2 = UILib.getComboBox(Ability.realValues(), this, VaporwaveColors.DEEP_VIOLET,
-				VaporwaveColors.LASER_YELLOW);
+		ability2 = UILib.getComboBox(Ability.realValues(), this);
 		add(ability2);
-		ability3 = UILib.getComboBox(Ability.realValues(), this, VaporwaveColors.DEEP_VIOLET,
-				VaporwaveColors.LASER_YELLOW);
+		ability3 = UILib.getComboBox(Ability.realValues(), this);
 		add(ability3);
 	}
 

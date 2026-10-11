@@ -1,7 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
-
 import javax.swing.SpinnerNumberModel;
 
 import ncb.data.interfaces.Customizable;
@@ -32,46 +30,46 @@ public class SpellEditPanel extends EditPanel
 		super();
 
 		linkedProperties.add(UILib.addLabeledLinkedSpinner(this, "Spell Level: ", c, new SpinnerNumberModel(0, 0, 9, 1),
-				Color.white, Color.black, () -> spell.getLevel(), (i) -> spell.setLevel(i)));
+				() -> spell.getLevel(), (i) -> spell.setLevel(i)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "School: ", c, Color.white, Color.black,
-				() -> spell.getSchool(), (s) -> spell.setSchool(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "School: ", c, () -> spell.getSchool(),
+				(s) -> spell.setSchool(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Cast Time: ", c, Color.white, Color.black,
-				() -> spell.getCastTime(), (s) -> spell.setCastTime(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Cast Time: ", c, () -> spell.getCastTime(),
+				(s) -> spell.setCastTime(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Trigger (optional): ", c, Color.white, Color.black,
-				() -> spell.getTrigger(), (s) -> spell.setTrigger(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Trigger (optional): ", c, () -> spell.getTrigger(),
+				(s) -> spell.setTrigger(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Components: ", c, Color.white, Color.black,
-				() -> spell.getComponents(), (s) -> spell.setComponents(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Components: ", c, () -> spell.getComponents(),
+				(s) -> spell.setComponents(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Materials (optional): ", c, Color.white,
-				Color.black, () -> spell.getMaterials(), (s) -> spell.setMaterials(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Materials (optional): ", c,
+				() -> spell.getMaterials(), (s) -> spell.setMaterials(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Range: ", c, Color.white, Color.black,
-				() -> spell.getRange(), (s) -> spell.setRange(s)));
+		linkedProperties.add(
+				UILib.addLabeledLinkedTextField(this, "Range: ", c, () -> spell.getRange(), (s) -> spell.setRange(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Duration: ", c, Color.white, Color.black,
-				() -> spell.getDuration(), (s) -> spell.setDuration(s)));
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Duration: ", c, () -> spell.getDuration(),
+				(s) -> spell.setDuration(s)));
 		c.gridy++;
 
-		linkedProperties.add(UILib.addLabeledLinkedCheckbox(this, "Ritual: ", c, Color.black, () -> spell.isRitual(),
-				(b) -> spell.setRitual(b)));
+		linkedProperties.add(
+				UILib.addLabeledLinkedCheckbox(this, "Ritual: ", c, () -> spell.isRitual(), (b) -> spell.setRitual(b)));
 		c.gridy++;
 
-		UILib.addLabel(this, "Text:", c, Color.black).setFont(UILib.boldFont);
+		UILib.addLabel(this, "Text:", c);
 		c.gridy++;
 		c.weighty = 1;
-		linkedProperties.add(UILib.addLabeledLinkedTextArea(this, 10, "", c, Color.white, Color.black,
-				() -> spell.getText(), (s) -> spell.setText(s)));
+		linkedProperties
+				.add(UILib.addLabeledLinkedTextArea(this, 10, "", c, () -> spell.getText(), (s) -> spell.setText(s)));
 		c.gridy++;
 
 		setVisible(false);

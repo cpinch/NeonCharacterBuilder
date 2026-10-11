@@ -1,6 +1,5 @@
 package ncb.ui.DataEditor.Editors;
 
-import java.awt.Color;
 import java.awt.GridLayout;
 
 import javax.swing.BoxLayout;
@@ -29,7 +28,7 @@ public class CantripsEditPanel extends NoHorizontalScrollPanel
 		labelPanel1.add(new JLabel());
 		for (int i = 1; i <= 10; i++)
 		{
-			UILib.addLabel(labelPanel1, "Level " + i, Color.black);
+			UILib.addLabel(labelPanel1, "Level " + i);
 		}
 		add(labelPanel1);
 
@@ -47,7 +46,7 @@ public class CantripsEditPanel extends NoHorizontalScrollPanel
 		labelPanel2.add(new JLabel());
 		for (int i = 11; i <= 20; i++)
 		{
-			UILib.addLabel(labelPanel2, "Level " + i, Color.black);
+			UILib.addLabel(labelPanel2, "Level " + i);
 		}
 		add(labelPanel2);
 
