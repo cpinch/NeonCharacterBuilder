@@ -77,6 +77,10 @@ public class SpellSlots implements HasConfig
 
 	public int getCount(int spLvl)
 	{
+		if (slots == null || slots[spLvl - 1] == null)
+		{
+			return 0;
+		}
 		return slots[spLvl - 1];
 	}
 

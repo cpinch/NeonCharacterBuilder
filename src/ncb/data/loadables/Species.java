@@ -151,6 +151,11 @@ public class Species extends Feature
 		setCustom(true);
 	}
 
+	public boolean isSpellcaster()
+	{
+		return !getAll(Feature::getSpellsGranted).isEmpty();
+	}
+
 	// Loading
 	private static final List<Species> allSpecies = new ArrayList<>();
 

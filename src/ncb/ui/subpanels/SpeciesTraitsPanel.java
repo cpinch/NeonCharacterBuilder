@@ -2,16 +2,17 @@ package ncb.ui.subpanels;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-import javax.swing.BorderFactory;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextPane;
 
 import com.formdev.flatlaf.FlatClientProperties;
+import com.formdev.flatlaf.ui.FlatBorder;
 
 import ncb.data.loadables.Species;
 import ncb.main.CharacterSheet;
@@ -35,10 +36,11 @@ public class SpeciesTraitsPanel extends JPanel implements ActionListener, Listen
 	{
 		this.sheet = sheet;
 
-		setBorder(BorderFactory.createEtchedBorder());
+		setBorder(new FlatBorder());
 		setLayout(new GridBagLayout());
 		setOpaque(false);
 		GridBagConstraints c = UILib.getStandardGBC();
+		c.insets = new Insets(5, 5, 5, 5);
 		PropertyListener.listenForChanges(PropertyListener.SPECIES, this);
 		PropertyListener.listenForChanges(PropertyListener.SIZE, this);
 

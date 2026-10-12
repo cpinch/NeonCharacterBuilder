@@ -3,6 +3,7 @@ package ncb.ui.subpanels;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 
@@ -27,6 +28,7 @@ public class ClassFeaturesPanel extends NoHorizontalScrollPanel implements Liste
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 
+		setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 	}
 

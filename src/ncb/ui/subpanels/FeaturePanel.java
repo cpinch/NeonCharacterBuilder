@@ -1,5 +1,6 @@
 package ncb.ui.subpanels;
 
+import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -60,6 +61,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 		this.feature = feature;
 
 		bodyPanel.setLayout(new GridBagLayout());
+		setAlignmentX(Component.LEFT_ALIGNMENT);
 		GridBagConstraints c = UILib.getStandardGBC();
 
 		UILib.addLabel(headerPanel, feature.getName(), c).putClientProperty(FlatClientProperties.STYLE, "font: bold");
@@ -241,7 +243,7 @@ public class FeaturePanel extends CollapsablePanel implements ActionListener, Li
 			resistanceOptions = UILib.getComboBox(resOpts.toArray(new DamageType[0]), this);
 			UILib.addLabeledComponent(bodyPanel, "Resistance: ", resistanceOptions, c);
 			c.gridy++;
-			if (feature.getResistancesSelected().isEmpty() || feature.getResistancesSelected().get(0) != null)
+			if (feature.getResistancesSelected().isEmpty() || feature.getResistancesSelected().get(0) == null)
 			{
 				resistanceOptions.setSelectedIndex(0);
 			}

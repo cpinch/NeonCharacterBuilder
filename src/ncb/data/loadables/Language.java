@@ -97,7 +97,6 @@ public class Language implements HasConfig
 			}
 		}
 		System.err.println("Unknown language " + name);
-		Thread.dumpStack();
 		return null;
 	}
 

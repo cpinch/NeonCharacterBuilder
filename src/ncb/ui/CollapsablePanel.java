@@ -9,9 +9,10 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.BorderFactory;
-import javax.swing.JButton;
 import javax.swing.JPanel;
+import javax.swing.plaf.basic.BasicArrowButton;
 
+import com.formdev.flatlaf.ui.FlatArrowButton;
 import com.formdev.flatlaf.ui.FlatBorder;
 
 public class CollapsablePanel extends JPanel implements NoHorizontalScroll
@@ -21,7 +22,8 @@ public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 	public final JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 	public final JPanel bodyPanel = new NoHorizontalScrollPanel();
 
-	private final JButton toggleBtn = new JButton("▼");
+	private final FlatArrowButton toggleBtn = new FlatArrowButton(FlatArrowButton.SOUTH, "triangle", null, null, null,
+			null, null, null);
 	private boolean collapsed = false;
 
 	public CollapsablePanel(boolean startCollapsed)
@@ -97,7 +99,7 @@ public class CollapsablePanel extends JPanel implements NoHorizontalScroll
 	private void setToggleState(boolean collapsed)
 	{
 		this.collapsed = collapsed;
-		toggleBtn.setText(collapsed ? "▼" : "▲");
+		toggleBtn.setDirection(collapsed ? BasicArrowButton.SOUTH : BasicArrowButton.NORTH);
 		bodyPanel.setVisible(!collapsed);
 	}
 }

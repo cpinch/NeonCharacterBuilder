@@ -2,6 +2,7 @@ package ncb.ui.tabs;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -40,6 +41,7 @@ public class ClassPanel extends UIPanel implements ActionListener, ListensForCha
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 
 		GridBagConstraints c = UILib.getStandardGBC();
+		c.insets = new Insets(5, 15, 5, 5);
 
 		classNameSelector = UILib.getComboBox(
 				CharacterClass.getAllClasses().stream().map(cls -> cls.getName()).toList().toArray(new String[0]),
@@ -49,7 +51,7 @@ public class ClassPanel extends UIPanel implements ActionListener, ListensForCha
 		c.weightx = 0;
 		classLevelLabel = UILib.addLabel(this, "Level 1", c);
 		classLevelLabel.putClientProperty(FlatClientProperties.STYLE, "foreground: $suggestion");
-		classLevelLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 10));
+		classLevelLabel.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 20));
 		c.gridx = 0;
 		c.gridy++;
 		c.weightx = 1;

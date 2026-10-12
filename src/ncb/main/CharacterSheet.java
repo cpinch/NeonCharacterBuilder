@@ -315,14 +315,29 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		return getAll(Feature::getWeaponProfs);
 	}
 
+	public List<LeveledText> getAllWeaponProfTexts()
+	{
+		return getAll(Feature::getWeaponProfTexts);
+	}
+
 	public List<String> getAllToolProfs()
 	{
 		return getAll(Feature::getToolProfs);
 	}
 
+	public List<LeveledText> getAllToolProfTexts()
+	{
+		return getAll(Feature::getToolProfTexts);
+	}
+
 	public List<String> getAllVehicleProfs()
 	{
 		return getAll(Feature::getVehicleProfs);
+	}
+
+	public List<LeveledText> getAllVehicleProfTexts()
+	{
+		return getAll(Feature::getVehicleProfTexts);
 	}
 
 	public List<ArmorTraining> getAllArmorProfs()
@@ -353,8 +368,15 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 		// Homeworld trait resistances are unique and have to be handled accordingly
 		Homeworld h = background.getHomeworld();
-		List<String> hwRes = getAllOf(Feature::getResistancesByHomeworld).stream()
-				.map(r -> getResistanceForHomeworld(h, r)).toList();
+		List<String> hwRes = new ArrayList<>();
+		for (Map<String, DamageType> hwR : getAllOf(Feature::getResistancesByHomeworld))
+		{
+			String r = getResistanceForHomeworld(h, hwR);
+			if (r != null && !r.isBlank())
+			{
+				hwRes.add(r);
+			}
+		}
 		resStr.addAll(hwRes);
 
 		return resStr;
@@ -420,7 +442,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public Ability getSpellcastingAbility()
 	{
-		if (charClass.getSpellcastingAbility() != null)
+		if (charClass.isSpellcaster())
 		{
 			if (charClass.getSpellcastingAbility() == Ability.Primary)
 			{
@@ -475,8 +497,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public boolean isSpellcaster()
 	{
-		return charClass.getSpellcastingAbility() != null || !species.getAll(Feature::getSpellsGranted).isEmpty()
-				|| background.getAll(Feature::getSpellsGranted).isEmpty();
+		return charClass.isSpellcaster() || species.isSpellcaster() || background.isSpellcaster();
 	}
 
 	public List<Spell> getAllGrantedSpells()

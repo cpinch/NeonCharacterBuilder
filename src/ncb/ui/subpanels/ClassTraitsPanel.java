@@ -2,11 +2,13 @@ package ncb.ui.subpanels;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.util.List;
 
-import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+import com.formdev.flatlaf.ui.FlatBorder;
 
 import ncb.data.enums.ArmorTraining;
 import ncb.main.CharacterSheet;
@@ -33,10 +35,11 @@ public class ClassTraitsPanel extends JPanel implements ListensForChanges
 	{
 		this.sheet = sheet;
 
-		setBorder(BorderFactory.createEtchedBorder());
+		setBorder(new FlatBorder());
 		setLayout(new GridBagLayout());
 		setOpaque(false);
 		GridBagConstraints c = UILib.getStandardGBC();
+		c.insets = new Insets(5, 5, 5, 5);
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 
 		primaryAbilityPanel = new PrimaryAbilityPanel(sheet);

@@ -88,7 +88,7 @@ public class AbilityScorePanel extends JPanel implements ActionListener, Propert
 
 	public void setLabelBoldState(boolean bold)
 	{
-		label.putClientProperty(FlatClientProperties.STYLE, "font: $h3.font" + (bold ? "; font-weight: bold" : ""));
+		label.putClientProperty(FlatClientProperties.STYLE, "font: " + (bold ? "bold " : "") + "$h3.font");
 	}
 
 	public void clearCheckboxes()
@@ -134,6 +134,16 @@ public class AbilityScorePanel extends JPanel implements ActionListener, Propert
 	public JRadioButton getSpellcastingButton()
 	{
 		return spellRadio;
+	}
+
+	public JCheckBox getPlus1Checkbox()
+	{
+		return bgCheckbox1;
+	}
+
+	public JCheckBox getPlus2Checkbox()
+	{
+		return bgCheckbox2;
 	}
 
 	public void showSpellcastingButton(boolean show)

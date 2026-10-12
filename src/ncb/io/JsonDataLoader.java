@@ -266,101 +266,102 @@ public class JsonDataLoader
 		{
 			for (Spell s : Spell.getAllSpells())
 			{
-				if (s.isCustom())
+				if (s.isCustom() && !s.getName().isBlank())
 				{
 					byte[] data = s.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(spellFolder + "/" + s.getName() + ".json");
+					ZipEntry ze = new ZipEntry(spellFolder + "/" + sanitize(s.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (SpellList sl : SpellList.getAllSpellLists())
 			{
-				if (sl.isCustom())
+				if (sl.isCustom() && !sl.getName().isBlank())
 				{
 					byte[] data = sl.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(spellListFolder + "/" + sl.getName() + ".json");
+					ZipEntry ze = new ZipEntry(spellListFolder + "/" + sanitize(sl.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (Language l : Language.getAllLanguages())
 			{
-				if (l.isCustom())
+				if (l.isCustom() && !l.getName().isBlank())
 				{
 					byte[] data = l.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(languageFolder + "/" + l.getName() + ".json");
+					ZipEntry ze = new ZipEntry(languageFolder + "/" + sanitize(l.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (Homeworld h : Homeworld.getAllHomeworlds())
 			{
-				if (h.isCustom())
+				if (h.isCustom() && !h.getName().isBlank())
 				{
 					byte[] data = h.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(homeworldFolder + "/" + h.getName() + ".json");
+					ZipEntry ze = new ZipEntry(homeworldFolder + "/" + sanitize(h.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (Feat f : Feat.getAllLoadedFeats())
 			{
-				if (f.isCustom())
+				if (f.isCustom() && !f.getName().isBlank())
 				{
 					byte[] data = f.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(featFolder + "/" + f.getName() + ".json");
+					ZipEntry ze = new ZipEntry(featFolder + "/" + sanitize(f.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (Selectable s : Selectable.getAllSelectables())
 			{
-				if (s.isCustom())
+				if (s.isCustom() && !s.getName().isBlank())
 				{
 					byte[] data = s.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
 					// Selectables are uniquely named by type + name
-					ZipEntry ze = new ZipEntry(selectableFolder + "/" + s.getType() + "-" + s.getName() + ".json");
+					ZipEntry ze = new ZipEntry(
+							selectableFolder + "/" + sanitize(s.getType() + "-" + s.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (Background b : Background.getAllBackgrounds())
 			{
-				if (b.isCustom())
+				if (b.isCustom() && !b.getName().isBlank())
 				{
 					byte[] data = b.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(backgroundFolder + "/" + b.getName() + ".json");
+					ZipEntry ze = new ZipEntry(backgroundFolder + "/" + sanitize(b.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (Species s : Species.getAllSpecies())
 			{
-				if (s.isCustom())
+				if (s.isCustom() && !s.getName().isBlank())
 				{
 					byte[] data = s.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(speciesFolder + "/" + s.getName() + ".json");
+					ZipEntry ze = new ZipEntry(speciesFolder + "/" + sanitize(s.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (Subclass s : Subclass.getAllSubclasses())
 			{
-				if (s.isCustom())
+				if (s.isCustom() && !s.getName().isBlank())
 				{
 					byte[] data = s.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(subclassFolder + "/" + s.getName() + ".json");
+					ZipEntry ze = new ZipEntry(subclassFolder + "/" + sanitize(s.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
 			}
 			for (CharacterClass c : CharacterClass.getAllClasses())
 			{
-				if (c.isCustom())
+				if (c.isCustom() && !c.getName().isBlank())
 				{
 					byte[] data = c.saveConfig().toString(4).getBytes(StandardCharsets.UTF_8);
-					ZipEntry ze = new ZipEntry(classFolder + "/" + c.getName() + ".json");
+					ZipEntry ze = new ZipEntry(classFolder + "/" + sanitize(c.getName()) + ".json");
 					out.putNextEntry(ze);
 					out.write(data, 0, data.length);
 				}
@@ -385,6 +386,20 @@ public class JsonDataLoader
 					"Encountered an error while overriding custom data file. Do you have it open in another program? Your prior custom file has not been modified. See data/100_Custom-new.nlib for your new changes.",
 					"Error Saving Custom Data", JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	private static final String INVALID_FILE_CHARS = "[\\\\/:*?\"<>|\\x00-\\x1F]";
+
+	private static String sanitize(String s)
+	{
+		String san = s.replaceAll(INVALID_FILE_CHARS, "").trim();
+
+		if (san.length() > 255)
+		{
+			san = san.substring(0, 255);
+		}
+
+		return san.isBlank() ? "defaultName" : san;
 	}
 
 	private static class FileData

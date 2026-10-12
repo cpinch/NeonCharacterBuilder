@@ -3,6 +3,7 @@ package ncb.ui.subpanels;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 
@@ -28,6 +29,7 @@ public class SpeciesFeaturesPanel extends NoHorizontalScrollPanel implements Lis
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 		PropertyListener.listenForChanges(PropertyListener.SPECIES, this);
 
+		setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 	}
 
