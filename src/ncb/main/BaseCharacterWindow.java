@@ -23,6 +23,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
 import ncb.io.JsonDataLoader;
@@ -231,7 +232,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 			System.setProperty("flatlaf.useWindowDecorations", "false");
 
 			// Tell flatlaf to load our custom theme
-			com.formdev.flatlaf.FlatLaf.registerCustomDefaultsSource("");
+			FlatLaf.registerCustomDefaultsSource("themes");
 
 			// Start flatlaf
 			FlatLightLaf.setup();
