@@ -223,17 +223,20 @@ public class PdfExporter
 
 	private static void fillProfsAndEquipment(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
-		List<String> wepStrs = c.getAllWeaponProfs().stream().map(w -> w.toString()).toList();
-		List<String> toolStrs = c.getAllToolProfs();
-		List<String> vehStrs = c.getAllVehicleProfs();
 		if (editing)
 		{
-			appendNonDupes(acroForm, WPROFS_F, wepStrs, ", ");
-			appendNonDupes(acroForm, TPROFS_F, toolStrs, ", ");
-			appendNonDupes(acroForm, VPROFS_F, vehStrs, ", ");
+			List<LeveledText> wepStrs = c.getAllWeaponProfTexts();
+			List<LeveledText> toolStrs = c.getAllToolProfTexts();
+			List<LeveledText> vehStrs = c.getAllVehicleProfTexts();
+			appendNew(acroForm, WPROFS_F, wepStrs, ", ");
+			appendNew(acroForm, TPROFS_F, toolStrs, ", ");
+			appendNew(acroForm, VPROFS_F, vehStrs, ", ");
 		}
 		else
 		{
+			List<String> wepStrs = c.getAllWeaponProfs();
+			List<String> toolStrs = c.getAllToolProfs();
+			List<String> vehStrs = c.getAllVehicleProfs();
 			fillField(acroForm, WPROFS_F, String.join(", ", wepStrs));
 			fillField(acroForm, TPROFS_F, String.join(", ", toolStrs));
 			fillField(acroForm, VPROFS_F, String.join(", ", vehStrs));
@@ -436,7 +439,7 @@ public class PdfExporter
 						vals.add(v);
 					}
 				});
-				field.setValue(cur + String.join(joiner, vals));
+				field.setValue(String.join(joiner, vals));
 			}
 			catch (Exception e)
 			{
@@ -468,7 +471,39 @@ public class PdfExporter
 						vals.add(v.getText());
 					}
 				});
-				field.setValue(cur + String.join(joiner, vals));
+				field.setValue(String.join(joiner, vals));
+			}
+			catch (Exception e)
+			{
+				System.err.println("Got an error while appending: ");
+				e.printStackTrace();
+			}
+		}
+	}
+
+	private static void appendNew(PDAcroForm form, String fieldName, List<LeveledText> values, String joiner)
+			throws IOException
+	{
+		if (values != null && !values.isEmpty())
+		{
+			try
+			{
+				PDField field = form.getField(fieldName);
+				String cur = field.getValueAsString();
+				if (cur == null)
+				{
+					cur = "";
+				}
+				List<String> vals = new ArrayList<>();
+				vals.addAll(Arrays.asList(cur.split(joiner)).stream().map(s -> s.trim()).toList());
+				values.forEach(v ->
+				{
+					if (v.getLvl() > loadedLevel)
+					{
+						vals.add(v.getText());
+					}
+				});
+				field.setValue(String.join(joiner, vals));
 			}
 			catch (Exception e)
 			{

@@ -38,7 +38,7 @@ public class LvlChangePanel extends CollapsablePanel
 		// For simplicity we just assume that, if the character's class is a
 		// spellcasting class, that it got new known spells or can update its old
 		// selections.
-		if (sheet.getCharClass().getSpellcastingAbility() != null)
+		if (sheet.getCharClass().isSpellcaster())
 		{
 			changes.add("New Spell Options");
 		}

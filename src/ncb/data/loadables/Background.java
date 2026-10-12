@@ -57,6 +57,11 @@ public class Background extends Feature
 		allBackgrounds.add(newBg);
 	}
 
+	public boolean isSpellcaster()
+	{
+		return !getAll(Feature::getSpellsGranted).isEmpty();
+	}
+
 	// Loading
 	private static final List<Background> allBackgrounds = new ArrayList<>();
 

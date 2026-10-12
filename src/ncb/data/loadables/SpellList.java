@@ -101,6 +101,7 @@ public class SpellList implements HasConfig
 			}
 		}
 		System.err.println("Unknown class name for spell list " + className);
+		Thread.dumpStack();
 		return null;
 	}
 

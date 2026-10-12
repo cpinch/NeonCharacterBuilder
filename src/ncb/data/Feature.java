@@ -227,7 +227,14 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 
 	public LeveledText getSheetNotes()
 	{
-		return new LeveledText(level, getName(), sheetNotes);
+		if (sheetNotes.isBlank())
+		{
+			return null;
+		}
+		else
+		{
+			return new LeveledText(level, getName(), sheetNotes);
+		}
 	}
 
 	public void setSheetNotes(String notes)
@@ -322,6 +329,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		return new ArrayList<>(weaponProfs);
 	}
 
+	public List<LeveledText> getWeaponProfTexts()
+	{
+		return getWeaponProfs().stream().map(w -> new LeveledText(level, name, w)).toList();
+	}
+
 	public void setWeaponProfs(List<String> weapons)
 	{
 		updateConfig(weaponProfs, weapons, (v) ->
@@ -336,6 +348,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		return new ArrayList<>(tools);
 	}
 
+	public List<LeveledText> getToolProfTexts()
+	{
+		return getToolProfs().stream().map(t -> new LeveledText(level, name, t)).toList();
+	}
+
 	public void setToolProfs(List<String> tools)
 	{
 		updateConfig(this.tools, tools, (v) ->
@@ -348,6 +365,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 	public List<String> getVehicleProfs()
 	{
 		return new ArrayList<>(vehicles);
+	}
+
+	public List<LeveledText> getVehicleProfTexts()
+	{
+		return getVehicleProfs().stream().map(v -> new LeveledText(level, name, v)).toList();
 	}
 
 	public void setVehicleProfs(List<String> profs)

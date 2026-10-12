@@ -28,36 +28,40 @@ public class DocExporter
 			System.err.println("Cannot export character with a blank name.");
 			return false;
 		}
-		try
+		List<Spell> allSpells = c.getAllSpells();
+		if (allSpells.isEmpty())
 		{
-			List<Spell> allSpells = c.getAllSpells();
-			Collections.sort(allSpells, (a, b) -> a.getName().compareTo(b.getName()));
+			// Nothing to write
+			return true;
+		}
+		Collections.sort(allSpells, (a, b) -> a.getName().compareTo(b.getName()));
 
-			XWPFDocument out = new XWPFDocument();
+		XWPFDocument out = new XWPFDocument();
 
-			for (int lvl = 0; lvl <= 9; lvl++)
+		for (int lvl = 0; lvl <= 9; lvl++)
+		{
+			final int spellLvl = lvl;
+			List<Spell> spellsAtLevel = allSpells.stream().filter(s -> s.getLevel() == spellLvl).toList();
+
+			if (!spellsAtLevel.isEmpty())
 			{
-				final int spellLvl = lvl;
-				List<Spell> spellsAtLevel = allSpells.stream().filter(s -> s.getLevel() == spellLvl).toList();
-
-				if (!spellsAtLevel.isEmpty())
+				for (Spell s : spellsAtLevel)
 				{
-					for (Spell s : spellsAtLevel)
-					{
-						writeSpell(out, s);
-					}
-
-					XWPFParagraph lineParagraph = out.createParagraph();
-					lineParagraph.setBorderBottom(Borders.DOUBLE);
-
-					XWPFParagraph spacerParagraph = out.createParagraph();
-					spacerParagraph.createRun().addCarriageReturn();
+					writeSpell(out, s);
 				}
+
+				XWPFParagraph lineParagraph = out.createParagraph();
+				lineParagraph.setBorderBottom(Borders.DOUBLE);
+
+				XWPFParagraph spacerParagraph = out.createParagraph();
+				spacerParagraph.createRun().addCarriageReturn();
 			}
+		}
 
-			out.write(new FileOutputStream(new File(c.getName() + " Spells.docx")));
+		try (FileOutputStream fos = new FileOutputStream(new File(c.getName() + " Spells.docx")))
+		{
+			out.write(fos);
 			out.close();
-
 			new Toast("Successfully Exported Spells Doc", Toast.SLOT_3);
 		}
 		catch (Exception e)
@@ -70,7 +74,7 @@ public class DocExporter
 		return true;
 	}
 
-	private static void writeSpell(XWPFDocument out, Spell s) throws Exception
+	private static void writeSpell(XWPFDocument out, Spell s)
 	{
 		XWPFParagraph spellTitleParagraph = out.createParagraph();
 		writeTitle(spellTitleParagraph, s);

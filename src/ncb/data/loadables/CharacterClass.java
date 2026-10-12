@@ -104,7 +104,10 @@ public class CharacterClass extends Feature
 	public List<Spell> getSpellsSelected()
 	{
 		List<Spell> spells = super.getSpellsSelected();
-		spells.addAll(classSpells.getAllSelectedSpells(level));
+		if (isSpellcaster())
+		{
+			spells.addAll(classSpells.getAllSelectedSpells(level));
+		}
 		return spells;
 	}
 
@@ -116,8 +119,11 @@ public class CharacterClass extends Feature
 	public List<SpellList> getSpellLists()
 	{
 		List<SpellList> sls = new ArrayList<>();
-		// Always have our class spell list
-		sls.add(SpellList.getForClass(getName()));
+		if (isSpellcaster())
+		{
+			// Always have our class spell list
+			sls.add(SpellList.getForClass(getName()));
+		}
 
 		// Add any extra spell lists we can choose from thanks to features
 		sls.addAll(getAll(Feature::getExtraSpellLists));
@@ -132,7 +138,11 @@ public class CharacterClass extends Feature
 	 */
 	public List<SpellChoice> getSpellChoicesByLevel(int spellLevel)
 	{
-		return classSpells.getSpellChoicesByLevel(level, spellLevel);
+		if (isSpellcaster())
+		{
+			return classSpells.getSpellChoicesByLevel(level, spellLevel);
+		}
+		return Collections.emptyList();
 	}
 
 	@Override
@@ -245,6 +255,11 @@ public class CharacterClass extends Feature
 		{
 			this.hd = v;
 		});
+	}
+
+	public boolean isSpellcaster()
+	{
+		return spellcastingAbility != null;
 	}
 
 	public Ability getSpellcastingAbility()

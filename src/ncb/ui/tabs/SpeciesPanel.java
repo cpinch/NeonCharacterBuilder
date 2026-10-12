@@ -2,6 +2,7 @@ package ncb.ui.tabs;
 
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -33,6 +34,7 @@ public class SpeciesPanel extends UIPanel implements ActionListener, ListensForC
 		this.sheet = sheet;
 
 		GridBagConstraints c = UILib.getStandardGBC();
+		c.insets = new Insets(5, 15, 5, 5);
 		PropertyListener.listenForChanges(PropertyListener.SPECIES, this);
 
 		speciesName = UILib.getComboBox(
