@@ -39,3 +39,8 @@ The character builder can output 3 different types of files. All files are named
 (character name).pdf - A copy of the form-fillable pdf you provided will all fields filled as best as the character builder can. The accuracy and usefulness of this file is heavily dependent on the data setup being done, the less data that is provided the less can be auto-filled.
 
 (character name) Spells.docx - Only output if spells have been entered into the data and spell selection/granting has been setup in the data editor, this doc provides a list of all spells the character knows with full details for ease of spellcaster lookup.
+
+## Bonus - Custom Spell Docs Feature
+As an additional feature, once you've setup your Neon Odyssey spells using the data editor, the application comes with an option to generate arbitrary spell docs, lists of spells with all of their information in a single doc file, ordered by level. This is primarily provided for GM usage, but could also be useful to Gridrunners who have extra spells they gained from sources other than level up.
+
+To use this feature, simply run the application and do not make any changes (the option is hidden if the name, class, or species is changed, in order to avoid confusing typical users). Navigate to the Spells tab and click the "Create Custom Spell List" button. This will open a new window where you can add as many cantrips or spells (from among all the spells loaded) as you wish to your list using the standard spell selection tool (with alphabetical ordering for easier spell lookup) and then use the export buttons at the bottom of the window ("and return" just also closes the window, wiping the list from the app's memory, after exporting) to output a "Custom Spells.docx" file with all the selected spells.
