@@ -35,13 +35,17 @@ public class DocExporter
 			return true;
 		}
 		Collections.sort(allSpells, (a, b) -> a.getName().compareTo(b.getName()));
+		return exportSpells(c.getName(), allSpells);
+	}
 
+	public static boolean exportSpells(String name, List<Spell> spells)
+	{
 		XWPFDocument out = new XWPFDocument();
 
 		for (int lvl = 0; lvl <= 9; lvl++)
 		{
 			final int spellLvl = lvl;
-			List<Spell> spellsAtLevel = allSpells.stream().filter(s -> s.getLevel() == spellLvl).toList();
+			List<Spell> spellsAtLevel = spells.stream().filter(s -> s.getLevel() == spellLvl).toList();
 
 			if (!spellsAtLevel.isEmpty())
 			{
@@ -58,7 +62,7 @@ public class DocExporter
 			}
 		}
 
-		try (FileOutputStream fos = new FileOutputStream(new File(c.getName() + " Spells.docx")))
+		try (FileOutputStream fos = new FileOutputStream(new File(name + " Spells.docx")))
 		{
 			out.write(fos);
 			out.close();

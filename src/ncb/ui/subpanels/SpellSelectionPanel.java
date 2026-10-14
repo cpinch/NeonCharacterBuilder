@@ -5,6 +5,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.swing.BorderFactory;
@@ -18,7 +19,6 @@ import com.formdev.flatlaf.FlatClientProperties;
 import ncb.data.SpellChoice;
 import ncb.data.loadables.Spell;
 import ncb.data.loadables.SpellList;
-import ncb.main.CharacterSheet;
 import ncb.ui.CollapsablePanel;
 import ncb.ui.UILib;
 
@@ -38,7 +38,12 @@ public class SpellSelectionPanel extends CollapsablePanel implements ActionListe
 	private final JLabel duration;
 	private final JTextPane text;
 
-	public SpellSelectionPanel(CharacterSheet sheet, SpellChoice sc, int spellLvl, List<SpellList> spellLists)
+	public SpellSelectionPanel(SpellChoice sc, int spellLvl, List<SpellList> spellLists)
+	{
+		this(sc, spellLvl, spellLists, false);
+	}
+
+	public SpellSelectionPanel(SpellChoice sc, int spellLvl, List<SpellList> spellLists, boolean sortAlpha)
 	{
 		super(true);
 
@@ -58,14 +63,32 @@ public class SpellSelectionPanel extends CollapsablePanel implements ActionListe
 			for (int spLvl = spellLvl; spLvl > 0; spLvl--)
 			{
 				final int lvl = spLvl;
-				spellLists.forEach(sl -> sl.getSpellsForLevel(lvl).forEach(s -> spellOpts.add(s)));
+				spellLists.forEach(sl -> sl.getSpellsForLevel(lvl).forEach(s ->
+				{
+					if (!spellOpts.contains(s))
+					{
+						spellOpts.add(s);
+					}
+				}));
 			}
 		}
 		else
 		{
 			// Cantrps
-			spellLists.forEach(sl -> sl.getSpellsForLevel(spellLvl).forEach(s -> spellOpts.add(s)));
+			spellLists.forEach(sl -> sl.getSpellsForLevel(spellLvl).forEach(s ->
+			{
+				if (!spellOpts.contains(s))
+				{
+					spellOpts.add(s);
+				}
+			}));
 		}
+
+		if (sortAlpha)
+		{
+			spellOpts.sort(Comparator.comparing(Spell::getName));
+		}
+
 		spellSelector = UILib.getComboBox(spellOpts.toArray(new Spell[0]), this);
 		headerPanel.add(spellSelector);
 
