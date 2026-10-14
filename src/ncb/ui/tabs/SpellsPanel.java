@@ -1,6 +1,8 @@
 package ncb.ui.tabs;
 
 import java.awt.BorderLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +10,7 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -16,10 +19,13 @@ import com.formdev.flatlaf.FlatClientProperties;
 
 import ncb.data.Feature;
 import ncb.data.SpellChoice;
+import ncb.data.loadables.CharacterClass;
+import ncb.data.loadables.Species;
 import ncb.data.loadables.Spell;
 import ncb.data.loadables.SpellList;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
+import ncb.ui.CustomSpellsDocDialog;
 import ncb.ui.ListensForChanges;
 import ncb.ui.NoHorizontalScrollPanel;
 import ncb.ui.UILib;
@@ -35,6 +41,8 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 
 	private final JPanel grantedSpellsPanel = new JPanel();
 	private final JPanel spellSelectionPanel = new JPanel();
+
+	private final JButton customSpellDocBtn;
 
 	public SpellsPanel(CharacterSheet sheet)
 	{
@@ -73,6 +81,17 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 		add(scroll, BorderLayout.CENTER);
 
 		updateProperty(PropertyListener.CLASS);
+
+		customSpellDocBtn = new JButton("Create Custom Spell List");
+		customSpellDocBtn.addActionListener(new ActionListener()
+		{
+			@Override
+			public void actionPerformed(ActionEvent e)
+			{
+				new CustomSpellsDocDialog();
+			}
+		});
+		add(customSpellDocBtn, BorderLayout.SOUTH);
 	}
 
 	@Override
@@ -99,7 +118,7 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 			final int spellLvl = lvl;
 			classSpellsForLvl.forEach(sc ->
 			{
-				panelsToAdd.add(new SpellSelectionPanel(sheet, sc, spellLvl, classListOptions));
+				panelsToAdd.add(new SpellSelectionPanel(sc, spellLvl, classListOptions));
 			});
 
 			// Other feature spells
@@ -109,7 +128,7 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 				{
 					map.get(spellLvl).forEach(sc ->
 					{
-						panelsToAdd.add(new SpellSelectionPanel(sheet, sc, spellLvl, List.of(sc.getSpellList())));
+						panelsToAdd.add(new SpellSelectionPanel(sc, spellLvl, List.of(sc.getSpellList())));
 					});
 				}
 			}
@@ -128,5 +147,12 @@ public class SpellsPanel extends UIPanel implements ListensForChanges
 		}
 
 		revalidate();
+
+		if (!sheet.getName().isBlank()
+				|| sheet.getCharClass().getName() != CharacterClass.getAllClasses().get(0).getName()
+				|| sheet.getSpecies().getName() != Species.getAllSpecies().get(0).getName())
+		{
+			customSpellDocBtn.setVisible(false);
+		}
 	}
 }
