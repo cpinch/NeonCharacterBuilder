@@ -10,16 +10,18 @@ import javax.swing.JLabel;
 import ncb.data.loadables.Subclass;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
+import ncb.ui.HasAssociatedClass;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
 import ncb.ui.UIPanel;
 import ncb.ui.subpanels.SubclassFeaturesPanel;
 
-public class SubclassPanel extends UIPanel implements ActionListener, ListensForChanges
+public class SubclassPanel extends UIPanel implements ActionListener, ListensForChanges, HasAssociatedClass
 {
 	private static final long serialVersionUID = -2739120980015488390L;
 
 	private final CharacterSheet sheet;
+	private final int classIndex;
 
 	private final JComboBox<String> subclassNameSelector;
 	private final JLabel subclassDesc;
@@ -27,14 +29,20 @@ public class SubclassPanel extends UIPanel implements ActionListener, ListensFor
 
 	public SubclassPanel(CharacterSheet sheet)
 	{
+		this(sheet, CharacterSheet.baseClassIndex);
+	}
+
+	public SubclassPanel(CharacterSheet sheet, int multiclassIndex)
+	{
 		this.sheet = sheet;
+		this.classIndex = multiclassIndex;
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 		PropertyListener.listenForChanges(PropertyListener.SUBCLASS, this);
 
 		GridBagConstraints c = UILib.getStandardGBC();
 
-		subclassNameSelector = UILib.getComboBox(Subclass.getForClassName(sheet.getCharClass().getName()).stream()
+		subclassNameSelector = UILib.getComboBox(Subclass.getForClassName(getAssociatedClass().getName()).stream()
 				.map(sc -> sc.getName()).toList().toArray(new String[0]), this);
 		UILib.addLabeledComponent(this, "Subclass: ", subclassNameSelector, c);
 		c.gridy++;
@@ -43,7 +51,7 @@ public class SubclassPanel extends UIPanel implements ActionListener, ListensFor
 		c.gridy++;
 
 		c.weighty = 1;
-		featuresPanel = new SubclassFeaturesPanel(sheet);
+		featuresPanel = new SubclassFeaturesPanel(sheet, classIndex);
 		UILib.addScrollPaneFor(this, featuresPanel, c);
 	}
 
@@ -55,7 +63,7 @@ public class SubclassPanel extends UIPanel implements ActionListener, ListensFor
 			Subclass selectedSubclass = Subclass.getByName((String) subclassNameSelector.getSelectedItem());
 			if (selectedSubclass != null)
 			{
-				sheet.getCharClass().setSubclass(selectedSubclass);
+				getAssociatedClass().setSubclass(selectedSubclass);
 
 				subclassDesc.setText("<html>" + selectedSubclass.getDesc() + "</html>");
 			}
@@ -67,16 +75,28 @@ public class SubclassPanel extends UIPanel implements ActionListener, ListensFor
 	{
 		subclassNameSelector.removeActionListener(this);
 		subclassNameSelector.removeAllItems();
-		Subclass.getForClassName(sheet.getCharClass().getName())
+		Subclass.getForClassName(getAssociatedClass().getName())
 				.forEach(sc -> subclassNameSelector.addItem(sc.getName()));
 		subclassNameSelector.addActionListener(this);
-		if (sheet.getCharClass() != null && sheet.getCharClass().getSubclass() != null)
+		if (getAssociatedClass() != null && getAssociatedClass().getSubclass() != null)
 		{
-			subclassNameSelector.setSelectedItem(sheet.getCharClass().getSubclass().getName());
+			subclassNameSelector.setSelectedItem(getAssociatedClass().getSubclass().getName());
 		}
 		else if (subclassNameSelector.getItemCount() > 0)
 		{
 			subclassNameSelector.setSelectedIndex(0);
 		}
+	}
+
+	@Override
+	public int getClassIndex()
+	{
+		return classIndex;
+	}
+
+	@Override
+	public CharacterSheet getSheet()
+	{
+		return sheet;
 	}
 }

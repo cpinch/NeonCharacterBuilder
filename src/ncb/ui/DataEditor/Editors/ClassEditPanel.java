@@ -2,6 +2,7 @@ package ncb.ui.DataEditor.Editors;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -42,6 +43,7 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 	private final JButton addFeature = new JButton("Add Class Feature");
 	private final ClassSpellcastingEditPanel spellcastingPanel = new ClassSpellcastingEditPanel();
 	private final JPanel featuresPanel = new NoHorizontalScrollPanel();
+	private final JPanel multiclassFeatureArea = new NoHorizontalScrollPanel();
 
 	public ClassEditPanel()
 	{
@@ -91,6 +93,14 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 		c.gridy++;
 
 		add(spellcastingPanel, c);
+		c.gridy++;
+
+		linkedProperties.add(UILib.addLabeledLinkedTextField(this, "Multiclass Prereq(s): ", c,
+				() -> getMulticlassPrereqs(), (s) -> updateMulticlassPrereqs(s)));
+		c.gridy++;
+
+		multiclassFeatureArea.setLayout(new GridLayout(1, 1));
+		add(multiclassFeatureArea, c);
 		c.gridy++;
 
 		UILib.addLabel(this, "Features:", c);
@@ -154,6 +164,10 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 			c.gridy++;
 		}
 		featuresPanel.revalidate();
+
+		multiclassFeatureArea.removeAll();
+		multiclassFeatureArea.add(new FeatureEditPanel(cls.getMulticlassFeature(), true, null));
+		multiclassFeatureArea.revalidate();
 	}
 
 	private String getPrimary()
@@ -296,5 +310,25 @@ public class ClassEditPanel extends EditPanel implements ActionListener
 		}
 		cls.setEquipmentOptions(equips);
 		showErrorMessage(invalid, "equipment options");
+	}
+
+	private String getMulticlassPrereqs()
+	{
+		return String.join(cls.multiclassPrereqRequireAll() ? " AND " : " OR ",
+				cls.getMulticlassPrereqAbilities().stream().map(a -> a.toString()).toList());
+	}
+
+	private void updateMulticlassPrereqs(String s)
+	{
+		if (s.toLowerCase().contains("and"))
+		{
+			cls.setMulticlassPrereqAbilities(parseAbilities(s.split("(?i)and")));
+			cls.setMulticlassPrereqRequireAll(true);
+		}
+		else
+		{
+			cls.setMulticlassPrereqAbilities(parseAbilities(s.split("(?i)or")));
+			cls.setMulticlassPrereqRequireAll(false);
+		}
 	}
 }

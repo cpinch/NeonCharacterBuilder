@@ -4,15 +4,18 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import ncb.data.AbilityIncrease;
 import ncb.data.AbilityScores;
 import ncb.data.Feature;
 import ncb.data.LeveledText;
+import ncb.data.SpellSlots;
 import ncb.data.enums.Ability;
 import ncb.data.enums.ArmorTraining;
 import ncb.data.enums.DamageType;
@@ -28,9 +31,12 @@ import ncb.data.loadables.Homeworld;
 import ncb.data.loadables.Language;
 import ncb.data.loadables.Species;
 import ncb.data.loadables.Spell;
+import ncb.io.JsonDataLoader;
 
 public class CharacterSheet implements AlertsChanges, GetAll, HasState
 {
+	public static final int baseClassIndex = -1;
+
 	private PropertyChangeSupport pcs = new PropertyChangeSupport(this);
 
 	@Override
@@ -43,6 +49,9 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 	{
 		super();
 		addPropertyChangeListener(PropertyListener.getListener());
+
+		// Our first level up is always in our base class
+		lvlUpIndexes.add(baseClassIndex);
 	}
 
 	@Override
@@ -51,6 +60,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		List<GetAll> children = new ArrayList<>();
 
 		children.add(charClass);
+		children.addAll(multiclasses);
 		children.add(species);
 		children.add(background);
 
@@ -68,6 +78,8 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 	// Sub-fields
 	private String name = "";
 	private CharacterClass charClass;
+	private final List<CharacterClass> multiclasses = new ArrayList<>();
+	private final List<Integer> lvlUpIndexes = new ArrayList<>();
 	private Species species;
 	private Background background;
 	private final AbilityScores abilityScores = new AbilityScores();
@@ -103,6 +115,34 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 			this.charClass = c;
 			pcs.firePropertyChange(PropertyListener.CLASS, old, c);
 		}
+	}
+
+	public List<CharacterClass> getMulticlasses()
+	{
+		return multiclasses;
+	}
+
+	public void addMulticlass(CharacterClass cls)
+	{
+		List<CharacterClass> old = new ArrayList<>(multiclasses);
+		multiclasses.add(cls);
+		lvlUpIndexes.add(multiclasses.size() - 1);
+		pcs.firePropertyChange(PropertyListener.CLASS, old, multiclasses);
+	}
+
+	public void replaceMulticlass(int index, CharacterClass newCls)
+	{
+		List<CharacterClass> old = new ArrayList<>(multiclasses);
+		multiclasses.set(index, newCls);
+		pcs.firePropertyChange(PropertyListener.CLASS, old, multiclasses);
+	}
+
+	public List<CharacterClass> getAllCharClasses()
+	{
+		List<CharacterClass> classes = new ArrayList<>();
+		classes.add(charClass);
+		classes.addAll(multiclasses);
+		return classes;
 	}
 
 	public Species getSpecies()
@@ -155,6 +195,20 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		json.put("backgroundName", background.getName());
 		json.put("background", background.saveState());
 		json.put("abilityScores", abilityScores.saveState());
+		JSONArray multiArr = new JSONArray();
+		multiclasses.forEach((c) ->
+		{
+			JSONObject m = new JSONObject();
+			m.put("name", c.getName());
+			m.put("state", c.saveState());
+		});
+		json.put("multiclasses", multiArr);
+		JSONArray lvlUpArr = new JSONArray();
+		for (int i = 0; i < lvlUpIndexes.size(); i++)
+		{
+			lvlUpArr.put(lvlUpIndexes.get(i));
+		}
+		json.put("lvlUpIndexes", lvlUpArr);
 
 		return json;
 	}
@@ -188,6 +242,20 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		species.loadState(data.getJSONObject("species"));
 		background.loadState(data.getJSONObject("background"));
 		abilityScores.loadState(data.getJSONObject("abilityScores"));
+		multiclasses.clear();
+		JsonDataLoader.jsonArrayToObjectArray(data.getJSONArray("multiclasses")).forEach(co ->
+		{
+			String clsName = co.getString("name");
+			CharacterClass cls = CharacterClass.getByName(clsName);
+			cls.loadState(co.getJSONObject("state"));
+			multiclasses.add(cls);
+		});
+		lvlUpIndexes.clear();
+		JSONArray lvlUpArr = data.getJSONArray("lvlUpIndexes");
+		for (int i = 0; i < lvlUpArr.length(); i++)
+		{
+			lvlUpIndexes.add(lvlUpArr.getInt(i));
+		}
 
 		// For use in pdf editing
 		this.loadedLevel = getLevel();
@@ -197,8 +265,7 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public int getLevel()
 	{
-		// TODO Multiclass
-		return charClass.getLevel();
+		return charClass.getLevel() + multiclasses.stream().mapToInt(cls -> cls.getLevel()).sum();
 	}
 
 	public int getProficiency()
@@ -435,6 +502,16 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		return score;
 	}
 
+	public Map<Ability, Integer> getTotalAbilityScores()
+	{
+		Map<Ability, Integer> abls = new HashMap<>();
+		for (Ability abl : Ability.realValues())
+		{
+			abls.put(abl, getTotalAbilityScore(abl));
+		}
+		return abls;
+	}
+
 	public int getTotalAbilityMod(Ability a)
 	{
 		return AbilityScores.getModFor(getTotalAbilityScore(a));
@@ -453,20 +530,77 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 				return charClass.getSpellcastingAbility();
 			}
 		}
-		else
+		else if (multiclasses.stream().anyMatch(cls -> cls.isSpellcaster()))
 		{
-			// If the class doesn't set a spellcasting ability then either this will return
-			// null (in which case the character would be marked as not a spellcaster), or
-			// this will return the selected spellcasting ability from the ability scores
-			// tab.
-			return abilityScores.getSpellcastingAbility();
+			for (CharacterClass cls : multiclasses)
+			{
+				if (cls.getSpellcastingAbility() == Ability.Primary)
+				{
+					return cls.getSelectedPrimary();
+				}
+				else
+				{
+					return cls.getSpellcastingAbility();
+				}
+			}
 		}
+
+		// If the class doesn't set a spellcasting ability then either this will return
+		// null (in which case the character would be marked as not a spellcaster), or
+		// this will return the selected spellcasting ability from the ability scores
+		// tab.
+		return abilityScores.getSpellcastingAbility();
 	}
 
 	public int getSpellSlots(int spellLevel)
 	{
-		// TODO Multiclass
-		return charClass.getSpellSlots().getCount(spellLevel);
+		int slots = 0;
+
+		// To decide how to get this, we need a list of all spellcasting classes the
+		// character has, except those with weird single slots (like Warlock)
+		List<CharacterClass> spellcastingClasses = new ArrayList<>();
+		if (charClass.isSpellcaster() && charClass.isFullSlots())
+		{
+			spellcastingClasses.add(charClass);
+		}
+		multiclasses.forEach(cls ->
+		{
+			if (cls.isSpellcaster() && charClass.isFullSlots())
+			{
+				spellcastingClasses.add(cls);
+			}
+		});
+
+		if (spellcastingClasses.size() == 1)
+		{
+			// 1 spellcasting class, easy, use its slots
+			slots = spellcastingClasses.get(0).getSpellSlots().getCount(spellLevel);
+		}
+		else
+		{
+			// 2+ spellcasting classes, use the sum of their levels, half for half-casters,
+			// classes that only go to level 5 spells, and the multiclass spell slots table
+			int scLvl = spellcastingClasses.stream().mapToInt(cls ->
+			{
+				return cls.isFullCaster() ? cls.getLevel() : (int) Math.ceil(cls.getLevel() / 2);
+			}).sum();
+			return SpellSlots.getMulticlassSlots(scLvl).getCount(spellLevel);
+		}
+
+		// Regardless, we /then/ add special single slots to this total, if any
+		if (charClass.isSpellcaster() && !charClass.isFullSlots())
+		{
+			slots += charClass.getSpellSlots().getCount(spellLevel);
+		}
+		for (CharacterClass cls : multiclasses)
+		{
+			if (cls.isSpellcaster() && !cls.isFullSlots())
+			{
+				slots += cls.getSpellSlots().getCount(spellLevel);
+			}
+		}
+
+		return slots;
 	}
 
 	public int getAC()
@@ -497,7 +631,8 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public boolean isSpellcaster()
 	{
-		return charClass.isSpellcaster() || species.isSpellcaster() || background.isSpellcaster();
+		return charClass.isSpellcaster() || multiclasses.stream().anyMatch(cls -> cls.isSpellcaster())
+				|| species.isSpellcaster() || (background != null && background.isSpellcaster());
 	}
 
 	public List<Spell> getAllGrantedSpells()
@@ -526,11 +661,18 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 		int maxHP = hd + conMod + extraHPPerLevel + extraHPLevel1;
 
-		// TODO Multiclass
-		if (getLevel() > 1)
+		if (charClass.getLevel() > 1)
 		{
 			int normalHPPerLevel = (int) Math.ceil(charClass.getHd() / 2 + 0.5);
-			for (int i = 2; i <= getLevel(); i++)
+			for (int i = 2; i <= charClass.getLevel(); i++)
+			{
+				maxHP += conMod + normalHPPerLevel + extraHPPerLevel;
+			}
+		}
+		for (CharacterClass cls : multiclasses)
+		{
+			int normalHPPerLevel = (int) Math.ceil(cls.getHd() / 2 + 0.5);
+			for (int i = 1; i <= cls.getLevel(); i++)
 			{
 				maxHP += conMod + normalHPPerLevel + extraHPPerLevel;
 			}
@@ -541,11 +683,23 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public String getHitDice()
 	{
-		int level = getLevel();
-		int hd = getCharClass().getHd();
+		Map<Integer, Integer> hdLevels = new HashMap<>();
 
-		// TODO Multiclass
-		return level + "D" + hd;
+		hdLevels.put(charClass.getHd(), charClass.getLevel());
+
+		for (CharacterClass cls : multiclasses)
+		{
+			if (hdLevels.containsKey(cls.getHd()))
+			{
+				hdLevels.put(cls.getHd(), hdLevels.get(cls.getHd()) + cls.getLevel());
+			}
+			else
+			{
+				hdLevels.put(cls.getHd(), cls.getLevel());
+			}
+		}
+
+		return String.join("+", hdLevels.entrySet().stream().map(e -> e.getValue() + "D" + e.getKey()).toList());
 	}
 
 	public int getInitiative()
@@ -582,7 +736,16 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 
 	public List<LeveledText> getSheetNotes()
 	{
-		return getAllOf(Feature::getSheetNotes);
+		List<LeveledText> notes = new ArrayList<>();
+		notes.addAll(getAllOf(Feature::getSheetNotes));
+
+		if (!multiclasses.isEmpty())
+		{
+			notes.add(new LeveledText(1, "Multiclass Features",
+					"5.5E Multiclassing generally gives all features, but a few (Channel, Extra Attack, and Unarmored Defenses) do not stack. See https://www.dndbeyond.com/sources/dnd/basic-rules-2014/customization-options#ClassFeatures for more details on how multiclassing with these features interacts."));
+		}
+
+		return notes;
 	}
 
 	public List<LeveledText> getFeatureStrings()
@@ -631,5 +794,40 @@ public class CharacterSheet implements AlertsChanges, GetAll, HasState
 		// TODO Background Loading - If backgrounds can give equipment, need to update
 		// this
 		return charClass.getEquipmentItems();
+	}
+
+	public boolean canMulticlassOutOfCurrentClasses()
+	{
+		Map<Ability, Integer> abilityScores = getTotalAbilityScores();
+		if (!charClass.multiclassPrereqsMet(abilityScores))
+		{
+			return false;
+		}
+		for (CharacterClass cls : multiclasses)
+		{
+			if (!cls.multiclassPrereqsMet(abilityScores))
+			{
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public void levelUp(int classIndex)
+	{
+		lvlUpIndexes.add(classIndex);
+		if (classIndex == baseClassIndex)
+		{
+			charClass.setLevel(charClass.getLevel() + 1);
+		}
+		else
+		{
+			multiclasses.get(classIndex).setLevel(multiclasses.get(classIndex).getLevel() + 1);
+		}
+	}
+
+	public List<Integer> getLevelUpOrder()
+	{
+		return lvlUpIndexes;
 	}
 }

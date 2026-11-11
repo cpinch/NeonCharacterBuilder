@@ -30,7 +30,7 @@ public class SpellSlots implements HasConfig
 		return 0;
 	}
 
-	private final Integer[] slots = new Integer[9];
+	private final int[] slots = new int[9];
 
 	public SpellSlots()
 	{
@@ -46,7 +46,15 @@ public class SpellSlots implements HasConfig
 		loadConfig(data);
 	}
 
-	public Integer[] getSlots()
+	public SpellSlots(int... slots)
+	{
+		for (int i = 0; i < this.slots.length && i < slots.length; i++)
+		{
+			this.slots[i] = slots[i];
+		}
+	}
+
+	public int[] getSlots()
 	{
 		return slots;
 	}
@@ -77,10 +85,6 @@ public class SpellSlots implements HasConfig
 
 	public int getCount(int spLvl)
 	{
-		if (slots == null || slots[spLvl - 1] == null)
-		{
-			return 0;
-		}
 		return slots[spLvl - 1];
 	}
 
@@ -98,9 +102,9 @@ public class SpellSlots implements HasConfig
 		JSONObject json = new JSONObject();
 
 		// Only save slots if we have any
-		if (Arrays.asList(slots).stream().anyMatch(n -> n > 0))
+		if (Arrays.stream(slots).anyMatch(n -> n > 0))
 		{
-			json = putIntList(json, "slots", Arrays.asList(slots));
+			json = putIntList(json, "slots", Arrays.stream(slots).boxed().toList());
 		}
 
 		return json;
@@ -121,5 +125,19 @@ public class SpellSlots implements HasConfig
 	{
 		return "Slots: "
 				+ String.join(", ", Arrays.asList(slots).stream().map(i -> i == null ? "" : i.toString()).toList());
+	}
+
+	private static final List<SpellSlots> multiclassSlots = List.of(new SpellSlots(2), new SpellSlots(3),
+			new SpellSlots(4, 2), new SpellSlots(4, 3), new SpellSlots(4, 3, 2), new SpellSlots(4, 3, 3),
+			new SpellSlots(4, 3, 3, 1), new SpellSlots(4, 3, 3, 2), new SpellSlots(4, 3, 3, 3, 1),
+			new SpellSlots(4, 3, 3, 3, 2), new SpellSlots(4, 3, 3, 3, 2, 1), new SpellSlots(4, 3, 3, 3, 2, 1),
+			new SpellSlots(4, 3, 3, 3, 2, 1, 1), new SpellSlots(4, 3, 3, 3, 2, 1, 1),
+			new SpellSlots(4, 3, 3, 3, 2, 1, 1, 1), new SpellSlots(4, 3, 3, 3, 2, 1, 1, 1),
+			new SpellSlots(4, 3, 3, 3, 3, 1, 1, 1, 1), new SpellSlots(4, 3, 3, 3, 3, 1, 1, 1, 1),
+			new SpellSlots(4, 3, 3, 3, 3, 2, 1, 1, 1), new SpellSlots(4, 3, 3, 3, 3, 2, 2, 1, 1));
+
+	public static SpellSlots getMulticlassSlots(int spellcasterLevel)
+	{
+		return multiclassSlots.get(spellcasterLevel);
 	}
 }

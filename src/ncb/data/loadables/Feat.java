@@ -35,6 +35,18 @@ public class Feat extends Selectable
 	{
 	}
 
+	public Feat()
+	{
+		super();
+	}
+
+	public Feat(Feat copy)
+	{
+		super(copy);
+
+		this.featType = copy.featType;
+	}
+
 	public static void loadFromFile(JSONObject data, boolean custom)
 	{
 		if (data == null)

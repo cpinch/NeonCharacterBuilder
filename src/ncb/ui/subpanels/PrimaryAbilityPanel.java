@@ -13,21 +13,24 @@ import com.formdev.flatlaf.FlatClientProperties;
 import ncb.data.enums.Ability;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
+import ncb.ui.HasAssociatedClass;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
 
-public class PrimaryAbilityPanel extends JPanel implements ActionListener, ListensForChanges
+public class PrimaryAbilityPanel extends JPanel implements ActionListener, ListensForChanges, HasAssociatedClass
 {
 	private static final long serialVersionUID = -1513890001811947077L;
 
 	private final CharacterSheet sheet;
+	private final int classIndex;
 
 	private final JComboBox<Ability> selector;
 	private final JLabel label;
 
-	public PrimaryAbilityPanel(CharacterSheet sheet)
+	public PrimaryAbilityPanel(CharacterSheet sheet, int multiclassIndex)
 	{
 		this.sheet = sheet;
+		this.classIndex = multiclassIndex;
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
 		setOpaque(false);
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
@@ -42,20 +45,20 @@ public class PrimaryAbilityPanel extends JPanel implements ActionListener, Liste
 	@Override
 	public void updateProperty(String prop)
 	{
-		if (sheet.getCharClass() != null)
+		if (getAssociatedClass() != null)
 		{
-			if (!sheet.getCharClass().getPrimaryAbilityOptions().isEmpty())
+			if (!getAssociatedClass().getPrimaryAbilityOptions().isEmpty())
 			{
 				selector.setVisible(true);
 				label.setText("Primary Ability: ");
 				selector.removeAllItems();
-				sheet.getCharClass().getPrimaryAbilityOptions().forEach(a -> selector.addItem(a));
+				getAssociatedClass().getPrimaryAbilityOptions().forEach(a -> selector.addItem(a));
 			}
 			else
 			{
 				selector.setVisible(false);
 				label.setText("Primary Ability: " + String.join(" and ",
-						sheet.getCharClass().getPrimaryAbilities().stream().map(a -> a.name()).toList()));
+						getAssociatedClass().getPrimaryAbilities().stream().map(a -> a.name()).toList()));
 			}
 		}
 	}
@@ -68,8 +71,20 @@ public class PrimaryAbilityPanel extends JPanel implements ActionListener, Liste
 			Ability selected = (Ability) selector.getSelectedItem();
 			if (selected != null)
 			{
-				sheet.getCharClass().setSelectedPrimary(selected);
+				getAssociatedClass().setSelectedPrimary(selected);
 			}
 		}
+	}
+
+	@Override
+	public int getClassIndex()
+	{
+		return classIndex;
+	}
+
+	@Override
+	public CharacterSheet getSheet()
+	{
+		return sheet;
 	}
 }

@@ -58,8 +58,8 @@ public class ClassPanel extends UIPanel implements ActionListener, ListensForCha
 
 		c.weighty = 1;
 		c.gridwidth = 2;
-		traitsPanel = new ClassTraitsPanel(sheet);
-		featuresPanel = new ClassFeaturesPanel(sheet);
+		traitsPanel = new ClassTraitsPanel(sheet, CharacterSheet.baseClassIndex);
+		featuresPanel = new ClassFeaturesPanel(sheet, CharacterSheet.baseClassIndex);
 		JScrollPane scroll = UILib.getScrollPaneFor(featuresPanel);
 
 		// Allow the splitpane to shrink these however the user wants

@@ -26,6 +26,20 @@ public class Selectable extends Feature
 		this.custom = b;
 	}
 
+	public Selectable()
+	{
+		super();
+	}
+
+	public Selectable(Selectable copy)
+	{
+		super(copy);
+
+		this.type = copy.type;
+		this.prereqs = new ArrayList<>(copy.prereqs);
+		this.features = new ArrayList<>(copy.features);
+	}
+
 	public static void loadFromFile(JSONObject data, boolean custom)
 	{
 		if (data == null)

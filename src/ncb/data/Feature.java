@@ -95,6 +95,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		addPropertyChangeListener(PropertyListener.getListener());
 	}
 
+	public Feature(String name)
+	{
+		this();
+		this.name = name;
+	}
+
 	@Override
 	public int getId()
 	{
@@ -223,6 +229,11 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			this.text = v;
 		});
+	}
+
+	public String getSheetNotesText()
+	{
+		return sheetNotes;
 	}
 
 	public LeveledText getSheetNotes()
@@ -1158,7 +1169,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			updateWithAlert(selected, sel, (v) ->
 			{
-				this.selected = v;
+				if (this.selected != null)
+				{
+					// Dropping this so don't want it to be listened to anymore
+					this.selected.removePropertyChangeListener(PropertyListener.getListener());
+				}
+				this.selected = new Selectable(v);
 				this.selected.setParent(this);
 			}, PropertyListener.SELECTED);
 		}
@@ -1188,7 +1204,12 @@ public class Feature implements AlertsChanges, HasState, HasConfig, GetAll, Clon
 		{
 			updateWithAlert(feat, ft, (v) ->
 			{
-				this.feat = (Feat) v;
+				if (this.feat != null)
+				{
+					// Dropping this so don't want it to be listened to anymore
+					this.feat.removePropertyChangeListener(PropertyListener.getListener());
+				}
+				this.feat = new Feat((Feat) v); // Copy the feat for a new instance
 				this.feat.setParent(this);
 			}, PropertyListener.SELECTED);
 		}

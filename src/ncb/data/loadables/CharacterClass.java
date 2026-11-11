@@ -14,6 +14,8 @@ import ncb.data.Feature;
 import ncb.data.SpellChoice;
 import ncb.data.SpellSlots;
 import ncb.data.enums.Ability;
+import ncb.data.enums.ArmorTraining;
+import ncb.data.enums.Skill;
 import ncb.data.interfaces.Customizable;
 import ncb.data.interfaces.GetAll;
 import ncb.main.PropertyListener;
@@ -169,6 +171,32 @@ public class CharacterClass extends Feature
 		return equipment.get(selectedEquipmentIndex).getNotes();
 	}
 
+	public boolean multiclassPrereqsMet(Map<Ability, Integer> abilityScores)
+	{
+		if (multiclassPrereqAll)
+		{
+			for (Ability a : multiclassPrereqAbilities)
+			{
+				if (abilityScores.get(a) < multiclassRequiredScore)
+				{
+					return false;
+				}
+			}
+			return true; // If all meet, the prereq is met
+		}
+		else
+		{
+			for (Ability a : multiclassPrereqAbilities)
+			{
+				if (abilityScores.get(a) >= multiclassRequiredScore)
+				{
+					return true; // If any meet, the prereq is met
+				}
+			}
+			return false;
+		}
+	}
+
 	// Loading
 	private static final List<CharacterClass> allClasses = new ArrayList<>();
 
@@ -229,7 +257,11 @@ public class CharacterClass extends Feature
 	private final List<ClassEquipment> equipment = new ArrayList<>();
 	private final List<Feature> classFeatures = new ArrayList<>();
 	private boolean fullSlots = false;
-	private List<SpellSlots> spellSlots = new ArrayList<>();
+	private final List<SpellSlots> spellSlots = new ArrayList<>();
+	private boolean multiclassPrereqAll = false;
+	private final List<Ability> multiclassPrereqAbilities = new ArrayList<>();
+	private final int multiclassRequiredScore = 13;
+	private Feature multiclassFeatures = new Feature("Multiclass Features");
 
 	public String getDesc()
 	{
@@ -260,6 +292,13 @@ public class CharacterClass extends Feature
 	public boolean isSpellcaster()
 	{
 		return spellcastingAbility != null;
+	}
+
+	public boolean isFullCaster()
+	{
+		// Half-casters (like the 5E Ranger) only get spells up to level 5, this matters
+		// for multiclassing
+		return spellSlots.get(spellSlots.size() - 1).getHighestSlotLevel() > 5;
 	}
 
 	public Ability getSpellcastingAbility()
@@ -305,6 +344,11 @@ public class CharacterClass extends Feature
 
 	public List<ClassEquipment> getEquipmentOptions()
 	{
+		if (multiclass)
+		{
+			// None for multiclassed
+			return Collections.emptyList();
+		}
 		return new ArrayList<>(equipment);
 	}
 
@@ -322,13 +366,6 @@ public class CharacterClass extends Feature
 	{
 		List<String> names = new ArrayList<>();
 		classFeatures.forEach(f -> names.addAll(f.getFeatureNamesAtLevel(lvl)));
-
-		// Hardcoding when classes get subclasses
-		if (lvl == 3)
-		{
-			names.add("Gain a Subclass");
-		}
-
 		return names;
 	}
 
@@ -406,6 +443,38 @@ public class CharacterClass extends Feature
 		return spellSlots.get(clsLvl - 1);
 	}
 
+	public boolean multiclassPrereqRequireAll()
+	{
+		return multiclassPrereqAll;
+	}
+
+	public void setMulticlassPrereqRequireAll(boolean all)
+	{
+		updateConfig(multiclassPrereqAll, all, (v) ->
+		{
+			multiclassPrereqAll = v;
+		});
+	}
+
+	public List<Ability> getMulticlassPrereqAbilities()
+	{
+		return multiclassPrereqAbilities;
+	}
+
+	public void setMulticlassPrereqAbilities(List<Ability> abls)
+	{
+		updateConfig(multiclassPrereqAbilities, abls, (v) ->
+		{
+			multiclassPrereqAbilities.clear();
+			multiclassPrereqAbilities.addAll(abls);
+		});
+	}
+
+	public Feature getMulticlassFeature()
+	{
+		return multiclassFeatures;
+	}
+
 	@Override
 	public JSONObject saveConfig()
 	{
@@ -424,6 +493,10 @@ public class CharacterClass extends Feature
 		json = putObj(json, "classSpells", classSpells.saveConfig());
 		json = putBool(json, "fullSlots", fullSlots);
 		json = putObjList(json, "spellSlots", spellSlots.stream().map(s -> s.saveConfig()).toList());
+		json = putBool(json, "multiclassPrereqAll", multiclassPrereqAll);
+		json = putList(json, "multiclassPrereqAbilities",
+				multiclassPrereqAbilities.stream().map(a -> a.toString()).toList());
+		json = putObj(json, "multiclassFeatures", multiclassFeatures.saveConfig());
 
 		return json;
 	}
@@ -471,6 +544,15 @@ public class CharacterClass extends Feature
 		{
 			spellSlots.add(new SpellSlots(slot));
 		}
+		multiclassPrereqAll = data.optBoolean("multiclassPrereqAll", false);
+		multiclassPrereqAbilities.clear();
+		multiclassPrereqAbilities
+				.addAll(getList(data, "multiclassPrereqAbilities").stream().map(s -> Ability.valueOf(s)).toList());
+		JSONObject mcF = data.optJSONObject("multiclassFeatures");
+		if (mcF != null)
+		{
+			multiclassFeatures.loadConfig(mcF);
+		}
 	}
 
 	// Class Spells has both config (spell option counts) and state (spells
@@ -482,6 +564,7 @@ public class CharacterClass extends Feature
 	private int selectedEquipmentIndex = 0;
 	private int level = 1;
 	private Subclass subclass;
+	private boolean multiclass = false;
 
 	public Ability getSelectedPrimary()
 	{
@@ -541,6 +624,17 @@ public class CharacterClass extends Feature
 		}
 	}
 
+	public boolean isMulticlass()
+	{
+		return multiclass;
+	}
+
+	public void setMulticlass(boolean mul)
+	{
+		// There's no alert for this
+		this.multiclass = mul;
+	}
+
 	@Override
 	public JSONObject saveState()
 	{
@@ -572,6 +666,8 @@ public class CharacterClass extends Feature
 			d.put("fstate", f.saveState());
 			return d;
 		}).toList());
+
+		json = putBool(json, "multiclass", multiclass);
 
 		return json;
 	}
@@ -610,5 +706,86 @@ public class CharacterClass extends Feature
 				}
 			}
 		});
+
+		multiclass = data.optBoolean("multiclass", false);
+	}
+
+	// Other features multiclass affects
+
+	@Override
+	public List<Ability> getSaveProfs()
+	{
+		if (multiclass)
+		{
+			// None for multiclassed
+			return Collections.emptyList();
+		}
+		return super.getSaveProfs();
+	}
+
+	@Override
+	public List<String> getWeaponProfs()
+	{
+		if (multiclass)
+		{
+			// Special for multiclassed
+			return multiclassFeatures.getWeaponProfs();
+		}
+		return super.getWeaponProfs();
+	}
+
+	@Override
+	public List<String> getToolProfs()
+	{
+		if (multiclass)
+		{
+			// Special for multiclassed
+			return multiclassFeatures.getToolProfs();
+		}
+		return super.getToolProfs();
+	}
+
+	@Override
+	public List<String> getVehicleProfs()
+	{
+		if (multiclass)
+		{
+			// Special for multiclassed
+			return multiclassFeatures.getVehicleProfs();
+		}
+		return super.getVehicleProfs();
+	}
+
+	@Override
+	public List<ArmorTraining> getArmorProfs()
+	{
+		if (multiclass)
+		{
+			// Special for multiclassed
+			return multiclassFeatures.getArmorProfs();
+		}
+		return super.getArmorProfs();
+	}
+
+	@Override
+	public List<Skill> getSkillSelectionOptions()
+	{
+		if (multiclass)
+		{
+			// Special for multiclassed
+			return multiclassFeatures.getSkillSelectionOptions();
+		}
+		return super.getSkillSelectionOptions();
+	}
+
+	@Override
+	public int getSkillSelectionCount()
+	{
+		if (multiclass)
+		{
+			// Special for multiclassed
+			return multiclassFeatures.getSkillSelectionCount();
+		}
+		return super.getSkillSelectionCount();
 	}
 }

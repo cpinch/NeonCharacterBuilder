@@ -823,7 +823,7 @@ public class FeatureEditPanel extends EditPanel implements ActionListener
 
 	private String getSheetNotes()
 	{
-		return f.getSheetNotes().getText();
+		return f.getSheetNotesText();
 	}
 
 	private void updateSheetNotes(String s)

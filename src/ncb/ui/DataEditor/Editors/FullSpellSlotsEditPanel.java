@@ -2,6 +2,7 @@ package ncb.ui.DataEditor.Editors;
 
 import java.awt.GridLayout;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -68,7 +69,7 @@ public class FullSpellSlotsEditPanel extends NoHorizontalScrollPanel
 	private void updateValue(int classLvl)
 	{
 		SpellSlots slots = cls.getSpellSlotsForLevel(classLvl);
-		slotPanels.get(classLvl - 1).updateValues(slots.getSlots());
+		slotPanels.get(classLvl - 1).updateValues(Arrays.stream(slots.getSlots()).boxed().toArray(Integer[]::new));
 	}
 
 	private void updateSlot(int classLvl, int spLvl, int newVal)

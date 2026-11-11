@@ -10,20 +10,23 @@ import javax.swing.BoxLayout;
 import ncb.data.Feature;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
+import ncb.ui.HasAssociatedClass;
 import ncb.ui.ListensForChanges;
 import ncb.ui.NoHorizontalScrollPanel;
 
-public class ClassFeaturesPanel extends NoHorizontalScrollPanel implements ListensForChanges
+public class ClassFeaturesPanel extends NoHorizontalScrollPanel implements ListensForChanges, HasAssociatedClass
 {
 	private static final long serialVersionUID = -2739120980015488390L;
 
 	private final CharacterSheet sheet;
+	private final int classIndex;
 
 	private final List<FeaturePanel> featurePanels = new ArrayList<>();
 
-	public ClassFeaturesPanel(CharacterSheet sheet)
+	public ClassFeaturesPanel(CharacterSheet sheet, int multiclassIndex)
 	{
 		this.sheet = sheet;
+		this.classIndex = multiclassIndex;
 		setOpaque(false);
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
@@ -35,19 +38,31 @@ public class ClassFeaturesPanel extends NoHorizontalScrollPanel implements Liste
 	@Override
 	public void updateProperty(String prop)
 	{
-		if (sheet.getCharClass() != null)
+		if (getAssociatedClass() != null)
 		{
 			removeAll();
 			featurePanels.forEach(fp -> PropertyListener.stopListening(fp)); // Dropping these UI elements
 			featurePanels.clear();
-			for (Feature feature : sheet.getCharClass().getClassOnlyFeatures())
+			for (Feature feature : getAssociatedClass().getClassOnlyFeatures())
 			{
 				FeaturePanel fp = new FeaturePanel(sheet, feature,
-						feature.getLevel() < sheet.getCharClass().getLevel());
+						feature.getLevel() < getAssociatedClass().getLevel());
 				featurePanels.add(fp);
 				add(fp);
 				add(Box.createVerticalStrut(5));
 			}
 		}
+	}
+
+	@Override
+	public int getClassIndex()
+	{
+		return classIndex;
+	}
+
+	@Override
+	public CharacterSheet getSheet()
+	{
+		return sheet;
 	}
 }

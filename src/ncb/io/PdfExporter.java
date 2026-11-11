@@ -24,6 +24,7 @@ import ncb.data.LeveledText;
 import ncb.data.enums.Ability;
 import ncb.data.enums.ArmorTraining;
 import ncb.data.enums.Skill;
+import ncb.data.loadables.CharacterClass;
 import ncb.data.loadables.Spell;
 import ncb.main.BaseCharacterWindow;
 import ncb.main.CharacterSheet;
@@ -149,10 +150,19 @@ public class PdfExporter
 	private static void fillBasicCharInfo(PDAcroForm acroForm, CharacterSheet c) throws IOException
 	{
 		fillField(acroForm, NAME_F, c.getName());
-		fillField(acroForm, CLASS_F, c.getCharClass().getName());
-		if (c.getCharClass().getSubclass() != null)
+		List<String> classNames = c.getAllCharClasses().stream().map(cls -> cls.getName()).toList();
+		fillField(acroForm, CLASS_F, String.join("/", classNames));
+		List<String> subclassNames = new ArrayList<>();
+		for (CharacterClass cls : c.getAllCharClasses())
 		{
-			fillField(acroForm, SUBCLASS_F, c.getCharClass().getSubclass().getName());
+			if (cls.getSubclass() != null)
+			{
+				subclassNames.add(cls.getSubclass().getName());
+			}
+		}
+		if (!subclassNames.isEmpty())
+		{
+			fillField(acroForm, SUBCLASS_F, String.join("/", subclassNames));
 		}
 		fillField(acroForm, SPECIES_F, c.getSpecies().getName());
 		fillField(acroForm, HOMEWORLD_F, c.getBackground().getHomeworld().getName());
