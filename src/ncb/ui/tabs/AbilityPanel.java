@@ -158,13 +158,14 @@ public class AbilityPanel extends UIPanel implements ListensForChanges
 
 	private void updateSpellcastingAbilities()
 	{
+		Ability spellcastingAbility = sheet.getSpellcastingAbility();
 		List<Ability> spellAbilities = getSpellcastingAbilityOptions(sheet);
 		for (Ability a : Ability.realValues())
 		{
 			AbilityScorePanel ap = abilityPanels.get(a);
 			ap.showSpellcastingButton((spellAbilities.contains(a)) || (spellAbilities.contains(Ability.Primary)
 					&& a.equals(sheet.getCharClass().getSelectedPrimary())));
-			if (sheet.getSpellcastingAbility().equals(a))
+			if (spellcastingAbility != null && spellcastingAbility.equals(a))
 			{
 				ap.selectSpellcasting();
 			}

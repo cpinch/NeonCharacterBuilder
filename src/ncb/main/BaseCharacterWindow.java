@@ -9,6 +9,10 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -26,6 +30,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import ncb.data.loadables.CharacterClass;
 import ncb.io.JsonDataLoader;
 import ncb.ui.ListensForChanges;
 import ncb.ui.Toast;
@@ -35,6 +40,7 @@ import ncb.ui.tabs.AbilityPanel;
 import ncb.ui.tabs.BackgroundPanel;
 import ncb.ui.tabs.ClassPanel;
 import ncb.ui.tabs.LevelUpPanel;
+import ncb.ui.tabs.MulticlassPanel;
 import ncb.ui.tabs.SpeciesPanel;
 import ncb.ui.tabs.SpellsPanel;
 import ncb.ui.tabs.SubclassPanel;
@@ -49,7 +55,6 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 	private final JTabbedPane tabbedPane = new JTabbedPane();
 	private JTextField nameF;
 	private final ClassPanel classP = new ClassPanel(sheet);
-	private final SubclassPanel subclassP = new SubclassPanel(sheet);
 	private final SpeciesPanel speciesP = new SpeciesPanel(sheet);
 	private final AbilityPanel abilityP = new AbilityPanel(sheet);
 	private final BackgroundPanel backP = new BackgroundPanel(sheet);
@@ -122,6 +127,7 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		setLocationRelativeTo(null);
 		setVisible(true);
 
+		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
 	}
 
@@ -247,13 +253,47 @@ public class BaseCharacterWindow extends JFrame implements ActionListener, Chang
 		new BaseCharacterWindow();
 	}
 
+	private SubclassPanel subclassP = null;
+	private final List<MulticlassPanel> multiclassPanels = new ArrayList<>();
+	private final Map<Integer, SubclassPanel> multiclassSubclassPanels = new HashMap<>();
+
 	@Override
 	public void updateProperty(String prop)
 	{
-		if (sheet.getLevel() >= 3 && tabbedPane.indexOfComponent(subclassP) < 0)
+		// Base class subclass check
+		if (subclassP == null && sheet.getCharClass().getLevel() >= 3)
 		{
-			// Insert before Species
-			tabbedPane.insertTab("Subclass", null, subclassP, null, tabbedPane.indexOfTab("Species"));
+			// Insert after the base class panel
+			subclassP = new SubclassPanel(sheet);
+			// Because this panel didn't exist when the update fired, need to pass it along
+			subclassP.updateProperty(prop);
+			tabbedPane.insertTab("Subclass", null, subclassP, null, tabbedPane.indexOfTab("Class") + 1);
+		}
+
+		// Multiclass panels check
+		if (sheet.getMulticlasses().size() > multiclassPanels.size())
+		{
+			MulticlassPanel mp = new MulticlassPanel(sheet, sheet.getMulticlasses().size() - 1);
+			multiclassPanels.add(mp);
+			// Insert just before Species
+			tabbedPane.insertTab("Multiclass", null, mp, null, tabbedPane.indexOfTab("Species"));
+		}
+
+		// Each multiclass's subclass check
+		List<CharacterClass> multiclasses = sheet.getMulticlasses();
+		for (int i = 0; i < multiclasses.size(); i++)
+		{
+			CharacterClass cls = multiclasses.get(i);
+			if (!multiclassSubclassPanels.containsKey(i) && cls.getLevel() >= 3)
+			{
+				// Insert after the associated multiclass
+				SubclassPanel mcp = new SubclassPanel(sheet, i);
+				// Because this panel didn't exist when the update fired, need to pass it along
+				mcp.updateProperty(prop);
+				multiclassSubclassPanels.put(i, mcp);
+				tabbedPane.insertTab("Multi Subclass", null, mcp, null,
+						tabbedPane.indexOfComponent(multiclassPanels.get(i)) + 1);
+			}
 		}
 	}
 }

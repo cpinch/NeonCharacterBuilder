@@ -16,22 +16,25 @@ import com.formdev.flatlaf.FlatClientProperties;
 import ncb.data.enums.Skill;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
+import ncb.ui.HasAssociatedClass;
 import ncb.ui.ListensForChanges;
 import ncb.ui.UILib;
 
-public class ClassSkillSelector extends JPanel implements ActionListener, ListensForChanges
+public class ClassSkillSelector extends JPanel implements ActionListener, ListensForChanges, HasAssociatedClass
 {
 	private static final long serialVersionUID = -1513890001811947077L;
 
 	private static final int maxSkills = 4;
 
 	private final CharacterSheet sheet;
+	private final int classIndex;
 
 	private final List<JComboBox<Skill>> selectors = new ArrayList<>();
 
-	public ClassSkillSelector(CharacterSheet sheet)
+	public ClassSkillSelector(CharacterSheet sheet, int multiclassIndex)
 	{
 		this.sheet = sheet;
+		this.classIndex = multiclassIndex;
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 		PropertyListener.listenForChanges(PropertyListener.SKILLPROFS, this);
 
@@ -55,11 +58,11 @@ public class ClassSkillSelector extends JPanel implements ActionListener, Listen
 	@Override
 	public void updateProperty(String prop)
 	{
-		if (sheet.getCharClass() != null)
+		if (getAssociatedClass() != null)
 		{
-			List<Skill> options = sheet.getCharClass().getSkillSelectionOptions();
-			List<Skill> charSkills = new ArrayList<>(sheet.getCharClass().getSkillsSelected());
-			int count = sheet.getCharClass().getSkillSelectionCount();
+			List<Skill> options = getAssociatedClass().getSkillSelectionOptions();
+			List<Skill> charSkills = new ArrayList<>(getAssociatedClass().getSkillsSelected());
+			int count = getAssociatedClass().getSkillSelectionCount();
 			for (int i = maxSkills - 1; i >= 0; i--)
 			{
 				JComboBox<Skill> selector = selectors.get(i);
@@ -111,6 +114,18 @@ public class ClassSkillSelector extends JPanel implements ActionListener, Listen
 				selectedSkills.add(s);
 			}
 		}
-		sheet.getCharClass().setSkillsSelected(selectedSkills);
+		getAssociatedClass().setSkillsSelected(selectedSkills);
+	}
+
+	@Override
+	public int getClassIndex()
+	{
+		return classIndex;
+	}
+
+	@Override
+	public CharacterSheet getSheet()
+	{
+		return sheet;
 	}
 }

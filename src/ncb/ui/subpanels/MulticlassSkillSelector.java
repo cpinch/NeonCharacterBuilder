@@ -1,0 +1,142 @@
+package ncb.ui.subpanels;
+
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.JComboBox;
+import javax.swing.JPanel;
+
+import com.formdev.flatlaf.FlatClientProperties;
+
+import ncb.data.enums.Skill;
+import ncb.main.CharacterSheet;
+import ncb.main.PropertyListener;
+import ncb.ui.HasAssociatedClass;
+import ncb.ui.ListensForChanges;
+import ncb.ui.UILib;
+
+public class MulticlassSkillSelector extends JPanel implements ActionListener, ListensForChanges, HasAssociatedClass
+{
+	private static final long serialVersionUID = -1513890001811947077L;
+
+	private static final int maxSkills = 4;
+
+	private final CharacterSheet sheet;
+	private final int classIndex;
+
+	private final List<JComboBox<Skill>> selectors = new ArrayList<>();
+
+	public MulticlassSkillSelector(CharacterSheet sheet, int multiclassIndex)
+	{
+		this.sheet = sheet;
+		this.classIndex = multiclassIndex;
+		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
+		PropertyListener.listenForChanges(PropertyListener.SKILLPROFS, this);
+
+		setLayout(new GridBagLayout());
+		setOpaque(false);
+
+		GridBagConstraints c = UILib.getStandardGBC();
+		c.insets = new Insets(0, 0, 0, 0);
+
+		UILib.addLabel(this, "Skill Proficiencies: ", c).putClientProperty(FlatClientProperties.STYLE, "font: bold");
+		c.gridx++;
+		for (int i = 0; i < maxSkills; i++)
+		{
+			JComboBox<Skill> selector = UILib.getComboBox(new Skill[0], this);
+			add(selector, c);
+			c.gridx++;
+			selectors.add(selector);
+		}
+	}
+
+	@Override
+	public void updateProperty(String prop)
+	{
+		if (getAssociatedClass() != null)
+		{
+			List<Skill> options = getAssociatedClass().getMulticlassFeature().getSkillSelectionOptions();
+			List<Skill> charSkills = new ArrayList<>(getAssociatedClass().getSkillsSelected());
+			int count = getAssociatedClass().getMulticlassFeature().getSkillSelectionCount();
+
+			if (count <= 0)
+			{
+				setVisible(false);
+				return;
+			}
+			else
+			{
+				setVisible(true);
+			}
+
+			for (int i = maxSkills - 1; i >= 0; i--)
+			{
+				JComboBox<Skill> selector = selectors.get(i);
+				if (i >= count)
+				{
+					selector.setVisible(false);
+				}
+				else
+				{
+					selector.setVisible(true);
+					selector.removeActionListener(this);
+					selector.removeAllItems();
+					if (options.contains(Skill.Any))
+					{
+						for (Skill s : Skill.realValues())
+						{
+							selector.addItem(s);
+						}
+					}
+					else
+					{
+						options.forEach(s -> selector.addItem(s));
+					}
+					selector.addActionListener(this);
+					if (charSkills.size() > i)
+					{
+						selector.setSelectedItem(charSkills.get(i));
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e)
+	{
+		List<Skill> selectedSkills = new ArrayList<>();
+		for (JComboBox<Skill> sel : selectors)
+		{
+			if (sel.isVisible())
+			{
+				Skill s = (Skill) sel.getSelectedItem();
+				if (s == null)
+				{
+					// We are in the middle of an update, we've done the removeAll but haven't added
+					// skills yet, this update is worthless
+					return;
+				}
+				selectedSkills.add(s);
+			}
+		}
+		getAssociatedClass().setSkillsSelected(selectedSkills);
+	}
+
+	@Override
+	public int getClassIndex()
+	{
+		return classIndex;
+	}
+
+	@Override
+	public CharacterSheet getSheet()
+	{
+		return sheet;
+	}
+}

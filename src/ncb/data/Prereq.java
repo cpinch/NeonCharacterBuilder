@@ -65,7 +65,7 @@ public class Prereq implements HasConfig
 				}
 				return false;
 			case clsLvl:
-				List<CharacterClass> classes = List.of(sheet.getCharClass()); // TODO Multiclass
+				List<CharacterClass> classes = sheet.getAllCharClasses();
 
 				return classes.stream().anyMatch(c -> c.getName().equals(reqClassName) && c.getLevel() >= reqVal);
 			case pSel:

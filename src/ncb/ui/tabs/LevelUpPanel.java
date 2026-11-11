@@ -1,13 +1,20 @@
 package ncb.ui.tabs;
 
 import java.awt.BorderLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
+import ncb.data.loadables.CharacterClass;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
 import ncb.ui.ListensForChanges;
@@ -23,6 +30,7 @@ public class LevelUpPanel extends UIPanel implements ActionListener, ListensForC
 	private CharacterSheet sheet;
 
 	private final JButton lvlUp = new JButton("Level Up");
+	private final JButton multiclass = new JButton("Multiclass");
 	private final JPanel changesPanel = new NoHorizontalScrollPanel();
 
 	public LevelUpPanel(CharacterSheet sheet)
@@ -31,6 +39,7 @@ public class LevelUpPanel extends UIPanel implements ActionListener, ListensForC
 		setLayout(new BorderLayout());
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 		PropertyListener.listenForChanges(PropertyListener.CLASSLEVEL, this);
+		PropertyListener.listenForChanges(PropertyListener.SUBCLASS, this);
 		PropertyListener.listenForChanges(PropertyListener.SPECIES, this);
 
 		add(UILib.getTextDisplay(
@@ -41,18 +50,34 @@ public class LevelUpPanel extends UIPanel implements ActionListener, ListensForC
 		changesPanel.setOpaque(false);
 		add(UILib.getScrollPaneFor(changesPanel), BorderLayout.CENTER);
 
+		JPanel buttonPanel = new NoHorizontalScrollPanel();
+		buttonPanel.setLayout(new GridLayout(1, 2));
 		lvlUp.addActionListener(this);
-		add(lvlUp, BorderLayout.PAGE_END);
+		buttonPanel.add(lvlUp);
+		multiclass.addActionListener(this);
+		buttonPanel.add(multiclass);
+		add(buttonPanel, BorderLayout.PAGE_END);
 	}
 
 	@Override
 	public void updateProperty(String prop)
 	{
-		int charLevel = sheet.getLevel();
+		List<Integer> lvlUpOrder = sheet.getLevelUpOrder();
+		Map<Integer, Integer> clsIndexLevels = new HashMap<>();
 		changesPanel.removeAll();
-		for (int i = 2; i <= charLevel; i++)
+		clsIndexLevels.put(lvlUpOrder.get(0), 1);
+		for (int i = 1; i < lvlUpOrder.size(); i++) // Skip level 1
 		{
-			changesPanel.add(new LvlChangePanel(i, sheet, i != charLevel));
+			int clsIndex = lvlUpOrder.get(i);
+			if (!clsIndexLevels.containsKey(clsIndex))
+			{
+				clsIndexLevels.put(clsIndex, 0);
+			}
+
+			clsIndexLevels.put(clsIndex, clsIndexLevels.get(clsIndex) + 1);
+			int clsLvl = clsIndexLevels.get(clsIndex);
+			int charLvl = i + 1; // The 0th element of the level up order is level 1
+			changesPanel.add(new LvlChangePanel(sheet, clsIndex, clsLvl, charLvl, i < lvlUpOrder.size() - 1));
 		}
 		revalidate();
 	}
@@ -62,8 +87,63 @@ public class LevelUpPanel extends UIPanel implements ActionListener, ListensForC
 	{
 		if (e.getSource().equals(lvlUp))
 		{
-			// TODO Multiclass
-			sheet.getCharClass().setLevel(sheet.getLevel() + 1);
+			if (sheet.getMulticlasses().isEmpty())
+			{
+				// Single class character, easy
+				sheet.levelUp(CharacterSheet.baseClassIndex);
+			}
+			else
+			{
+				// Ask which class to level up
+				List<CharacterClass> options = sheet.getAllCharClasses();
+				CharacterClass cls = (CharacterClass) JOptionPane.showInputDialog(null, "Level up which class?",
+						"Select Class", JOptionPane.QUESTION_MESSAGE, null, options.toArray(new CharacterClass[0]),
+						options.get(0));
+
+				if (cls != null)
+				{
+					int index = options.indexOf(cls) - 1; // The 0th element of the list is the base class
+					sheet.levelUp(index < 0 ? CharacterSheet.baseClassIndex : index);
+				}
+			}
+		}
+		else if (e.getSource().equals(multiclass))
+		{
+			List<CharacterClass> options = new ArrayList<>();
+
+			if (sheet.canMulticlassOutOfCurrentClasses())
+			{
+				for (CharacterClass cls : CharacterClass.getAllClasses())
+				{
+					if (sheet.getAllCharClasses().stream().anyMatch(c -> c.getName().equals(cls.getName())))
+					{
+						// We already have this class as base or another multiclass, skip
+						continue;
+					}
+					if (cls.multiclassPrereqsMet(sheet.getTotalAbilityScores()))
+					{
+						options.add(cls);
+					}
+				}
+			}
+
+			if (options.isEmpty())
+			{
+				JOptionPane.showMessageDialog(null,
+						"You do not qualify to multiclass to any classes. You must meet the multiclass requirements of your current class(es) and the multiclass requirement of the class you want to multiclass to.",
+						"No Valid Multiclass", JOptionPane.WARNING_MESSAGE, null);
+			}
+			else
+			{
+				CharacterClass cls = (CharacterClass) JOptionPane.showInputDialog(null, "Multiclass into?",
+						"Select Class", JOptionPane.QUESTION_MESSAGE, null, options.toArray(new CharacterClass[0]),
+						options.get(0));
+
+				if (cls != null)
+				{
+					sheet.addMulticlass(cls);
+				}
+			}
 		}
 	}
 }

@@ -2,6 +2,7 @@ package ncb.ui.subpanels;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
 import java.util.List;
 
@@ -13,27 +14,34 @@ import com.formdev.flatlaf.ui.FlatBorder;
 import ncb.data.enums.ArmorTraining;
 import ncb.main.CharacterSheet;
 import ncb.main.PropertyListener;
+import ncb.ui.HasAssociatedClass;
 import ncb.ui.ListensForChanges;
+import ncb.ui.NoHorizontalScrollPanel;
 import ncb.ui.UILib;
 
-public class ClassTraitsPanel extends JPanel implements ListensForChanges
+public class ClassTraitsPanel extends JPanel implements ListensForChanges, HasAssociatedClass
 {
 	private static final long serialVersionUID = -2739120980015488390L;
 
 	private final CharacterSheet sheet;
+	private final int classIndex;
 
 	private final PrimaryAbilityPanel primaryAbilityPanel;
 	private final JLabel HD;
 	private final JLabel saves;
 	private final ClassSkillSelector skills;
+	private final JPanel weaponsPanel = new NoHorizontalScrollPanel();
 	private final JLabel weapons;
+	private final JPanel toolsPanel = new NoHorizontalScrollPanel();
 	private final JLabel tools;
+	private final JPanel armorPanel = new NoHorizontalScrollPanel();
 	private final JLabel armor;
 	private final EquipmentSelectionPanel equipmentSelectionPanel;
 
-	public ClassTraitsPanel(CharacterSheet sheet)
+	public ClassTraitsPanel(CharacterSheet sheet, int multiclassIndex)
 	{
 		this.sheet = sheet;
+		this.classIndex = multiclassIndex;
 
 		setBorder(new FlatBorder());
 		setLayout(new GridBagLayout());
@@ -42,7 +50,7 @@ public class ClassTraitsPanel extends JPanel implements ListensForChanges
 		c.insets = new Insets(5, 5, 5, 5);
 		PropertyListener.listenForChanges(PropertyListener.CLASS, this);
 
-		primaryAbilityPanel = new PrimaryAbilityPanel(sheet);
+		primaryAbilityPanel = new PrimaryAbilityPanel(sheet, classIndex);
 		add(primaryAbilityPanel, c);
 		c.gridy++;
 
@@ -54,53 +62,83 @@ public class ClassTraitsPanel extends JPanel implements ListensForChanges
 		UILib.addLabeledComponent(this, "Save Proficiencies: ", saves, c);
 		c.gridy++;
 
-		skills = new ClassSkillSelector(sheet);
+		skills = new ClassSkillSelector(sheet, classIndex);
 		add(skills, c);
 		c.gridy++;
 
+		weaponsPanel.setLayout(new GridLayout(1, 1));
 		weapons = UILib.getLabel("");
-		UILib.addLabeledComponent(this, "Weapon Proficiencies: ", weapons, c);
+		UILib.addLabeledComponent(weaponsPanel, "Weapon Proficiencies: ", weapons);
+		add(weaponsPanel, c);
 		c.gridy++;
 
+		toolsPanel.setLayout(new GridLayout(1, 1));
 		tools = UILib.getLabel("");
-		UILib.addLabeledComponent(this, "Tool Proficiencies: ", tools, c);
+		UILib.addLabeledComponent(toolsPanel, "Tool Proficiencies: ", tools);
+		add(toolsPanel, c);
 		c.gridy++;
 
+		armorPanel.setLayout(new GridLayout(1, 1));
 		armor = UILib.getLabel("");
-		UILib.addLabeledComponent(this, "Armor Training: ", armor, c);
+		UILib.addLabeledComponent(armorPanel, "Armor Training: ", armor);
+		add(armorPanel, c);
 		c.gridy++;
 
 		c.weighty = 1;
-		equipmentSelectionPanel = new EquipmentSelectionPanel(sheet);
+		equipmentSelectionPanel = new EquipmentSelectionPanel(sheet, classIndex);
 		add(equipmentSelectionPanel, c);
 	}
 
 	@Override
 	public void updateProperty(String prop)
 	{
-		HD.setText("D" + sheet.getCharClass().getHd());
-		saves.setText(String.join(" and ", sheet.getCharClass().getSaveProfs().stream().map(a -> a.name()).toList()));
-		weapons.setText(
-				String.join(" and ", sheet.getCharClass().getWeaponProfs().stream().map(w -> w.toString()).toList()));
-		List<String> toolProfs = sheet.getCharClass().getToolProfs();
-		if (toolProfs.isEmpty())
+		if (getAssociatedClass() != null)
 		{
-			tools.setVisible(false);
+			HD.setText("D" + getAssociatedClass().getHd());
+			saves.setText(
+					String.join(" and ", getAssociatedClass().getSaveProfs().stream().map(a -> a.name()).toList()));
+			List<String> weaponProfs = getAssociatedClass().getMulticlassFeature().getWeaponProfs();
+			if (weaponProfs.isEmpty())
+			{
+				weaponsPanel.setVisible(false);
+			}
+			else
+			{
+				weaponsPanel.setVisible(true);
+				weapons.setText(String.join(" and ", weaponProfs));
+			}
+			List<String> toolProfs = getAssociatedClass().getToolProfs();
+			if (toolProfs.isEmpty())
+			{
+				toolsPanel.setVisible(false);
+			}
+			else
+			{
+				toolsPanel.setVisible(true);
+				tools.setText(String.join(" and ", toolProfs));
+			}
+			List<ArmorTraining> armorProfs = getAssociatedClass().getArmorProfs();
+			if (armorProfs.isEmpty())
+			{
+				armorPanel.setVisible(false);
+			}
+			else
+			{
+				armorPanel.setVisible(true);
+				armor.setText(String.join(" and ", armorProfs.stream().map(ap -> ap.name()).toList()));
+			}
 		}
-		else
-		{
-			tools.setVisible(true);
-			tools.setText(String.join(" and ", toolProfs));
-		}
-		List<ArmorTraining> armorProfs = sheet.getCharClass().getArmorProfs();
-		if (armorProfs.isEmpty())
-		{
-			armor.setVisible(false);
-		}
-		else
-		{
-			armor.setVisible(true);
-			armor.setText(String.join(" and ", armorProfs.stream().map(ap -> ap.name()).toList()));
-		}
+	}
+
+	@Override
+	public int getClassIndex()
+	{
+		return classIndex;
+	}
+
+	@Override
+	public CharacterSheet getSheet()
+	{
+		return sheet;
 	}
 }
